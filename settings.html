@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 · 设置</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-warm: #F5E6D3;
+            --primary: #8B5A2B;
+            --primary-light: #A67B4B;
+            --accent: #C04040;
+            --text-dark: #4A3728;
+            --text-light: #8B7355;
+            --card-bg: #FDF8F3;
+            --border: rgba(184, 134, 11, 0.3);
+        }
+        body { font-family: 'Noto Serif SC', serif; background: var(--bg-warm); min-height: 100vh; }
+        
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 54px;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 2px 10px rgba(184,134,11,0.18);
+            color: var(--primary);
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 20px;
+            color: var(--primary);
+            letter-spacing: 4px;
+            margin-right: 36px;
+        }
+        
+        /* 内容区域 */
+        .content {
+            padding: 70px 16px 30px;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+        
+        /* 设置组 */
+        .setting-group {
+            background: #fff;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(139,90,43,0.08);
+        }
+        .setting-title {
+            padding: 16px 20px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border);
+        }
+        .setting-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            cursor: pointer;
+        }
+        .setting-item + .setting-item {
+            border-top: 1px solid rgba(184, 134, 11, 0.1);
+        }
+        .setting-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        .setting-icon.orange { background: #FFF3E0; }
+        .setting-icon.blue { background: #E3F2FD; }
+        .setting-icon.red { background: #FFEBEE; }
+        .setting-icon.green { background: #E8F5E9; }
+        .setting-icon.purple { background: #F3E5F5; }
+        .setting-icon.gold { background: #FFF8E1; }
+        .setting-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .setting-arrow {
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        /* 开关 */
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: #e0e0e0;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background .3s;
+        }
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+        .toggle-switch::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: left .3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+        
+        /* 版本信息 */
+        .version-info {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .version-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFFBF0 0%, #FDF8F3 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 12px;
+            border: 2px solid var(--border);
+        }
+        .version-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .version-number {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+        
+        /* 退出按钮 */
+        .logout-btn {
+            width: 100%;
+            height: 48px;
+            background: #fff;
+            border: 1.5px solid var(--accent);
+            border-radius: 12px;
+            color: var(--accent);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        /* 底部版权 */
+        .copyright {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 11px;
+            color: var(--text-light);
+            opacity: 0.6;
+        }
+        .copyright-slogan {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        /* 管理员入口 */
+        .admin-entry {
+            text-align: center;
+            padding: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            opacity: 0.4;
+        }
+        .admin-entry:hover {
+            opacity: 0.6;
+        }
+        
+        /* 滑入面板 */
+        .slide-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 85%;
+            max-width: 380px;
+            background: #fff;
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        .slide-panel.active {
+            transform: translateX(0);
+        }
+        .slide-panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .slide-panel-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .slide-panel-header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            z-index: 1;
+        }
+        .slide-panel-back {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--primary);
+            margin-right: 12px;
+        }
+        .slide-panel-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+            margin-right: 44px;
+        }
+        .slide-panel-content {
+            padding: 20px 16px;
+        }
+        .panel-form-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(184,134,11,0.1);
+        }
+        .panel-form-item:last-child {
+            border-bottom: none;
+        }
+        .panel-form-label {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .panel-form-value {
+            font-size: 14px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .panel-form-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-dark);
+            outline: none;
+            margin-top: 8px;
+        }
+        .panel-form-input:focus {
+            border-color: var(--primary);
+        }
+        .panel-btn {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .panel-btn:active {
+            transform: scale(0.98);
+        }
+        .panel-section {
+            margin-bottom: 20px;
+        }
+        .panel-section-title {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            background: rgba(139,90,43,0.9);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <a href="profile.html" class="back-btn">←</a>
+        <div class="header-title">设置</div>
+    </div>
+    
+    <!-- 内容区域 -->
+    <div class="content">
+        <!-- 账号设置 -->
+        <div class="setting-group">
+            <div class="setting-title">账号设置</div>
+            <div class="setting-item">
+                <div class="setting-icon orange">👤</div>
+                <div class="setting-text">个人信息</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon blue">🔐</div>
+                <div class="setting-text">修改密码</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon green">📱</div>
+                <div class="setting-text">绑定手机</div>
+                <div class="setting-arrow">›</div>
+            </div>
+        </div>
+        
+        <!-- 偏好设置 -->
+        <div class="setting-group">
+            <div class="setting-title">偏好设置</div>
+            <div class="setting-item" onclick="showPanel('notifyPanel')">
+                <div class="setting-icon purple">🔔</div>
+                <div class="setting-text">消息通知</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon orange">🎵</div>
+                <div class="setting-text">音效</div>
+                <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon blue">🌙</div>
+                <div class="setting-text">深色模式</div>
+                <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon green">📶</div>
+                <div class="setting-text">省流模式</div>
+                <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+            </div>
+        </div>
+        
+        <!-- 支付设置 -->
+        <div class="setting-group">
+            <div class="setting-title">支付设置</div>
+            <div class="setting-item" onclick="showPanel('payPanel')">
+                <div class="setting-icon gold">💳</div>
+                <div class="setting-text">支付方式</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon orange">🔐</div>
+                <div class="setting-text">支付密码</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon green">👆</div>
+                <div class="setting-text">指纹支付</div>
+                <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+            </div>
+        </div>
+        
+        <!-- 通用设置 -->
+        <div class="setting-group">
+            <div class="setting-title">通用设置</div>
+            <div class="setting-item">
+                <div class="setting-icon red">🗑️</div>
+                <div class="setting-text">清理缓存</div>
+                <div class="setting-text" style="color: var(--text-light); font-size: 13px; margin-right: 8px;">23.5 MB</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon purple">📥</div>
+                <div class="setting-text">检查更新</div>
+                <div class="setting-text" style="color: #4CAF50; font-size: 13px; margin-right: 8px;">已是最新</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon blue">📖</div>
+                <div class="setting-text">用户协议</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon green">🔒</div>
+                <div class="setting-text">隐私政策</div>
+                <div class="setting-arrow">›</div>
+            </div>
+        </div>
+        
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <div class="version-logo">🙏</div>
+            <div class="version-name">祈个福</div>
+            <div class="version-number">Version 1.0.0</div>
+        </div>
+        
+        <!-- 管理员入口（长按进入） -->
+        <div class="admin-entry" id="adminEntry" onmousedown="startAdminTimer()" onmouseup="clearAdminTimer()" ontouchstart="startAdminTimer()" ontouchend="clearAdminTimer()">
+            <div class="copyright-slogan">愿力所及 · 皆为净土</div>
+            <div class="copyright">一心向善 © 2024</div>
+        </div>
+        
+        <!-- 退出登录 -->
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+    
+    <!-- 滑入面板遮罩 -->
+    <div class="slide-panel-overlay" id="slideOverlay" onclick="closePanel()"></div>
+    
+    <!-- 账号与安全面板 -->
+    <div class="slide-panel" id="accountPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back" onclick="closePanel()">‹</div>
+            <div class="slide-panel-title">账户与安全</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">基本信息</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">头像</span>
+                    <div class="panel-form-value">
+                        <span style="font-size:28px;">🙏</span>
+                        <span>›</span>
+                    </div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">昵称</span>
+                    <div class="panel-form-value">
+                        <span>一心向善</span>
+                        <span>›</span>
+                    </div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">性别</span>
+                    <div class="panel-form-value">
+                        <span>未设置</span>
+                        <span>›</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-section-title">账号安全</div>
+                <div class="panel-form-item" onclick="showChangePassword()">
+                    <span class="panel-form-label">修改密码</span>
+                    <div class="panel-form-value">›</div>
+                </div>
+                <div class="panel-form-item" onclick="showBindPhone()">
+                    <span class="panel-form-label">绑定手机</span>
+                    <div class="panel-form-value">189****6788 ›</div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">微信绑定</span>
+                    <div class="panel-form-value" style="color:#4CAF50;">已绑定 ›</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 支付设置面板 -->
+    <div class="slide-panel" id="payPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back" onclick="closePanel()">‹</div>
+            <div class="slide-panel-title">支付设置</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">支付方式</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">微信支付</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">支付宝</span>
+                    <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-section-title">安全设置</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">支付密码</span>
+                    <div class="panel-form-value">未设置 ›</div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">指纹支付</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 消息通知面板 -->
+    <div class="slide-panel" id="notifyPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back" onclick="closePanel()">‹</div>
+            <div class="slide-panel-title">消息通知</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">通知类型</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">系统通知</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">祈愿提醒</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">放生活动</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">会员权益</span>
+                    <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">系统公告</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-section-title">推送设置</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">声音</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">震动</span>
+                    <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 修改密码面板 -->
+    <div class="slide-panel" id="passwordPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back" onclick="closeSubPanel()">‹</div>
+            <div class="slide-panel-title">修改密码</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">当前密码</span>
+                    <input type="password" class="panel-form-input" placeholder="请输入当前密码">
+                </div>
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">新密码</span>
+                    <input type="password" class="panel-form-input" placeholder="请输入新密码（6-20位）">
+                </div>
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">确认密码</span>
+                    <input type="password" class="panel-form-input" placeholder="请再次输入新密码">
+                </div>
+            </div>
+            <button class="panel-btn" onclick="savePassword()">确认修改</button>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        var adminTimer = null;
+        var currentPanel = null;
+        
+        function toggleSwitch(el) {
+            el.classList.toggle('active');
+        }
+        
+        function showPanel(panelId) {
+            closePanel();
+            currentPanel = panelId;
+            document.getElementById('slideOverlay').classList.add('active');
+            document.getElementById(panelId).classList.add('active');
+        }
+        
+        function closePanel() {
+            document.getElementById('slideOverlay').classList.remove('active');
+            document.querySelectorAll('.slide-panel').forEach(function(p) {
+                p.classList.remove('active');
+            });
+            currentPanel = null;
+        }
+        
+        function closeSubPanel() {
+            document.getElementById('passwordPanel').classList.remove('active');
+        }
+        
+        function showChangePassword() {
+            document.getElementById('passwordPanel').classList.add('active');
+        }
+        
+        function showBindPhone() {
+            showToast('请在APP中绑定手机');
+        }
+        
+        function savePassword() {
+            showToast('密码修改成功');
+            setTimeout(function() {
+                closePanel();
+            }, 1000);
+        }
+        
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 1500);
+        }
+        
+        function startAdminTimer() {
+            adminTimer = setTimeout(function() {
+                showToast('正在进入管理员后台...');
+                window.location.href = 'admin.html';
+            }, 2000);
+        }
+        
+        function clearAdminTimer() {
+            if (adminTimer) {
+                clearTimeout(adminTimer);
+                adminTimer = null;
+            }
+        }
+        
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // 设置项点击处理
+        document.addEventListener('DOMContentLoaded', function() {
+            // 账号设置
+            var accountItems = document.querySelectorAll('.setting-group:first-of-type .setting-item');
+            accountItems.forEach(function(item) {
+                item.style.cursor = 'pointer';
+                item.onclick = function() {
+                    showPanel('accountPanel');
+                };
+            });
+            
+            // 通用设置
+            var commonItems = document.querySelectorAll('.setting-group:nth-of-type(3) .setting-item');
+            commonItems.forEach(function(item, index) {
+                item.style.cursor = 'pointer';
+                item.onclick = function() {
+                    if (index === 0) { // 清理缓存
+                        showToast('正在清理缓存...');
+                        setTimeout(function() {
+                            showToast('缓存已清理');
+                        }, 1000);
+                    } else if (index === 1) { // 检查更新
+                        showToast('已是最新版本');
+                    } else if (index === 2) { // 用户协议
+                        showToast('用户协议');
+                    } else if (index === 3) { // 隐私政策
+                        showToast('隐私政策');
+                    }
+                };
+            });
+        });
+    </script>
+</body>
+</html>

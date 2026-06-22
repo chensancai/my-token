@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员 · 菩提 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F4E8D8 0%, #FFFBEE 100%);
+            min-height: 100vh;
+            color: #4A3728;
+            overflow-x: hidden;
+        }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .phone-wrap {
+            background: #111;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 0 2px #D4AF37, 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5);
+        }
+        .phone-notch {
+            position: absolute; top: 8px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 22px;
+            background: #000; border-radius: 12px; z-index: 50;
+        }
+        .phone-screen {
+            width: 100%; min-height: 1800px;
+            border-radius: 32px; overflow: hidden;
+            background: linear-gradient(180deg, #F4E8D8 0%, #FFFBEE 100%);
+            position: relative;
+        }
+        .status-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 44px; padding: 10px 16px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; font-weight: 600; z-index: 10;
+            color: rgba(74,55,40,0.8);
+        }
+        .back-btn {
+            position: absolute; top: 8px; left: 10px;
+            width: 30px; height: 30px;
+            background: rgba(139,90,43,0.1);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer; z-index: 100;
+            border: 1px solid rgba(139,90,43,0.2);
+            color: #8B5A2B;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .scroll-area { padding: 55px 20px 30px; }
+
+        /* 顶部横幅 */
+        .member-hero {
+            background: linear-gradient(135deg, #A67B4B 0%, #C4955A 35%, #8B5A2B 100%);
+            border-radius: 20px;
+            padding: 24px 20px 22px;
+            color: #FFFBEE;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 24px rgba(139,90,43,0.25);
+        }
+        .member-hero::before {
+            content: "卍";
+            position: absolute;
+            top: -15px; right: -5px;
+            font-size: 110px;
+            color: rgba(255,240,220,0.12);
+        }
+        .member-hero-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 22px;
+            letter-spacing: 4px;
+            margin-bottom: 6px;
+        }
+        .member-hero-sub {
+            font-size: 11px;
+            letter-spacing: 2px;
+            opacity: 0.85;
+        }
+        .member-hero-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 18px;
+            position: relative;
+            z-index: 2;
+        }
+        .member-hero-stat {
+            flex: 1;
+            background: rgba(255,240,220,0.15);
+            border: 1px solid rgba(255,240,220,0.3);
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
+        }
+        .member-hero-stat-num {
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+        }
+        .member-hero-stat-label {
+            font-size: 10px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* 套餐卡 */
+        .plan-card {
+            background: linear-gradient(135deg, #FFF8EC 0%, #FFFFFF 100%);
+            border: 2px solid rgba(184,134,11,0.25);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(139,90,43,0.08);
+        }
+        .plan-card.recommended {
+            border: 2px solid #D4AF37;
+            background: linear-gradient(135deg, #FFFBEE 0%, #FFF0D4 100%);
+        }
+        .plan-tag {
+            position: absolute;
+            top: -12px; right: 20px;
+            background: linear-gradient(135deg, #A67B4B 0%, #D4AF37 50%, #8B5A2B 100%);
+            color: #FFFBEE;
+            font-size: 11px; font-weight: 700;
+            padding: 5px 14px; border-radius: 14px;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 2px 8px rgba(184,134,11,0.3);
+        }
+        .plan-name {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 18px;
+            color: #8B5A2B;
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+        }
+        .plan-desc {
+            font-size: 11px;
+            color: #8B7355;
+            margin-bottom: 14px;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        /* 权益列表 */
+        .benefits-list {
+            list-style: none;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            background: rgba(212,168,85,0.08);
+            border-radius: 12px;
+        }
+        .benefits-list li {
+            padding: 5px 0 5px 18px;
+            position: relative;
+            font-size: 12px;
+            color: #4A3728;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+        .benefits-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #D4AF37;
+            font-size: 10px;
+            top: 8px;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(139,90,43,0.2);
+        }
+        .price-info {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .price-info .price {
+            font-size: 22px;
+            color: #8B5A2B;
+            font-weight: 700;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+        }
+        .price-info .price-unit {
+            font-size: 11px; color: #8B7355;
+        }
+        .price-info .price-origin {
+            font-size: 11px; color: #8B7355;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            color: #FFFBEE;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 22px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 12px rgba(184,134,11,0.3);
+            transition: transform 0.2s;
+        }
+        .action-btn:active { transform: scale(0.96); }
+
+        /* 协议 */
+        .protocol-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: rgba(184,134,11,0.04);
+            border-radius: 10px;
+            font-size: 11px;
+            color: #8B7355;
+            line-height: 1.6;
+        }
+        .protocol-check input { margin-top: 2px; accent-color: #8B5A2B; }
+        .protocol-link {
+            color: #8B5A2B; font-weight: 700;
+            text-decoration: underline; cursor: pointer;
+        }
+
+        /* 规则卡片 */
+        .rules-card {
+            background: linear-gradient(135deg, #FFF8EC 0%, #FFFFFF 100%);
+            border: 2px solid rgba(184,134,11,0.25);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(139,90,43,0.08);
+        }
+        .rules-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 16px;
+            color: #8B5A2B;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(139,90,43,0.2);
+        }
+        .rules-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 18px;
+        }
+        .rules-list:last-child { margin-bottom: 0; }
+        .rules-list li {
+            padding: 6px 0 6px 24px;
+            position: relative;
+            font-size: 12px;
+            color: #4A3728;
+            line-height: 1.7;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+        }
+        .rules-list li::before {
+            content: attr(data-num);
+            position: absolute;
+            left: 0;
+            color: #D4AF37;
+            font-weight: 700;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 13px;
+        }
+        .rules-list li .highlight {
+            color: #8B5A2B;
+            font-weight: 700;
+            background: rgba(212,168,85,0.15);
+            padding: 1px 6px;
+            border-radius: 6px;
+            margin: 0 2px;
+        }
+
+        /* 专属权益区块 */
+        .privilege-box {
+            background: rgba(212,168,85,0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            line-height: 1.8;
+            font-size: 12px;
+            color: #4A3728;
+            letter-spacing: 0.5px;
+        }
+        .privilege-line {
+            padding: 4px 0 4px 20px;
+            position: relative;
+        }
+        .privilege-line::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #D4AF37;
+            font-size: 10px;
+            top: 9px;
+        }
+
+        /* 大按钮 */
+        .big-action-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            color: #FFFBEE;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 16px rgba(184,134,11,0.3);
+            transition: transform 0.2s;
+        }
+        .big-action-btn:active { transform: scale(0.98); }
+
+        /* 求购需求 */
+        .request-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 16px;
+            color: #8B5A2B;
+            letter-spacing: 3px;
+            margin: 4px 0 14px;
+            padding-left: 4px;
+        }
+        .request-card {
+            background: linear-gradient(135deg, #FFF8EC 0%, #FFFFFF 100%);
+            border: 1.5px solid rgba(139,90,43,0.2);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 3px 12px rgba(139,90,43,0.08);
+        }
+        .request-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFE8B5 0%, #D4AF37 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+            border: 2px solid rgba(212,168,85,0.4);
+        }
+        .request-info { flex: 1; min-width: 0; }
+        .request-name {
+            font-size: 13px; color: #4A3728;
+            font-weight: 600; letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+        .request-detail {
+            font-size: 11px; color: #8B7355;
+            letter-spacing: 0.3px;
+        }
+        .request-right {
+            text-align: right;
+            margin-left: auto; margin-right: 8px;
+        }
+        .request-bodhi {
+            font-size: 13px; color: #8B5A2B;
+            font-weight: 700;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+        }
+        .request-yuan {
+            font-size: 11px; color: #4A3728;
+            margin-top: 3px; font-weight: 600;
+        }
+        .request-btn {
+            background: linear-gradient(135deg, #D4AF37 0%, #8B5A2B 100%);
+            color: #FFFBEE;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 3px 10px rgba(184,134,11,0.2);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        .request-btn:active { transform: scale(0.95); }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff; padding: 14px 28px;
+            border-radius: 12px; font-size: 13px;
+            letter-spacing: 2px; z-index: 10000;
+            opacity: 0; transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 16px rgba(139,90,43,0.4);
+        }
+        .toast.show { opacity: 1; }
+
+        /* 隐藏区域 */
+        .hidden-section { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="phone-wrap">
+            <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+                <button class="back-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.length > 1 ? history.back() : null}" aria-label="返回">‹</button>
+
+                <div class="scroll-area">
+
+                    <!-- 会员权益横幅 -->
+                    <div class="member-hero" id="memberHero">
+                        <div class="member-hero-title" id="heroTitle">菩提会员</div>
+                        <div class="member-hero-sub" id="heroSub">菩提流转 · 福慧双增</div>
+                        <div class="member-hero-stats">
+                            <div class="member-hero-stat">
+                                <div class="member-hero-stat-num" id="statBodhi">20</div>
+                                <div class="member-hero-stat-label">颗 · 兑换会员</div>
+                            </div>
+                            <div class="member-hero-stat">
+                                <div class="member-hero-stat-num" id="statPrice">￥99</div>
+                                <div class="member-hero-stat-label">年费会员</div>
+                            </div>
+                            <div class="member-hero-stat">
+                                <div class="member-hero-stat-num" id="statBonus">+20</div>
+                                <div class="member-hero-stat-label">开通赠送菩提</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 会员套餐卡片 -->
+                    <div class="plan-card recommended" id="planCard">
+                        <span class="plan-tag" id="planTag">推荐</span>
+                        <div class="plan-name">菩提会员</div>
+                        <div class="plan-desc" id="planDesc">最佳价值 · 20 颗菩提兑换 · 赠送 20 颗/年</div>
+
+                        <ul class="benefits-list" id="benefitsList">
+                            <li>可参与菩提出让变现</li>
+                            <li>每月赠送 3 颗菩提（年 36 颗）</li>
+                            <li>全部会员商品 8 折</li>
+                            <li>专属客服通道</li>
+                            <li>会员专属活动与限量法物</li>
+                        </ul>
+
+                        <div class="price-row">
+                            <div class="price-info">
+                                <span class="price" id="priceText">￥99</span>
+                                <span class="price-unit">/ 年</span>
+                                <span class="price-origin" id="priceOrigin">￥180</span>
+                            </div>
+                            <button class="action-btn" onclick="showToast('✦ 正在开通会员')">立即开通</button>
+                        </div>
+
+                        <label class="protocol-check">
+                            <input type="checkbox">
+                            <span>我已阅读并同意 <span class="protocol-link" onclick="showToast('✦ 查看会员协议')">《会员协议》</span>，确认已知悉会员权益、义务及退款条款</span>
+                        </label>
+                    </div>
+
+                    <!-- 菩提获取规则 -->
+                    <div class="rules-card">
+                        <div class="rules-title">◈ 菩提获取规则</div>
+                        <ul class="rules-list" id="bodhiRules">
+                            <li data-num="1.">新用户完成注册时自动发放：<span class="highlight" id="bodhiRegText">1 颗</span></li>
+                            <li data-num="2.">老用户推荐新用户注册成功：<span class="highlight" id="bodhiRefText">8 颗</span></li>
+                            <li data-num="3.">订单确认收货后发放：<span class="highlight" id="bodhiBuyText">3 颗</span></li>
+                            <li data-num="4.">用户成功开通菩提会员：<span class="highlight" id="bodhiOpenText">20 颗</span></li>
+                            <li data-num="5.">分享到微信/朋友圈/QQ 等平台满 10 次：<span class="highlight" id="bodhiShareText">5 颗</span></li>
+                        </ul>
+
+                        <!-- 会员专属权利介绍（动态渲染） -->
+                        <div class="rules-title">◈ 会员专属权利介绍</div>
+                        <div class="privilege-box" id="privilegeBox">
+                            <div class="privilege-line">可参与菩提出让变现</div>
+                            <div class="privilege-line">每月赠送 3 颗菩提（年 36 颗）</div>
+                            <div class="privilege-line">全部会员商品 8 折</div>
+                            <div class="privilege-line">专属客服通道</div>
+                            <div class="privilege-line">会员专属活动与限量法物</div>
+                        </div>
+
+                        <button class="big-action-btn" onclick="showToast('✦ 去收获菩提')">✦ 去收获菩提</button>
+                    </div>
+
+                    <!-- 最新菩提求购需求 -->
+                    <div id="requestArea">
+                        <div class="request-title">◈ 最新菩提求购需求</div>
+
+                        <div class="request-card">
+                            <div class="request-avatar">🧘</div>
+                            <div class="request-info">
+                                <div class="request-name">用户*妙真 · 138********</div>
+                                <div class="request-detail">开通菩提会员 · 需 <span id="reqBodhi1">20</span> 颗</div>
+                            </div>
+                            <div class="request-right">
+                                <div class="request-bodhi" id="reqBodhiNum1">20 颗</div>
+                                <div class="request-yuan" id="reqYuan1">￥99.00</div>
+                            </div>
+                            <button class="request-btn" onclick="showToast('✦ 正在出让')">出让</button>
+                        </div>
+
+                        <div class="request-card">
+                            <div class="request-avatar">🌼</div>
+                            <div class="request-info">
+                                <div class="request-name">用户*莲华 · 156********</div>
+                                <div class="request-detail">开通菩提会员 · 需 <span id="reqBodhi2">20</span> 颗</div>
+                            </div>
+                            <div class="request-right">
+                                <div class="request-bodhi" id="reqBodhiNum2">20 颗</div>
+                                <div class="request-yuan" id="reqYuan2">￥99.00</div>
+                            </div>
+                            <button class="request-btn" onclick="showToast('✦ 正在出让')">出让</button>
+                        </div>
+
+                        <div class="request-card">
+                            <div class="request-avatar">🌸</div>
+                            <div class="request-info">
+                                <div class="request-name">用户*净心 · 139********</div>
+                                <div class="request-detail">兑换金刚结 · 需 3 颗</div>
+                            </div>
+                            <div class="request-right">
+                                <div class="request-bodhi">3 颗</div>
+                                <div class="request-yuan">￥15.00</div>
+                            </div>
+                            <button class="request-btn" onclick="showToast('✦ 正在出让')">出让</button>
+                        </div>
+
+                        <div class="request-card">
+                            <div class="request-avatar">🌿</div>
+                            <div class="request-info">
+                                <div class="request-name">用户*慧能 · 186********</div>
+                                <div class="request-detail">兑换楞严咒吊坠 · 需 5 颗</div>
+                            </div>
+                            <div class="request-right">
+                                <div class="request-bodhi">5 颗</div>
+                                <div class="request-yuan">￥25.00</div>
+                            </div>
+                            <button class="request-btn" onclick="showToast('✦ 正在出让')">出让</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 会员中心：从会员管理读取设置并同步展示 ==========
+        // 默认配置：与 member-admin.html 的 DEFAULT_SETTINGS 保持一致
+        var DEFAULT_MEMBER_SETTINGS = {
+            adminSwitchSell: true,
+            adminSwitchBuy: true,
+            adminSwitchExchange: true,
+            adminRuleReg: 1,
+            adminRuleRef: 8,
+            adminRuleBuy: 3,
+            adminRuleOpen: 20,
+            adminRuleShare: 5,
+            adminMemberPrivileges: '可参与菩提出让变现\n每月赠送 3 颗菩提（年 36 颗）\n全部会员商品 8 折\n专属客服通道\n会员专属活动与限量法物',
+            adminMemberPrice: 99,
+            adminMemberBodhi: 20,
+            lastSaved: null
+        };
+
+        function getMemberSettings() {
+            try {
+                var s = localStorage.getItem('memberAdminSettings');
+                if (s) return Object.assign({}, DEFAULT_MEMBER_SETTINGS, JSON.parse(s));
+            } catch (e) {}
+            return Object.assign({}, DEFAULT_MEMBER_SETTINGS);
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function () { t.classList.remove('show'); }, 1500);
+        }
+
+        // 将文本按换行拆分为数组（去除空行）
+        function splitLines(text) {
+            if (!text) return [];
+            return text.split('\n').map(function (l) { return l.replace(/^[✦◆◈\d\.\、\)\-\s]+/, '').trim(); }).filter(function (l) { return l.length > 0; });
+        }
+
+        // 读取会员管理中的设置并动态应用到前端展示
+        function loadAndApplyMemberSettings() {
+            var data = getMemberSettings();
+
+            // ========== 1. 横幅 / 价格 / 菩提兑换数量 ==========
+            var priceEl = document.getElementById('priceText');
+            if (priceEl) priceEl.textContent = '￥' + (data.adminMemberPrice || 0);
+
+            var statPrice = document.getElementById('statPrice');
+            if (statPrice) statPrice.textContent = '￥' + (data.adminMemberPrice || 0);
+
+            var bodhiNeedEl = document.getElementById('statBodhi');
+            if (bodhiNeedEl) bodhiNeedEl.textContent = data.adminMemberBodhi || 0;
+
+            var bonusEl = document.getElementById('statBonus');
+            if (bonusEl) bonusEl.textContent = '+' + (data.adminRuleOpen || 0);
+
+            // 套餐描述：根据菩提兑换数量动态生成
+            var planDescEl = document.getElementById('planDesc');
+            if (planDescEl) {
+                planDescEl.textContent = '最佳价值 · ' + (data.adminMemberBodhi || 0) + ' 颗菩提兑换 · 赠送 ' + (data.adminRuleOpen || 0) + ' 颗/年';
+            }
+
+            // 原价：按会员价的 1.5~2 倍估算，保留到整数
+            var originPrice = Math.round((data.adminMemberPrice || 0) * 1.8);
+            var priceOrigin = document.getElementById('priceOrigin');
+            if (priceOrigin) priceOrigin.textContent = '￥' + originPrice;
+
+            // ========== 2. 菩提获取规则（动态数字） ==========
+            var ruleMap = {
+                bodhiRegText: data.adminRuleReg,
+                bodhiRefText: data.adminRuleRef,
+                bodhiBuyText: data.adminRuleBuy,
+                bodhiOpenText: data.adminRuleOpen,
+                bodhiShareText: data.adminRuleShare
+            };
+            Object.keys(ruleMap).forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = (ruleMap[id] || 0) + ' 颗';
+            });
+
+            // ========== 3. 会员专属权利介绍（文本框内容） ==========
+            var privLines = splitLines(data.adminMemberPrivileges);
+            var privBox = document.getElementById('privilegeBox');
+            if (privBox) {
+                privBox.innerHTML = '';
+                if (privLines.length === 0) {
+                    privBox.innerHTML = '<div class="privilege-line">会员专属权益介绍即将更新</div>';
+                } else {
+                    privLines.forEach(function (line) {
+                        var div = document.createElement('div');
+                        div.className = 'privilege-line';
+                        div.textContent = line;
+                        privBox.appendChild(div);
+                    });
+                }
+            }
+
+            // 同步更新到套餐卡中的权益简表（与"会员专属权利介绍"保持一致）
+            var benefitsListEl = document.getElementById('benefitsList');
+            if (benefitsListEl) {
+                benefitsListEl.innerHTML = '';
+                var topLines = privLines.slice(0, 5);
+                if (topLines.length === 0) {
+                    var li0 = document.createElement('li');
+                    li0.textContent = '会员专属权益介绍即将更新';
+                    benefitsListEl.appendChild(li0);
+                } else {
+                    topLines.forEach(function (line) {
+                        var li = document.createElement('li');
+                        li.textContent = line;
+                        benefitsListEl.appendChild(li);
+                    });
+                }
+            }
+
+            // ========== 4. 求购需求列表显示/隐藏（根据会员置换 / 求购开关） ==========
+            var requestArea = document.getElementById('requestArea');
+            if (requestArea) {
+                // 若关闭"菩提求购"或关闭"会员置换"，则隐藏整个求购列表
+                var showRequest = (data.adminSwitchBuy !== false) && (data.adminSwitchExchange !== false);
+                requestArea.style.display = showRequest ? 'block' : 'none';
+            }
+
+            // 求购列表中的数量/金额：跟随会员价与菩提数量变化
+            var reqBodhi1 = document.getElementById('reqBodhi1');
+            if (reqBodhi1) reqBodhi1.textContent = data.adminMemberBodhi || 0;
+            var reqBodhiNum1 = document.getElementById('reqBodhiNum1');
+            if (reqBodhiNum1) reqBodhiNum1.textContent = (data.adminMemberBodhi || 0) + ' 颗';
+            var reqYuan1 = document.getElementById('reqYuan1');
+            if (reqYuan1) reqYuan1.textContent = '￥' + (data.adminMemberPrice || 0).toFixed(2);
+
+            var reqBodhi2 = document.getElementById('reqBodhi2');
+            if (reqBodhi2) reqBodhi2.textContent = data.adminMemberBodhi || 0;
+            var reqBodhiNum2 = document.getElementById('reqBodhiNum2');
+            if (reqBodhiNum2) reqBodhiNum2.textContent = (data.adminMemberBodhi || 0) + ' 颗';
+            var reqYuan2 = document.getElementById('reqYuan2');
+            if (reqYuan2) reqYuan2.textContent = '￥' + (data.adminMemberPrice || 0).toFixed(2);
+
+            // 若关闭菩提出让，则求购卡片中的按钮改为"暂未开放"
+            var sellDisabled = (data.adminSwitchSell === false);
+            var allReqBtns = document.querySelectorAll('#requestArea .request-btn');
+            allReqBtns.forEach(function (btn) {
+                if (sellDisabled) {
+                    btn.textContent = '待开放';
+                    btn.style.opacity = '0.6';
+                } else {
+                    btn.textContent = '出让';
+                    btn.style.opacity = '1';
+                }
+            });
+
+            // ========== 5. 推荐标签显示（默认开启，可配置） ==========
+            // 此处简化：只要不是显式关闭，就显示"推荐"标签；未来可加入独立开关
+            var planTag = document.getElementById('planTag');
+            if (planTag) planTag.style.display = (data.adminSwitchExchange === false) ? 'none' : 'block';
+
+            // 调试信息
+            if (typeof console !== 'undefined' && console.log) {
+                console.log('会员中心：已同步会员管理设置', data);
+            }
+        }
+
+        // 页面加载完成后，读取并同步会员管理中的设置
+        document.addEventListener('DOMContentLoaded', loadAndApplyMemberSettings);
+
+        // 当用户切换回页面时，再次同步（防止管理页修改后未及时更新）
+        window.addEventListener('pageshow', loadAndApplyMemberSettings);
+    </script>
+</body>
+</html>

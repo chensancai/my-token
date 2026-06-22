@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 H5页面展示 · 完整闭环</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        :root { --primary: #D4AF37; --card-bg: #2d1810; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%); min-height: 100vh; color: #fff; overflow: hidden; }
+        .main-container { display: flex; height: 100vh; padding: 60px 8px 20px; gap: 8px; overflow: hidden; }
+        .side-nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; scrollbar-width: none; padding: 5px 3px; flex-shrink: 0; }
+        .side-nav::-webkit-scrollbar { display: none; }
+        .side-nav-left { width: 68px; }
+        .side-nav-right { width: 140px; }
+        .nav-group { font-size: 7px; color: rgba(212,175,55,0.6); text-align: center; padding: 8px 0 4px; letter-spacing: 1px; font-family: 'Ma Shan Zheng', cursive; border-top: 1px solid rgba(212,175,55,0.1); margin-top: 4px; width: 100%; }
+        .nav-group:first-child { border-top: none; margin-top: 0; }
+        .nav-btn { padding: 6px 3px; background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.15); border-radius: 8px; color: rgba(255,255,255,0.55); font-size: 9px; cursor: pointer; transition: all 0.2s; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 50px; justify-content: center; flex-shrink: 0; }
+        .nav-btn .nav-icon { font-size: 14px; }
+        .nav-btn .nav-label { font-size: 8px; line-height: 1.2; }
+        .nav-btn:hover { background: rgba(212,175,55,0.15); color: var(--primary); transform: translateY(-1px); }
+        .nav-btn.active { background: var(--primary); color: #1a0a0a; font-weight: bold; border-color: var(--primary); box-shadow: 0 2px 10px rgba(212,175,55,0.3); }
+        .right-nav-row { display: flex; gap: 4px; width: 100%; }
+        .right-nav-row .nav-btn { flex: 1; min-width: 0; }
+        .phone-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; max-width: 420px; margin: 0 auto; width: 100%; overflow: hidden; }
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 10px 16px; background: rgba(26,10,10,0.95); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(212,175,55,0.2); }
+        .top-title { font-family: 'Ma Shan Zheng', cursive; color: var(--primary); font-size: 18px; letter-spacing: 4px; }
+        .current-page-title { font-size: 11px; color: rgba(212,175,55,0.6); letter-spacing: 2px; margin-bottom: 8px; text-align: center; font-family: 'Ma Shan Zheng', cursive; }
+        .phone-wrap { background: #111; border-radius: 40px; padding: 8px; box-shadow: 0 0 0 2px var(--primary), 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5); width: 100%; max-width: 380px; }
+        .phone-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 80px; height: 22px; background: #000; border-radius: 12px; z-index: 50; }
+        .phone-screen { width: 100%; height: 760px; border-radius: 32px; overflow: hidden; background: var(--card-bg); position: relative; }
+        .status-bar { position: absolute; top: 0; left: 0; right: 0; height: 44px; padding: 10px 16px 0; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; z-index: 10; }
+        .status-bar.light { color: rgba(255,255,255,0.5); }
+        .back-btn { position: absolute; top: 8px; left: 10px; width: 30px; height: 30px; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; z-index: 100; border: 1px solid rgba(212,175,55,0.3); color: var(--primary); }
+        .back-btn:active { transform: scale(0.93); }
+        .iframe-container { position: absolute; inset: 0; }
+        .iframe-container iframe { width: 100%; height: 100%; border: none; }
+        .page.active { display: block; animation: fadeIn .3s ease; }
+        .page:not(.active) { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .home-page { background: linear-gradient(180deg, #1a0a0a 0%, #2d1810 100%); height: 100%; overflow-y: auto; padding-bottom: 40px; }
+        .hero-section { padding: 55px 14px 20px; background: linear-gradient(135deg, #8B5A2B 0%, #D4AF37 50%, #8B5A2B 100%); text-align: center; position: relative; overflow: hidden; }
+        .hero-glow { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 140px; height: 100px; background: radial-gradient(circle, rgba(255,230,180,0.4) 0%, transparent 70%); }
+        .brand-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; position: relative; z-index: 2; }
+        .brand-logo { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle, #FFFBF0 0%, #FDF8F3 100%); display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+        .brand-name { font-family: 'Ma Shan Zheng', cursive; font-size: 22px; color: #1a0a0a; letter-spacing: 2px; }
+        .calligraphy-main { font-family: 'Ma Shan Zheng', cursive; font-size: 18px; color: #1a0a0a; margin-bottom: 4px; letter-spacing: 3px; }
+        .calligraphy-sub { font-size: 10px; color: rgba(26,10,10,0.6); letter-spacing: 2px; }
+        .features-section { padding: 18px 14px; }
+        .section-title { font-family: 'Ma Shan Zheng', cursive; font-size: 12px; color: var(--primary); margin-bottom: 10px; letter-spacing: 2px; text-align: center; }
+        .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .feature-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .feature-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .feature-card { background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .feature-card:hover { background: rgba(212,175,55,0.15); transform: translateY(-1px); }
+        .feature-card:active { transform: scale(0.98); }
+        .feature-icon { font-size: 20px; margin-bottom: 4px; }
+        .feature-name { font-size: 10px; color: var(--primary); font-weight: bold; letter-spacing: 1px; }
+        .home-page::-webkit-scrollbar { width: 4px; }
+        .home-page::-webkit-scrollbar-track { background: transparent; }
+        .home-page::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
+        @media (max-width: 768px) { .main-container { padding: 50px 4px 10px; gap: 4px; } .side-nav-left { width: 56px; } .side-nav-right { width: 120px; } .nav-btn { padding: 5px 2px; min-height: 42px; font-size: 8px; } .nav-btn .nav-icon { font-size: 12px; } .nav-btn .nav-label { font-size: 7px; } .phone-wrap { padding: 6px; } .phone-screen { height: 680px; } }
+    </style>
+</head>
+<body>
+    <div class="top-bar"><div class="top-title">🙏 祈个福 H5展示 · 完整闭环</div></div>
+    <div class="main-container">
+        <div class="side-nav side-nav-left">
+            <div class="nav-group">首页导航</div>
+            <div class="nav-btn active" onclick="goPage(0)"><span class="nav-icon">🏠</span><span class="nav-label">首页</span></div>
+            <div class="nav-group">核心祈福</div>
+            <div class="nav-btn" onclick="goPage(1)"><span class="nav-icon">🙏</span><span class="nav-label">祈福</span></div>
+            <div class="nav-btn" onclick="goPage(2)"><span class="nav-icon">🕯️</span><span class="nav-label">追思</span></div>
+            <div class="nav-btn" onclick="goPage(3)"><span class="nav-icon">🐟</span><span class="nav-label">放生</span></div>
+            <div class="nav-group">互动娱乐</div>
+            <div class="nav-btn" onclick="goPage(4)"><span class="nav-icon">🎋</span><span class="nav-label">求签</span></div>
+            <div class="nav-btn" onclick="goPage(5)"><span class="nav-icon">🎰</span><span class="nav-label">游戏机</span></div>
+            <div class="nav-btn" onclick="goPage(6)"><span class="nav-icon">🃏</span><span class="nav-label">卡牌</span></div>
+            <div class="nav-btn" onclick="goPage(27)"><span class="nav-icon">🎲</span><span class="nav-label">骰子</span></div>
+            <div class="nav-btn" onclick="goPage(28)"><span class="nav-icon">🎡</span><span class="nav-label">大转盘</span></div>
+            <div class="nav-btn" onclick="goPage(29)"><span class="nav-icon">🎯</span><span class="nav-label">弹珠</span></div>
+            <div class="nav-btn" onclick="goPage(31)"><span class="nav-icon">🙏</span><span class="nav-label">祈福v2</span></div>
+            <div class="nav-btn" onclick="goPage(32)"><span class="nav-icon">🎮</span><span class="nav-label">西个游</span></div>
+        </div>
+        <div class="phone-area">
+            <div class="current-page-title" id="currentPageTitle">首页 · 功能导航</div>
+            <div class="phone-wrap">
+                <div class="phone-screen">
+                    <div class="phone-notch"></div>
+                    <div class="status-bar light"><span>9:41</span><span>●●● 5G</span></div>
+                    <div class="page active" id="page-0">
+                        <div class="home-page">
+                            <div class="hero-section">
+                                <div class="hero-glow"></div>
+                                <div class="brand-row"><div class="brand-logo">🙏</div><div class="brand-name">祈个福</div></div>
+                                <div class="calligraphy-main">心诚则灵</div>
+                                <div class="calligraphy-sub">净心 · 祈福 · 结缘</div>
+                            </div>
+                            <div class="features-section"><div class="section-title">✦ 核心祈福功能</div><div class="feature-grid"><div class="feature-card" onclick="goPage(1)"><div class="feature-icon">🙏</div><div class="feature-name">祈福拜佛</div></div><div class="feature-card" onclick="goPage(2)"><div class="feature-icon">🕯️</div><div class="feature-name">超度追思</div></div><div class="feature-card" onclick="goPage(3)"><div class="feature-icon">🐟</div><div class="feature-name">灵宠放生</div></div><div class="feature-card" onclick="goPage(4)"><div class="feature-icon">🎋</div><div class="feature-name">电子求签</div></div></div></div>
+                            <div class="features-section"><div class="section-title">✦ 互动娱乐</div><div class="feature-grid"><div class="feature-card" onclick="goPage(5)"><div class="feature-icon">🎰</div><div class="feature-name">流光老虎机</div></div><div class="feature-card" onclick="goPage(6)"><div class="feature-icon">🃏</div><div class="feature-name">福运卡牌</div></div><div class="feature-card" onclick="goPage(27)"><div class="feature-icon">🎲</div><div class="feature-name">心跳骰子</div></div><div class="feature-card" onclick="goPage(28)"><div class="feature-icon">🎡</div><div class="feature-name">幸运大转盘</div></div><div class="feature-card" onclick="goPage(29)"><div class="feature-icon">🎯</div><div class="feature-name">星际弹珠</div></div></div></div>
+                            <div class="features-section"><div class="section-title">✦ 用户中心</div><div class="feature-grid cols-4"><div class="feature-card" onclick="goPage(7)"><div class="feature-icon">👤</div><div class="feature-name">个人</div></div><div class="feature-card" onclick="goPage(8)"><div class="feature-icon">👑</div><div class="feature-name">会员</div></div><div class="feature-card" onclick="goPage(9)"><div class="feature-icon">💰</div><div class="feature-name">钱包</div></div><div class="feature-card" onclick="goPage(10)"><div class="feature-icon">⚙️</div><div class="feature-name">设置</div></div><div class="feature-card" onclick="goPage(11)"><div class="feature-icon">🔑</div><div class="feature-name">登录</div></div><div class="feature-card" onclick="goPage(12)"><div class="feature-icon">📝</div><div class="feature-name">注册</div></div><div class="feature-card" onclick="goPage(13)"><div class="feature-icon">🎁</div><div class="feature-name">分享</div></div><div class="feature-card" onclick="goPage(14)"><div class="feature-icon">👼</div><div class="feature-name">天使</div></div></div></div>
+                            <div class="features-section"><div class="section-title">✦ 后台管理</div><div class="feature-grid cols-4"><div class="feature-card" onclick="goPage(15)"><div class="feature-icon">🔥</div><div class="feature-name">参数管理</div></div><div class="feature-card" onclick="goPage(16)"><div class="feature-icon">👑</div><div class="feature-name">会员</div></div><div class="feature-card" onclick="goPage(19)"><div class="feature-icon">📜</div><div class="feature-name">文章</div></div><div class="feature-card" onclick="goPage(20)"><div class="feature-icon">✍️</div><div class="feature-name">编辑</div></div><div class="feature-card" onclick="goPage(22)"><div class="feature-icon">🎰</div><div class="feature-name">游戏机</div></div><div class="feature-card" onclick="goPage(30)"><div class="feature-icon">🏛️</div><div class="feature-name">佛像管理</div></div><div class="feature-card" onclick="goPage(23)"><div class="feature-icon">🔐</div><div class="feature-name">权限</div></div><div class="feature-card" onclick="goPage(24)"><div class="feature-icon">📋</div><div class="feature-name">任务</div></div><div class="feature-card" onclick="goPage(25)"><div class="feature-icon">🎨</div><div class="feature-name">图标</div></div><div class="feature-card" onclick="goPage(26)"><div class="feature-icon">🛠️</div><div class="feature-name">可视化</div></div></div></div>
+                        </div>
+                    </div>
+                    <div class="page" id="page-1"><div class="iframe-container"><iframe src="index.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-2"><div class="iframe-container"><iframe src="remembrance.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-3"><div class="iframe-container"><iframe src="animal-release.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-4"><div class="iframe-container"><iframe src="shake-sticks.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-5"><div class="iframe-container"><iframe src="slot-machine12.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-6"><div class="iframe-container"><iframe src="flip-card12.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-7"><div class="iframe-container"><iframe src="profile.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-8"><div class="iframe-container"><iframe src="member.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-9"><div class="iframe-container"><iframe src="wallet11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-10"><div class="iframe-container"><iframe src="settings12.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-11"><div class="iframe-container"><iframe src="login.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-12"><div class="iframe-container"><iframe src="register.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-13"><div class="iframe-container"><iframe src="share-card.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-14"><div class="iframe-container"><iframe src="angel.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-15"><div class="iframe-container"><iframe src="admin-nav12.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-16"><div class="iframe-container"><iframe src="member-admin.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-19"><div class="iframe-container"><iframe src="article-admin11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-20"><div class="iframe-container"><iframe src="article-edit11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-22"><div class="iframe-container"><iframe src="lottery-admin12.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-23"><div class="iframe-container"><iframe src="permission-admin11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-24"><div class="iframe-container"><iframe src="task-list.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-25"><div class="iframe-container"><iframe src="icon-manage11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-26"><div class="iframe-container"><iframe src="showcase02.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-27"><div class="iframe-container"><iframe src="dice.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-28"><div class="iframe-container"><iframe src="wheel11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-29"><div class="iframe-container"><iframe src="pinball13.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-30"><div class="iframe-container"><iframe src="buddha-admin11.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-31"><div class="iframe-container"><iframe src="index.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-32"><div class="iframe-container"><iframe src="xiyou.html" allow="autoplay"></iframe></div></div>
+                    <div class="page" id="page-33"><div class="iframe-container"><iframe src="xiyou_admin.html" allow="autoplay"></iframe></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="side-nav side-nav-right">
+            <div class="nav-group">✦ 用户中心</div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(7)"><span class="nav-icon">👤</span><span class="nav-label">个人中心</span></div><div class="nav-btn" onclick="goPage(8)"><span class="nav-icon">👑</span><span class="nav-label">会员中心</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(9)"><span class="nav-icon">💰</span><span class="nav-label">我的钱包</span></div><div class="nav-btn" onclick="goPage(10)"><span class="nav-icon">⚙️</span><span class="nav-label">设置</span></div></div>
+            <div class="nav-group">✦ 登录入口</div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(11)"><span class="nav-icon">🔑</span><span class="nav-label">登录</span></div><div class="nav-btn" onclick="goPage(12)"><span class="nav-icon">📝</span><span class="nav-label">注册</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(13)"><span class="nav-icon">🎁</span><span class="nav-label">分享卡片</span></div><div class="nav-btn" onclick="goPage(14)"><span class="nav-icon">👼</span><span class="nav-label">天使守护</span></div></div>
+            <div class="nav-group">✦ 后台管理</div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(15)"><span class="nav-icon">🔥</span><span class="nav-label">参数管理</span></div><div class="nav-btn" onclick="goPage(16)"><span class="nav-icon">👑</span><span class="nav-label">会员管理</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(19)"><span class="nav-icon">📜</span><span class="nav-label">文章管理</span></div><div class="nav-btn" onclick="goPage(20)"><span class="nav-icon">✍️</span><span class="nav-label">文章编辑</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(22)"><span class="nav-icon">🎰</span><span class="nav-label">游戏机管理</span></div><div class="nav-btn" onclick="goPage(30)"><span class="nav-icon">🏛️</span><span class="nav-label">佛像管理</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(23)"><span class="nav-icon">🔐</span><span class="nav-label">权限管理</span></div><div class="nav-btn" onclick="goPage(24)"><span class="nav-icon">📋</span><span class="nav-label">任务列表</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(25)"><span class="nav-icon">🎨</span><span class="nav-label">图标管理</span></div><div class="nav-btn" onclick="goPage(26)"><span class="nav-icon">🛠️</span><span class="nav-label">可视化编辑</span></div></div>
+            <div class="right-nav-row"><div class="nav-btn" onclick="goPage(33)"><span class="nav-icon">🎮</span><span class="nav-label">西个游管理</span></div></div>
+        </div>
+    </div>
+    <script>
+        var pageTitles = {0:'首页 · 功能导航',1:'祈福拜佛',2:'超度追思',3:'灵宠放生',4:'电子求签',5:'流光老虎机',6:'福运卡牌',7:'个人中心',8:'会员中心',9:'我的钱包',10:'设置',11:'登录',12:'注册',13:'分享卡片',14:'天使守护',15:'参数管理',16:'会员管理',17:'任务列表',18:'图标管理',19:'文章管理',20:'编辑文章',21:'可视化编辑',22:'游戏机管理',23:'权限管理',24:'任务列表',25:'图标管理',26:'可视化编辑',27:'心跳骰子',28:'幸运大转盘',29:'星际弹珠',30:'佛像管理',31:'祈福v2（调整版）',32:'西个游',33:'西个游管理'};
+        function goPage(n){var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');var navBtns=document.querySelectorAll('.nav-btn');for(var j=0;j<navBtns.length;j++)navBtns[j].classList.remove('active');var target=document.getElementById('page-'+n);if(target)target.classList.add('active');for(var k=0;k<navBtns.length;k++){var onclick=navBtns[k].getAttribute('onclick')||'';if(onclick.indexOf('goPage('+n+')')!==-1)navBtns[k].classList.add('active');}var titleEl=document.getElementById('currentPageTitle');if(titleEl&&pageTitles[n]!==undefined)titleEl.textContent=pageTitles[n];window.scrollTo({top:0,behavior:'smooth'});}
+    </script>
+</body>
+</html>

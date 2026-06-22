@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布商品 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #4A3728;
+        }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .phone-wrap {
+            background: #111;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 0 2px #D4AF37, 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5);
+        }
+        .phone-notch {
+            position: absolute; top: 8px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 22px;
+            background: #000; border-radius: 12px; z-index: 50;
+        }
+        .phone-screen {
+            width: 100%; min-height: 1500px;
+            border-radius: 32px; overflow: hidden;
+            background: #FFFBEE; position: relative;
+        }
+        .status-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 44px; padding: 10px 16px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; font-weight: 600; z-index: 10;
+            color: rgba(0,0,0,0.7);
+        }
+        .back-btn {
+            position: absolute; top: 8px; left: 10px;
+            width: 30px; height: 30px;
+            background: rgba(0,0,0,0.3); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer; z-index: 100;
+            color: #fff; border: none;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .scroll-area { padding: 60px 20px 30px; }
+
+        .page-header {
+            padding: 55px 20px 20px;
+            margin: -60px -20px 20px;
+            background: linear-gradient(135deg,#8B5A2B 0%,#D4A574 50%,#8B5A2B 100%);
+            color: #fff; text-align: center; position: relative; overflow: hidden;
+        }
+        .page-header .title {
+            font-family:'Ma Shan Zheng', cursive; font-size: 22px;
+            letter-spacing: 5px; margin-bottom: 4px; position: relative; z-index: 2;
+        }
+        .page-header .subtitle {
+            font-size: 11px; opacity: 0.9; letter-spacing: 2px;
+            position: relative; z-index: 2;
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            font-size: 12px; color: #8B5A2B; font-weight: 700;
+            letter-spacing: 1px; margin-bottom: 8px; display: block;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .form-input {
+            width: 100%; padding: 12px 14px; font-size: 13px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 10px; background: #fff; color: #4A3728;
+            outline: none; font-family: inherit;
+        }
+        .form-input:focus { border-color: #8B5A2B; box-shadow: 0 0 0 3px rgba(139,90,43,0.1); }
+        .form-textarea {
+            width: 100%; padding: 12px 14px; font-size: 13px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 10px; background: #fff; color: #4A3728;
+            outline: none; font-family: inherit;
+            min-height: 80px; resize: vertical; line-height: 1.6;
+        }
+
+        .cat-radio-row {
+            display: flex; gap: 10px; margin-bottom: 10px;
+        }
+        .cat-radio {
+            flex: 1; padding: 12px 10px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            background: #fff; font-size: 13px; color: #4A3728;
+            text-align: center; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .cat-radio.active {
+            border: 1.5px solid #D4A574;
+            background: linear-gradient(135deg,#FFF8EC 0%,#FFF 100%);
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(184,134,11,0.3);
+            border-radius: 12px;
+            padding: 24px 20px;
+            text-align: center;
+            background: linear-gradient(135deg,#FFF8EC 0%,#FFF 100%);
+            color: #8B7355; font-size: 13px;
+            cursor: pointer; letter-spacing: 1px;
+        }
+        .upload-box .icon {
+            font-size: 36px; margin-bottom: 6px; display: block;
+        }
+        .upload-box .hint {
+            font-size: 11px; opacity: 0.7; margin-top: 4px;
+        }
+
+        .tag-row {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .tag-item {
+            padding: 6px 14px;
+            background: #fff;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 16px;
+            font-size: 11px; color: #8B7355;
+            letter-spacing: 1px; cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .tag-item.active {
+            background: linear-gradient(135deg,#FFF8EC 0%,#FFF 100%);
+            border: 1.5px solid #D4A574;
+            color: #8B5A2B;
+        }
+
+        .bottom-bar {
+            padding: 12px 20px 16px;
+            background: rgba(255,248,240,0.98);
+            border-top: 1px solid rgba(184,134,11,0.2);
+            display: flex; gap: 12px;
+            margin: 20px -20px -30px;
+        }
+        .btn-bottom {
+            flex: 1; padding: 14px 0; border-radius: 24px;
+            font-size: 14px; font-weight: 700; letter-spacing: 2px;
+            cursor: pointer; font-family: 'Ma Shan Zheng', cursive;
+            border: none;
+        }
+        .btn-bottom.cancel {
+            background: #fff; color: #8B7355;
+            border: 1.5px solid rgba(184,134,11,0.3);
+        }
+        .btn-bottom.save {
+            background: #FFF8EC; color: #8B5A2B;
+            border: 1.5px solid #D4A574;
+        }
+        .btn-bottom.publish {
+            background: linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);
+            color: #fff; box-shadow: 0 4px 16px rgba(184,134,11,0.3);
+        }
+
+        .toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff; padding: 12px 24px;
+            border-radius: 12px; font-size: 13px;
+            letter-spacing: 2px; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="phone-wrap">
+            <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+                <button class="back-btn" onclick="history.back()" aria-label="返回">‹</button>
+                <div class="scroll-area">
+                    <div class="page-header">
+                        <div class="title">发布商品</div>
+                        <div class="subtitle">管理账户 · 仅限指定用户 18944761788</div>
+                    </div>
+
+                    <!-- 商品分类 -->
+                    <div class="form-group">
+                        <div class="form-label">商品分类</div>
+                        <div class="cat-radio-row">
+                            <div class="cat-radio active" onclick="toggleCat(this)">
+                                <input type="radio" name="cat" checked style="margin:0">心愿选物
+                            </div>
+                            <div class="cat-radio" onclick="toggleCat(this)">
+                                <input type="radio" name="cat" style="margin:0">兑换专区
+                            </div>
+                        </div>
+                        <select class="form-input">
+                            <option>护佑平安</option>
+                            <option>招财纳福</option>
+                            <option>姻缘和合</option>
+                            <option>事业顺遂</option>
+                            <option>安神静心</option>
+                        </select>
+                    </div>
+
+                    <!-- 商品名称 -->
+                    <div class="form-group">
+                        <div class="form-label">商品名称</div>
+                        <input type="text" class="form-input" placeholder="请输入商品名称">
+                    </div>
+
+                    <!-- 加持语 / 祝福语 -->
+                    <div class="form-group">
+                        <div class="form-label">加持语 / 祝福语</div>
+                        <input type="text" class="form-input" placeholder="如：佑您平安顺遂、财源广进">
+                    </div>
+
+                    <!-- 结缘价 / 原价 -->
+                    <div class="form-group" style="display:flex;gap:10px">
+                        <div style="flex:1">
+                            <div class="form-label">结缘价（元）</div>
+                            <input type="number" class="form-input" placeholder="￥">
+                        </div>
+                        <div style="flex:1">
+                            <div class="form-label">原价（元）</div>
+                            <input type="number" class="form-input" placeholder="￥">
+                        </div>
+                    </div>
+
+                    <!-- 助力次数 / 库存 -->
+                    <div class="form-group" style="display:flex;gap:10px">
+                        <div style="flex:1">
+                            <div class="form-label">心愿助力次数</div>
+                            <input type="number" class="form-input" placeholder="次">
+                        </div>
+                        <div style="flex:1">
+                            <div class="form-label">库存数量</div>
+                            <input type="number" class="form-input" placeholder="件">
+                        </div>
+                    </div>
+
+                    <!-- 寓意 -->
+                    <div class="form-group">
+                        <div class="form-label">寓意</div>
+                        <textarea class="form-textarea" placeholder="如：紫水晶代表智慧与平安，象征事业顺遂、财源广进"></textarea>
+                    </div>
+
+                    <!-- 适用 -->
+                    <div class="form-group">
+                        <div class="form-label">适用</div>
+                        <textarea class="form-textarea" placeholder="如：适合追求事业进步、财运亨通之人"></textarea>
+                    </div>
+
+                    <!-- 商品视频 -->
+                    <div class="form-group">
+                        <div class="form-label">商品视频</div>
+                        <div class="upload-box" onclick="showToast('✦ 点击上传视频')">
+                            <span class="icon">🎬</span>
+                            点击上传商品视频
+                            <div class="hint">支持 MP4 · 建议时长 15-30 秒</div>
+                        </div>
+                    </div>
+
+                    <!-- 商品详情 -->
+                    <div class="form-group">
+                        <div class="form-label">商品详情</div>
+                        <textarea class="form-textarea" placeholder="详细描述商品的材质、加持方式、使用方法等"></textarea>
+                    </div>
+
+                    <!-- 商品图片 -->
+                    <div class="form-group">
+                        <div class="form-label">商品图片</div>
+                        <div class="upload-box" onclick="showToast('✦ 点击上传图片')">
+                            <span class="icon">📿</span>
+                            点击上传商品图片
+                            <div class="hint">建议尺寸 800×800px · 最多 6 张</div>
+                        </div>
+                    </div>
+
+                    <!-- 商品标签 -->
+                    <div class="form-group">
+                        <div class="form-label">商品标签</div>
+                        <div class="tag-row">
+                            <div class="tag-item active" onclick="toggleTag(this)">✦ 新品</div>
+                            <div class="tag-item" onclick="toggleTag(this)">🔥 热销</div>
+                            <div class="tag-item" onclick="toggleTag(this)">◈ 限量</div>
+                            <div class="tag-item" onclick="toggleTag(this)">✿ 精选</div>
+                        </div>
+                    </div>
+
+                    <div class="bottom-bar">
+                        <button class="btn-bottom cancel" onclick="history.back()">取消</button>
+                        <button class="btn-bottom save" onclick="showToast('✦ 已保存草稿')">保存</button>
+                        <button class="btn-bottom publish" onclick="showToast('✦ 商品已发布')">发布商品</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+        function toggleCat(el) {
+            document.querySelectorAll('.cat-radio').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            const cb = el.querySelector('input');
+            if (cb) cb.checked = true;
+        }
+        function toggleTag(el) {
+            el.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

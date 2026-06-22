@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏管理 · 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #F4E8D8 0%, #FFF8EC 100%); min-height: 100vh; color: #4A3728; overflow-x: hidden; }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .scroll-area { padding: 10px 20px 30px; }
+
+        /* 顶部固定标题栏 */
+        .admin-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 14px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(244,232,216,0.97);
+            border-bottom: 1px solid rgba(184,134,11,0.2);
+            z-index: 100;
+        }
+        .admin-header-btn { background: transparent; border: none; color: #8B5A2B; font-size: 26px; cursor: pointer; padding: 0; }
+        .admin-header-title { font-family: 'Ma Shan Zheng', cursive; font-size: 18px; color: #8B5A2B; letter-spacing: 4px; }
+        .admin-header-spacer { width: 30px; }
+
+        /* 管理员身份标识 */
+        .admin-identity-bar {
+            padding: 10px 20px 12px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: rgba(244,232,216,0.97);
+            border-bottom: 1px dashed rgba(184,134,11,0.15);
+            margin-top: 56px;
+        }
+        .admin-dot { width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; }
+        .admin-identity-text { font-size: 11px; color: #4CAF50; letter-spacing: 2px; font-family: 'Ma Shan Zheng', cursive; }
+        .admin-phone-tag { font-size: 10px; color: #8B7355; letter-spacing: 1px; margin-left: 6px; padding: 3px 8px; background: rgba(139,90,43,0.08); border-radius: 8px; }
+
+        /* 功能开关卡片 */
+        .admin-switch-card { background: #fff; border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(139,90,43,0.08); border: 1.5px solid rgba(184,134,11,0.15); }
+        .admin-switch-card-title { font-family: 'Ma Shan Zheng', cursive; font-size: 14px; color: #8B5A2B; letter-spacing: 3px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px dashed rgba(184,134,11,0.25); }
+        .admin-switch-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+        .admin-switch-row + .admin-switch-row { border-top: 1px solid rgba(184,134,11,0.1); }
+        .admin-switch-label { font-size: 12px; color: #4A3728; letter-spacing: 1px; }
+        .admin-switch-label .game-icon-font { margin-right: 6px; }
+        .admin-switch-desc { font-size: 10px; color: #8B7355; letter-spacing: 1px; margin-top: 2px; opacity: 0.75; }
+
+        /* 开关 */
+        .toggle-switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: #E0E0E0; border-radius: 26px; cursor: pointer; transition: background .3s; box-shadow: inset 0 1px 4px rgba(0,0,0,0.15); }
+        .toggle-slider::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.25); }
+        .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #8B5A2B, #D4AF37); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* 奖励规则行 */
+        .admin-rule-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(184,134,11,0.1); }
+        .admin-rule-row:last-child { border-bottom: none; }
+        .admin-rule-row.dashed-top { margin-top: 8px; padding-top: 16px; border-top: 1px dashed rgba(139,90,43,0.15); border-bottom: none; }
+        .admin-rule-name { font-size: 12px; color: #4A3728; letter-spacing: 1px; flex: 1; line-height: 1.5; padding-right: 8px; }
+        .admin-rule-name small { display: block; font-size: 10px; color: #8B7355; opacity: 0.75; margin-top: 2px; letter-spacing: 0.5px; }
+        .admin-rule-input { width: 80px; text-align: center; padding: 7px 10px; border: 1.5px solid rgba(184,134,11,0.3); border-radius: 8px; font-size: 13px; font-weight: 700; color: #8B5A2B; background: #FFF8EC; outline: none; font-family: inherit; }
+        .admin-rule-input:focus { border-color: #8B5A2B; background: #fff; }
+        .admin-rule-unit { font-size: 11px; color: #8B7355; margin-left: 6px; letter-spacing: 1px; }
+
+        /* 卡片描述文本 */
+        .admin-card-desc { font-size: 10px; color: #8B7355; letter-spacing: 1px; margin-bottom: 14px; opacity: 0.8; line-height: 1.6; }
+
+        /* 提交按钮 */
+        .admin-action-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            color: #FFFBEE;
+            border: none;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 14px rgba(184,134,11,0.3);
+            transition: transform .2s;
+        }
+        .admin-action-btn:active { transform: scale(0.98); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff; padding: 14px 28px;
+            border-radius: 12px; font-size: 13px;
+            letter-spacing: 2px; z-index: 10000;
+            opacity: 0; transition: opacity .3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 16px rgba(139,90,43,0.4);
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <!-- 顶部固定标题栏 -->
+    <div class="admin-header">
+        <button class="admin-header-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.length > 1 ? history.back() : null;}">‹</button>
+        <div class="admin-header-title">✦ 游戏管理</div>
+        <div class="admin-header-spacer"></div>
+    </div>
+
+    <!-- 管理员身份标识 -->
+    <div class="admin-identity-bar">
+        <div class="admin-dot"></div>
+        <div class="admin-identity-text">管理员操作面板</div>
+        <div class="admin-phone-tag">管理各类游戏开关与参数</div>
+    </div>
+
+    <div class="scroll-area">
+
+        <!-- 一、游戏总开关 -->
+        <div class="admin-switch-card">
+            <div class="admin-switch-card-title">✦ 游戏总开关</div>
+            <div class="admin-switch-row">
+                <div>
+                    <div class="admin-switch-label"><span class="game-icon-font">🎰</span>所有游戏模块</div>
+                    <div class="admin-switch-desc">关闭后所有游戏入口将不可见</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked id="masterSwitch" onchange="toggleMasterSwitch()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <button class="admin-action-btn" onclick="saveSettings()">✦ 保存设置</button>
+        </div>
+
+        <!-- 二、抽奖游戏 -->
+        <div class="admin-switch-card">
+            <div class="admin-switch-card-title">✦ 抽奖游戏</div>
+            <div class="admin-switch-row">
+                <div>
+                    <div class="admin-switch-label"><span class="game-icon-font">🎯</span>抽奖功能开关</div>
+                    <div class="admin-switch-desc">开启/关闭抽奖游戏入口</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="lotterySwitch" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div style="margin-top:12px; padding-top:16px; border-top:1px dashed rgba(139,90,43,0.15);">
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        单次抽奖消耗
+                        <small>每次抽奖消耗的欢喜数量</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="10" id="lotteryCost">
+                    <span class="admin-rule-unit">欢喜</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        每日免费次数
+                        <small>用户每日可免费抽奖的次数</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="3" id="lotteryFree">
+                    <span class="admin-rule-unit">次</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        中奖概率
+                        <small>基础中奖概率（百分比）</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="30" id="lotteryProb">
+                    <span class="admin-rule-unit">%</span>
+                </div>
+            </div>
+            <button class="admin-action-btn" onclick="saveSettings()">✦ 保存设置</button>
+        </div>
+
+        <!-- 三、福运卡牌 -->
+        <div class="admin-switch-card">
+            <div class="admin-switch-card-title">✦ 福运卡牌</div>
+            <div class="admin-switch-row">
+                <div>
+                    <div class="admin-switch-label"><span class="game-icon-font">🃏</span>卡牌功能开关</div>
+                    <div class="admin-switch-desc">开启/关闭福运卡牌游戏入口</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cardSwitch" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div style="margin-top:12px; padding-top:16px; border-top:1px dashed rgba(139,90,43,0.15);">
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        每局消耗
+                        <small>每局卡牌游戏消耗的欢喜</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="20" id="cardCost">
+                    <span class="admin-rule-unit">欢喜</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        获胜奖励倍数
+                        <small>获胜时奖励为消耗的倍数</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="2" id="cardReward">
+                    <span class="admin-rule-unit">倍</span>
+                </div>
+            </div>
+            <button class="admin-action-btn" onclick="saveSettings()">✦ 保存设置</button>
+        </div>
+
+        <!-- 四、老虎机 -->
+        <div class="admin-switch-card">
+            <div class="admin-switch-card-title">✦ 老虎机</div>
+            <div class="admin-switch-row">
+                <div>
+                    <div class="admin-switch-label"><span class="game-icon-font">🎰</span>老虎机功能开关</div>
+                    <div class="admin-switch-desc">开启/关闭老虎机游戏入口</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="slotSwitch" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div style="margin-top:12px; padding-top:16px; border-top:1px dashed rgba(139,90,43,0.15);">
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        最小充值档位
+                        <small>老虎机最低可充值档位</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="60" id="slotMinRecharge">
+                    <span class="admin-rule-unit">元</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        最大投注上限
+                        <small>单次最大可投注金额</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="500" id="slotMaxBet">
+                    <span class="admin-rule-unit">元</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        返还率
+                        <small>玩家平均返还比例</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="95" id="slotRtp">
+                    <span class="admin-rule-unit">%</span>
+                </div>
+            </div>
+            <button class="admin-action-btn" onclick="saveSettings()">✦ 保存设置</button>
+        </div>
+
+        <!-- 五、大转盘 -->
+        <div class="admin-switch-card">
+            <div class="admin-switch-card-title">✦ 大转盘</div>
+            <div class="admin-switch-row">
+                <div>
+                    <div class="admin-switch-label"><span class="game-icon-font">🎡</span>大转盘功能开关</div>
+                    <div class="admin-switch-desc">开启/关闭大转盘游戏入口</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="rouletteSwitch" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div style="margin-top:12px; padding-top:16px; border-top:1px dashed rgba(139,90,43,0.15);">
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        转一次消耗
+                        <small>每次转动消耗的欢喜</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="50" id="rouletteCost">
+                    <span class="admin-rule-unit">欢喜</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        每日免费次数
+                        <small>每日免费可转动次数</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="1" id="rouletteFree">
+                    <span class="admin-rule-unit">次</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        大奖概率
+                        <small>抽中大奖的概率</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="5" id="rouletteJackpot">
+                    <span class="admin-rule-unit">%</span>
+                </div>
+            </div>
+            <button class="admin-action-btn" onclick="saveSettings()">✦ 保存设置</button>
+        </div>
+
+        <!-- 六、掷骰子 -->
+        <div class="admin-switch-card">
+            <div class="admin-switch-card-title">✦ 掷骰子</div>
+            <div class="admin-switch-row">
+                <div>
+                    <div class="admin-switch-label"><span class="game-icon-font">🎲</span>掷骰子功能开关</div>
+                    <div class="admin-switch-desc">开启/关闭掷骰子游戏入口</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="diceSwitch" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div style="margin-top:12px; padding-top:16px; border-top:1px dashed rgba(139,90,43,0.15);">
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        每局消耗
+                        <small>每局掷骰子游戏消耗的欢喜</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="10" id="diceCost">
+                    <span class="admin-rule-unit">欢喜</span>
+                </div>
+                <div class="admin-rule-row">
+                    <div class="admin-rule-name">
+                        胜率加成
+                        <small>玩家获胜的概率加成</small>
+                    </div>
+                    <input class="admin-rule-input" type="number" value="10" id="diceBonus">
+                    <span class="admin-rule-unit">%</span>
+                </div>
+            </div>
+            <button class="admin-action-btn" onclick="saveSettings()">✦ 保存设置</button>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 游戏配置数据 ==========
+        var gameConfig = {
+            masterSwitch: true,
+            lottery: { enabled: true, cost: 10, freeTimes: 3, probability: 30 },
+            card: { enabled: true, cost: 20, rewardMultiplier: 2 },
+            slot: { enabled: true, minRecharge: 60, maxBet: 500, rtp: 95 },
+            roulette: { enabled: true, cost: 50, freeTimes: 1, jackpotChance: 5 },
+            dice: { enabled: true, cost: 10, winBonus: 10 }
+        };
+
+        // ========== 初始化 ==========
+        function init() {
+            loadSettings();
+        }
+
+        // ========== 加载设置 ==========
+        function loadSettings() {
+            try {
+                var saved = localStorage.getItem('gameSettings');
+                if (saved) {
+                    gameConfig = JSON.parse(saved);
+
+                    // 游戏总开关
+                    document.getElementById('masterSwitch').checked = gameConfig.masterSwitch;
+
+                    // 抽奖
+                    document.getElementById('lotterySwitch').checked = gameConfig.lottery.enabled;
+                    document.getElementById('lotteryCost').value = gameConfig.lottery.cost;
+                    document.getElementById('lotteryFree').value = gameConfig.lottery.freeTimes;
+                    document.getElementById('lotteryProb').value = gameConfig.lottery.probability;
+
+                    // 福运卡牌
+                    document.getElementById('cardSwitch').checked = gameConfig.card.enabled;
+                    document.getElementById('cardCost').value = gameConfig.card.cost;
+                    document.getElementById('cardReward').value = gameConfig.card.rewardMultiplier;
+
+                    // 老虎机
+                    document.getElementById('slotSwitch').checked = gameConfig.slot.enabled;
+                    document.getElementById('slotMinRecharge').value = gameConfig.slot.minRecharge;
+                    document.getElementById('slotMaxBet').value = gameConfig.slot.maxBet;
+                    document.getElementById('slotRtp').value = gameConfig.slot.rtp;
+
+                    // 大转盘
+                    document.getElementById('rouletteSwitch').checked = gameConfig.roulette.enabled;
+                    document.getElementById('rouletteCost').value = gameConfig.roulette.cost;
+                    document.getElementById('rouletteFree').value = gameConfig.roulette.freeTimes;
+                    document.getElementById('rouletteJackpot').value = gameConfig.roulette.jackpotChance;
+
+                    // 掷骰子
+                    document.getElementById('diceSwitch').checked = gameConfig.dice.enabled;
+                    document.getElementById('diceCost').value = gameConfig.dice.cost;
+                    document.getElementById('diceBonus').value = gameConfig.dice.winBonus;
+
+                    // 禁用总开关时禁用所有其他开关和输入框
+                    updateAllDisabledStates();
+                }
+            } catch (e) {
+                console.log('加载游戏设置失败', e);
+            }
+        }
+
+        // ========== 总开关切换 ==========
+        function toggleMasterSwitch() {
+            updateAllDisabledStates();
+        }
+
+        // ========== 更新所有禁用状态 ==========
+        function updateAllDisabledStates() {
+            var masterOn = document.getElementById('masterSwitch').checked;
+
+            document.getElementById('lotterySwitch').disabled = !masterOn;
+            document.getElementById('cardSwitch').disabled = !masterOn;
+            document.getElementById('slotSwitch').disabled = !masterOn;
+            document.getElementById('rouletteSwitch').disabled = !masterOn;
+            document.getElementById('diceSwitch').disabled = !masterOn;
+
+            var inputs = document.querySelectorAll('.admin-rule-input');
+            inputs.forEach(function(input) {
+                input.disabled = !masterOn;
+            });
+        }
+
+        // ========== 保存设置 ==========
+        function saveSettings() {
+            // 收集所有设置
+            gameConfig.masterSwitch = document.getElementById('masterSwitch').checked;
+
+            gameConfig.lottery = {
+                enabled: document.getElementById('lotterySwitch').checked,
+                cost: parseFloat(document.getElementById('lotteryCost').value) || 10,
+                freeTimes: parseFloat(document.getElementById('lotteryFree').value) || 3,
+                probability: parseFloat(document.getElementById('lotteryProb').value) || 30
+            };
+
+            gameConfig.card = {
+                enabled: document.getElementById('cardSwitch').checked,
+                cost: parseFloat(document.getElementById('cardCost').value) || 20,
+                rewardMultiplier: parseFloat(document.getElementById('cardReward').value) || 2
+            };
+
+            gameConfig.slot = {
+                enabled: document.getElementById('slotSwitch').checked,
+                minRecharge: parseFloat(document.getElementById('slotMinRecharge').value) || 60,
+                maxBet: parseFloat(document.getElementById('slotMaxBet').value) || 500,
+                rtp: parseFloat(document.getElementById('slotRtp').value) || 95
+            };
+
+            gameConfig.roulette = {
+                enabled: document.getElementById('rouletteSwitch').checked,
+                cost: parseFloat(document.getElementById('rouletteCost').value) || 50,
+                freeTimes: parseFloat(document.getElementById('rouletteFree').value) || 1,
+                jackpotChance: parseFloat(document.getElementById('rouletteJackpot').value) || 5
+            };
+
+            gameConfig.dice = {
+                enabled: document.getElementById('diceSwitch').checked,
+                cost: parseFloat(document.getElementById('diceCost').value) || 10,
+                winBonus: parseFloat(document.getElementById('diceBonus').value) || 10
+            };
+
+            // 保存到 localStorage
+            try {
+                localStorage.setItem('gameSettings', JSON.stringify(gameConfig));
+
+                // 广播更新给其他页面
+                localStorage.setItem('gameSettingsUpdated', Date.now().toString());
+
+                showToast('✦ 游戏设置已保存');
+            } catch (e) {
+                showToast('✦ 保存失败：' + e.message);
+            }
+        }
+
+        // ========== Toast提示 ==========
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function () { toast.classList.remove('show'); }, 2000);
+        }
+
+        // ========== 监听开关变化（可用于实时预览） ==========
+        document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                // 如果是总开关，同步更新所有子项状态
+                if (this.id === 'masterSwitch') updateAllDisabledStates();
+            });
+        });
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

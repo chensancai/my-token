@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 · 权限管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-warm: #F5E6D3;
+            --primary: #8B5A2B;
+            --primary-light: #A67B4B;
+            --accent: #C04040;
+            --gold: #D4AF37;
+            --text-dark: #4A3728;
+            --text-light: #8B7355;
+            --card-bg: #FDF8F3;
+            --border: rgba(184, 134, 11, 0.3);
+        }
+        body { font-family: 'Noto Serif SC', serif; background: var(--bg-warm); min-height: 100vh; }
+        
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 54px;
+            background: linear-gradient(135deg, var(--accent) 0%, #8B0000 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 20px;
+            color: #fff;
+            letter-spacing: 4px;
+            margin-right: 36px;
+        }
+        
+        /* 内容区域 */
+        .content {
+            padding: 70px 16px 30px;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+        
+        /* 超级管理员提示 */
+        .super-admin-tip {
+            background: linear-gradient(135deg, rgba(139,0,0,0.1), rgba(139,0,0,0.05));
+            border: 1px solid rgba(139,0,0,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .tip-icon {
+            font-size: 32px;
+        }
+        .tip-content {
+            flex: 1;
+        }
+        .tip-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .tip-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        /* 管理员列表 */
+        .admin-section {
+            margin-bottom: 24px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            padding-left: 4px;
+        }
+        .add-btn {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-list {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(139,90,43,0.08);
+        }
+        .admin-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .admin-item:last-child {
+            border-bottom: none;
+        }
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bg-warm), #E8D5C4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-right: 12px;
+        }
+        .admin-info {
+            flex: 1;
+        }
+        .admin-name {
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .admin-phone {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .admin-badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .admin-badge.super {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #4A3728;
+        }
+        .admin-badge.normal {
+            background: rgba(139,90,43,0.1);
+            color: var(--primary);
+        }
+        .admin-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-btn.edit {
+            background: #E3F2FD;
+        }
+        .action-btn.delete {
+            background: #FFEBEE;
+        }
+        
+        /* 权限设置 */
+        .permission-section {
+            margin-bottom: 24px;
+        }
+        .permission-list {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(139,90,43,0.08);
+        }
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+        .permission-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        .permission-icon.orange { background: #FFF3E0; }
+        .permission-icon.red { background: #FFEBEE; }
+        .permission-icon.blue { background: #E3F2FD; }
+        .permission-icon.green { background: #E8F5E9; }
+        .permission-icon.purple { background: #F3E5F5; }
+        .permission-text {
+            flex: 1;
+        }
+        .permission-name {
+            font-size: 14px;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+        .permission-desc {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+        
+        /* 开关 */
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: #e0e0e0;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background .3s;
+        }
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+        .toggle-switch::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: left .3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+        
+        /* 操作日志 */
+        .log-section {
+            margin-bottom: 24px;
+        }
+        .log-list {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .log-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        .log-content {
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+        .log-admin {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* 提示信息 */
+        .info-tip {
+            background: rgba(139,90,43,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .info-tip-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+        .info-tip-content {
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <a href="admin.html" class="back-btn">←</a>
+        <div class="header-title">权限管理</div>
+    </div>
+    
+    <!-- 内容区域 -->
+    <div class="content">
+        <!-- 超级管理员提示 -->
+        <div class="super-admin-tip">
+            <div class="tip-icon">👑</div>
+            <div class="tip-content">
+                <div class="tip-title">超级管理员权限</div>
+                <div class="tip-desc">您拥有所有模块的管理权限，可授权其他管理员</div>
+            </div>
+        </div>
+        
+        <!-- 管理员列表 -->
+        <div class="admin-section">
+            <div class="section-header">
+                <div class="section-title">管理员列表</div>
+                <button class="add-btn" onclick="addAdmin()">+</button>
+            </div>
+            <div class="admin-list">
+                <div class="admin-item">
+                    <div class="admin-avatar">🙏</div>
+                    <div class="admin-info">
+                        <div class="admin-name">一心向善</div>
+                        <div class="admin-phone">189****6788</div>
+                    </div>
+                    <div class="admin-badge super">超级</div>
+                </div>
+                <div class="admin-item">
+                    <div class="admin-avatar">🧘</div>
+                    <div class="admin-info">
+                        <div class="admin-name">静心修行</div>
+                        <div class="admin-phone">138****1234</div>
+                    </div>
+                    <div class="admin-badge normal">普通</div>
+                    <div class="admin-actions">
+                        <button class="action-btn edit" onclick="editAdmin()">✏️</button>
+                        <button class="action-btn delete" onclick="deleteAdmin()">🗑️</button>
+                    </div>
+                </div>
+                <div class="admin-item">
+                    <div class="admin-avatar">🌸</div>
+                    <div class="admin-info">
+                        <div class="admin-name">禅意人生</div>
+                        <div class="admin-phone">136****5678</div>
+                    </div>
+                    <div class="admin-badge normal">普通</div>
+                    <div class="admin-actions">
+                        <button class="action-btn edit" onclick="editAdmin()">✏️</button>
+                        <button class="action-btn delete" onclick="deleteAdmin()">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 权限配置 -->
+        <div class="permission-section">
+            <div class="section-header">
+                <div class="section-title">权限配置</div>
+            </div>
+            <div class="permission-list">
+                <div class="permission-item">
+                    <div class="permission-icon orange">💰</div>
+                    <div class="permission-text">
+                        <div class="permission-name">参数管理</div>
+                        <div class="permission-desc">修改道具价格、充值奖励</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="togglePermission(this)"></div>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-icon red">🔔</div>
+                    <div class="permission-text">
+                        <div class="permission-name">场景开关</div>
+                        <div class="permission-desc">管理场景、弹窗、广告开关</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="togglePermission(this)"></div>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-icon blue">🗿</div>
+                    <div class="permission-text">
+                        <div class="permission-name">佛像道具</div>
+                        <div class="permission-desc">更换佛像、光环、背景、音乐</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="togglePermission(this)"></div>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-icon green">📋</div>
+                    <div class="permission-text">
+                        <div class="permission-name">菜单管理</div>
+                        <div class="permission-desc">管理页面图片和菜单名称</div>
+                    </div>
+                    <div class="toggle-switch" onclick="togglePermission(this)"></div>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-icon purple">👑</div>
+                    <div class="permission-text">
+                        <div class="permission-name">授权管理员</div>
+                        <div class="permission-desc">添加/撤销管理员权限</div>
+                    </div>
+                    <div class="toggle-switch active" onclick="togglePermission(this)"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 操作日志 -->
+        <div class="log-section">
+            <div class="section-header">
+                <div class="section-title">操作日志</div>
+            </div>
+            <div class="log-list">
+                <div class="log-item">
+                    <div class="log-time">2024-06-18 14:30:25</div>
+                    <div class="log-content"><span class="log-admin">一心向善</span> 授权 <span class="log-admin">静心修行</span> 参数管理权限</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">2024-06-18 10:15:42</div>
+                    <div class="log-content"><span class="log-admin">一心向善</span> 关闭了超度追思场景</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">2024-06-17 16:20:08</div>
+                    <div class="log-content"><span class="log-admin">一心向善</span> 修改了道具价格配置</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">2024-06-15 09:00:00</div>
+                    <div class="log-content"><span class="log-admin">一心向善</span> 新增管理员 <span class="log-admin">禅意人生</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 提示信息 -->
+        <div class="info-tip">
+            <div class="info-tip-title">💡 温馨提示</div>
+            <div class="info-tip-content">
+                1. 超级管理员账号：18944761788<br>
+                2. 只有超级管理员可以授权其他管理员<br>
+                3. 所有修改实时同步到云端<br>
+                4. 权限变更会记录到操作日志
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function addAdmin() {
+            alert('请输入管理员手机号进行授权');
+        }
+        
+        function editAdmin() {
+            alert('编辑管理员权限');
+        }
+        
+        function deleteAdmin() {
+            if (confirm('确定要删除该管理员吗？')) {
+                alert('管理员已删除');
+            }
+        }
+        
+        function togglePermission(el) {
+            el.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

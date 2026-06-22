@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 · 分享领取奖励</title>
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow-x: hidden;
+    }
+    
+    /* 背景装饰 */
+    .bg-lotus {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+    
+    .lotus {
+        position: absolute;
+        font-size: 40px;
+        opacity: 0.12;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(10deg); }
+    }
+    
+    /* 光效 */
+    .light-burst {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150vmax;
+        height: 150vmax;
+        background: radial-gradient(ellipse, rgba(255,215,0,0.12) 0%, transparent 60%);
+        z-index: 0;
+    }
+    
+    /* 主容器 */
+    .container {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 360px;
+    }
+    
+    /* 分享卡片主体 */
+    .share-card-main {
+        background: linear-gradient(160deg, #8B0000 0%, #B22222 25%, #DC143C 50%, #B22222 75%, #8B0000 100%);
+        border-radius: 24px;
+        padding: 30px 25px;
+        box-shadow:
+            0 20px 60px rgba(0,0,0,0.5),
+            0 0 80px rgba(255,215,0,0.15),
+            inset 0 2px 0 rgba(255,255,255,0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* 顶部金色光芒 */
+    .card-top-glow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(180deg, rgba(255,215,0,0.25) 0%, transparent 100%);
+        pointer-events: none;
+    }
+    
+    /* 金色边框 */
+    .card-border {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        border: 2px solid rgba(255,215,0,0.35);
+        border-radius: 18px;
+        pointer-events: none;
+    }
+    
+    /* 角落装饰 */
+    .corner-deco {
+        position: absolute;
+        font-size: 20px;
+        opacity: 0.4;
+    }
+    .corner-deco.tl { top: 15px; left: 15px; }
+    .corner-deco.tr { top: 15px; right: 15px; }
+    .corner-deco.bl { bottom: 15px; left: 15px; }
+    .corner-deco.br { bottom: 15px; right: 15px; }
+    
+    /* 关闭按钮 */
+    .close-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 30px;
+        height: 30px;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,215,0,0.3);
+        border-radius: 50%;
+        color: #FFD700;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+    
+    .close-btn:active {
+        background: rgba(0,0,0,0.5);
+    }
+    
+    /* 标题区 */
+    .card-header {
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .card-icon {
+        font-size: 55px;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    
+    .card-title {
+        font-size: 24px;
+        color: #FFD700;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        letter-spacing: 4px;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+    
+    .card-subtitle {
+        font-size: 12px;
+        color: rgba(255,215,0,0.7);
+    }
+    
+    /* 二维码区域 */
+    .qr-area {
+        background: #FFF;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 18px;
+        text-align: center;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .qr-wrapper {
+        display: inline-block;
+        padding: 12px;
+        background: #FFF;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .qr-grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-template-rows: repeat(8, 1fr);
+        gap: 1px;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .qr-cell {
+        background: #000;
+        border-radius: 1px;
+    }
+    
+    .qr-cell.white {
+        background: #FFF;
+    }
+    
+    .qr-hint {
+        font-size: 11px;
+        color: #666;
+        margin-top: 10px;
+    }
+    
+    /* 奖励区 */
+    .reward-section {
+        background: rgba(255,215,0,0.12);
+        border: 1px solid rgba(255,215,0,0.25);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 18px;
+    }
+    
+    .reward-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    
+    .reward-title-icon {
+        font-size: 20px;
+    }
+    
+    .reward-title-text {
+        font-size: 15px;
+        color: #FFD700;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+    
+    .reward-items {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+    }
+    
+    .reward-item {
+        text-align: center;
+    }
+    
+    .reward-item-icon {
+        font-size: 32px;
+        margin-bottom: 6px;
+    }
+    
+    .reward-item-value {
+        font-size: 18px;
+        color: #FFF;
+        font-weight: bold;
+    }
+    
+    .reward-item-label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.65);
+        margin-top: 3px;
+    }
+    
+    /* 分享按钮 */
+    .share-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .share-btn {
+        flex: 1;
+        padding: 13px 8px;
+        border: none;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: transform 0.2s, opacity 0.2s;
+    }
+    
+    .share-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .share-btn.wechat {
+        background: linear-gradient(135deg, #07C160, #06AD56);
+        color: #FFF;
+    }
+    
+    .share-btn.moments {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #8B0000;
+    }
+    
+    .share-btn.copy {
+        background: rgba(255,255,255,0.15);
+        color: #FFD700;
+        border: 1px solid rgba(255,215,0,0.35);
+    }
+    
+    /* 底部提示 */
+    .bottom-tip {
+        text-align: center;
+        color: rgba(255,255,255,0.45);
+        font-size: 11px;
+        margin-top: 15px;
+    }
+    
+    /* 领取成功动画 */
+    .claim-success {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.88);
+        border-radius: 24px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 30;
+        padding: 30px;
+    }
+    
+    .claim-success.show {
+        display: flex;
+    }
+    
+    .claim-success-icon {
+        font-size: 90px;
+        animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes bounceIn {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .claim-success-text {
+        font-size: 26px;
+        color: #FFD700;
+        margin-top: 18px;
+        font-weight: bold;
+        letter-spacing: 3px;
+        text-shadow: 0 2px 8px rgba(255,215,0,0.5);
+    }
+    
+    .claim-success-reward {
+        font-size: 18px;
+        color: #FFF;
+        margin-top: 12px;
+    }
+    
+    .claim-success-btn {
+        margin-top: 28px;
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #8B0000;
+        border: none;
+        padding: 14px 40px;
+        border-radius: 25px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 5px 20px rgba(255,165,0,0.4);
+    }
+    
+    .claim-success-btn:active {
+        transform: scale(0.95);
+    }
+    
+    /* 已领取状态 */
+    .already-claimed {
+        display: none;
+        text-align: center;
+        padding: 30px 20px;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .already-claimed.show {
+        display: block;
+    }
+    
+    .already-claimed-icon {
+        font-size: 50px;
+        margin-bottom: 12px;
+    }
+    
+    .already-claimed-text {
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+    
+    .already-claimed-sub {
+        font-size: 12px;
+        opacity: 0.7;
+    }
+    
+    /* 返回按钮 */
+    .back-home {
+        display: inline-block;
+        margin-top: 20px;
+        color: rgba(255,215,0,0.6);
+        font-size: 13px;
+        text-decoration: none;
+        padding: 10px 20px;
+        border: 1px solid rgba(255,215,0,0.2);
+        border-radius: 20px;
+    }
+    
+    .back-home:active {
+        background: rgba(255,215,0,0.1);
+    }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-lotus">
+        <div class="lotus" style="top:8%;left:5%;animation-delay:0s;">🪷</div>
+        <div class="lotus" style="top:15%;right:8%;animation-delay:1s;">🪷</div>
+        <div class="lotus" style="bottom:18%;left:12%;animation-delay:2s;">🪷</div>
+        <div class="lotus" style="bottom:22%;right:5%;animation-delay:0.5s;">🪷</div>
+        <div class="lotus" style="top:50%;left:3%;animation-delay:1.5s;">✨</div>
+        <div class="lotus" style="top:35%;right:3%;animation-delay:2.5s;">✨</div>
+    </div>
+    <div class="light-burst"></div>
+
+    <div class="container">
+        <div class="share-card-main" id="shareCardMain">
+            <div class="card-top-glow"></div>
+            <div class="card-border"></div>
+            <div class="corner-deco tl">✦</div>
+            <div class="corner-deco tr">✦</div>
+            <div class="corner-deco bl">✦</div>
+            <div class="corner-deco br">✦</div>
+            <button class="close-btn" id="closeBtn">×</button>
+            
+            <!-- 主内容 -->
+            <div id="cardContent">
+                <div class="card-header">
+                    <div class="card-icon">🎁</div>
+                    <div class="card-title">分享领取奖励</div>
+                    <div class="card-subtitle">分享给好友，好友注册后双方获赠</div>
+                </div>
+                
+                <!-- 二维码 -->
+                <div class="qr-area">
+                    <div class="qr-wrapper">
+                        <div class="qr-grid" id="qrGrid">
+                            <!-- JS生成二维码格子 -->
+                        </div>
+                    </div>
+                    <div class="qr-hint">扫码进入祈个福小程序</div>
+                </div>
+                
+                <!-- 奖励展示 -->
+                <div class="reward-section">
+                    <div class="reward-title-row">
+                        <span class="reward-title-icon">🎉</span>
+                        <span class="reward-title-text">邀请奖励</span>
+                        <span class="reward-title-icon">🎉</span>
+                    </div>
+                    <div class="reward-items">
+                        <div class="reward-item">
+                            <div class="reward-item-icon">💰</div>
+                            <div class="reward-item-value">+500</div>
+                            <div class="reward-item-label">欢喜币</div>
+                        </div>
+                        <div class="reward-item">
+                            <div class="reward-item-icon">✨</div>
+                            <div class="reward-item-value">+200</div>
+                            <div class="reward-item-label">佛光</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分享按钮 -->
+                <div class="share-buttons">
+                    <button class="share-btn wechat" id="wechatShareBtn">📱 微信好友</button>
+                    <button class="share-btn moments" id="momentsShareBtn">📤 朋友圈</button>
+                    <button class="share-btn copy" id="copyLinkBtn">📋 复制</button>
+                </div>
+            </div>
+            
+            <!-- 已领取状态 -->
+            <div class="already-claimed" id="alreadyClaimed">
+                <div class="already-claimed-icon">✅</div>
+                <div class="already-claimed-text">奖励已领取</div>
+                <div class="already-claimed-sub">感谢您的分享，明日再来～</div>
+            </div>
+            
+            <!-- 领取成功动画 -->
+            <div class="claim-success" id="claimSuccess">
+                <div class="claim-success-icon">🎉</div>
+                <div class="claim-success-text">领取成功！</div>
+                <div class="claim-success-reward" id="claimedReward">+500 欢喜 +200 佛光</div>
+                <button class="claim-success-btn" id="claimOkBtn">确定</button>
+            </div>
+        </div>
+        
+        <div class="bottom-tip">💡 提示：分享后返回此处点击"领取奖励"</div>
+        
+        <a href="index.html" class="back-home">← 返回首页</a>
+    </div>
+
+    <script src="app-state.js"></script>
+    <script>
+    // 生成伪二维码（8x8网格）
+    const qrGrid = document.getElementById('qrGrid');
+    const qrPattern = [
+        [1,1,1,1,1,1,1,0],
+        [1,0,0,0,0,0,1,0],
+        [1,0,1,1,1,0,1,0],
+        [1,0,1,1,1,0,1,0],
+        [1,0,1,1,1,0,1,0],
+        [1,0,0,0,0,0,1,0],
+        [1,1,1,1,1,1,1,0],
+        [0,0,0,0,0,0,0,0],
+        [0,1,1,0,1,1,0,1],
+        [1,1,0,1,0,1,1,0],
+        [0,0,1,0,1,0,1,1],
+        [1,1,1,1,1,1,0,0],
+        [0,0,0,0,0,0,1,1],
+        [1,1,1,1,1,0,1,0],
+        [0,0,0,0,0,0,0,1],
+        [0,0,0,0,0,0,0,0],
+    ];
+    qrPattern.forEach(row => {
+        row.forEach(cell => {
+            const div = document.createElement('div');
+            div.className = 'qr-cell' + (cell === 0 ? ' white' : '');
+            qrGrid.appendChild(div);
+        });
+    });
+
+    // 分享到微信
+    document.getElementById('wechatShareBtn').addEventListener('click', () => {
+        if (navigator.share) {
+            navigator.share({
+                title: '祈个福 · 放生祈福',
+                text: '一起来放生祈福，结善缘得好运！',
+                url: 'https://qigefu.com/invite/' + (localStorage.getItem('userId') || 'guest')
+            }).then(() => {
+                showClaimSuccess();
+            }).catch(() => {});
+        } else {
+            simulateShare();
+        }
+    });
+
+    // 分享到朋友圈
+    document.getElementById('momentsShareBtn').addEventListener('click', () => {
+        simulateShare();
+    });
+
+    // 复制链接
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+        const link = 'https://qigefu.com/invite/' + (localStorage.getItem('userId') || 'guest');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert('链接已复制到剪贴板！');
+            });
+        } else {
+            alert('链接已复制！');
+        }
+    });
+
+    // 模拟分享流程（演示用）
+    function simulateShare() {
+        const cardContent = document.getElementById('cardContent');
+        const claimSuccess = document.getElementById('claimSuccess');
+        
+        // 模拟分享后弹出领取
+        setTimeout(() => {
+            cardContent.style.opacity = '0.3';
+            claimSuccess.classList.add('show');
+            
+            // 发放奖励
+            if (window.PrayApp) {
+                window.PrayApp.addHuaxi(500);
+                window.PrayApp.addFoguang(200);
+                window.PrayApp.showFloatingText('+500 欢喜 +200 佛光', '#FFD700');
+            }
+        }, 500);
+    }
+
+    // 直接显示领取成功（用于从外部打开此页面）
+    function showClaimSuccess() {
+        simulateShare();
+    }
+
+    // 领取确定按钮
+    document.getElementById('claimOkBtn').addEventListener('click', () => {
+        const claimSuccess = document.getElementById('claimSuccess');
+        const cardContent = document.getElementById('cardContent');
+        const alreadyClaimed = document.getElementById('alreadyClaimed');
+        
+        claimSuccess.classList.remove('show');
+        cardContent.style.display = 'none';
+        alreadyClaimed.classList.add('show');
+    });
+
+    // 关闭按钮
+    document.getElementById('closeBtn').addEventListener('click', () => {
+        window.close();
+    });
+
+    // URL参数判断是否直接显示领取
+    const params = new URLSearchParams(location.search);
+    if (params.get('claim') === 'true') {
+        setTimeout(() => showClaimSuccess(), 500);
+    }
+    </script>
+</body>
+</html>

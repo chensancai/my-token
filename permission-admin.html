@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限管理 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #4A3728;
+        }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .phone-wrap {
+            background: #111;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 0 2px #D4AF37, 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5);
+        }
+        .phone-notch {
+            position: absolute;
+            top: 8px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 22px;
+            background: #000;
+            border-radius: 12px;
+            z-index: 50;
+        }
+        .phone-screen {
+            width: 100%;
+            min-height: 1400px;
+            border-radius: 32px;
+            overflow: hidden;
+            background: #FFFBEE;
+            position: relative;
+        }
+        .status-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            padding: 10px 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+            color: rgba(0,0,0,0.7);
+        }
+        .back-btn {
+            position: absolute;
+            top: 8px; left: 10px;
+            width: 30px; height: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 100;
+            color: #fff;
+            border: none;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .page-header {
+            padding: 64px 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .page-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 20px;
+            color: #8B5A2B;
+            letter-spacing: 4px;
+        }
+        .page-subtitle-bar {
+            padding: 0 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #C2362B;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .dot-red {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #C2362B;
+        }
+
+        .scroll-area { padding: 0 20px 30px; }
+
+        /* 管理员卡片 */
+        .admin-card {
+            background: #fff;
+            border: 2px solid #8B5A2B;
+            border-radius: 14px;
+            padding: 18px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(139,90,43,0.1);
+        }
+
+        /* 超级管理员信息卡 */
+        .super-info {
+            text-align: center;
+        }
+        .super-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: linear-gradient(135deg,#C2362B 0%,#8B3A3A 100%);
+            color: #FFFBEE;
+            border-radius: 20px;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 14px;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(194,54,43,0.3);
+        }
+        .super-phone {
+            font-size: 20px;
+            color: #8B5A2B;
+            font-weight: 700;
+            letter-spacing: 3px;
+            font-family: 'Ma Shan Zheng', cursive;
+            margin-bottom: 6px;
+        }
+        .super-note {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+        }
+
+        /* 已授权管理员列表 */
+        .admin-card-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 15px;
+            color: #8B5A2B;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .admin-card-title .count {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            padding: 2px 8px;
+            background: #FFF8EC;
+            border-radius: 10px;
+        }
+
+        .admin-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px dashed rgba(139,90,43,0.15);
+        }
+        .admin-list-item:last-child { border-bottom: none; }
+        .admin-avatar {
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#D4A574,#8B5A2B);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .admin-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .admin-info-name {
+            font-size: 14px;
+            color: #4A3728;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .admin-info-phone {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+        .admin-info-perms {
+            font-size: 10px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+        .admin-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .admin-item-btn {
+            padding: 6px 12px;
+            border-radius: 14px;
+            background: #FFF8EC;
+            color: #8B5A2B;
+            border: 1.5px solid #D4A574;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            white-space: nowrap;
+        }
+        .admin-item-btn.remove {
+            background: #fff;
+            color: #C8553D;
+            border: 1.5px solid rgba(200,85,61,0.5);
+        }
+
+        /* 添加新管理员 */
+        .admin-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 10px;
+            background: #FFF8EC;
+            font-size: 13px;
+            color: #4A3728;
+            outline: none;
+            font-family: inherit;
+            margin-bottom: 14px;
+        }
+        .perm-group-title {
+            font-size: 11px;
+            color: #8B5A2B;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-weight: 700;
+        }
+
+        .perm-check-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(139,90,43,0.1);
+            cursor: pointer;
+        }
+        .perm-check-row:last-of-type { border-bottom: none; }
+        .perm-check-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #8B5A2B;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .perm-checkbox {
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            background: #FFF8EC;
+            border: 1.5px solid #D4A574;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #8B5A2B;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .perm-check-row > div:not(.perm-checkbox) {
+            flex: 1;
+        }
+        .perm-label {
+            font-size: 13px;
+            color: #4A3728;
+            font-weight: 600;
+        }
+        .perm-desc {
+            font-size: 10px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* 转换提现管理 - 分组 */
+        .conv-group {
+            padding: 14px 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFFBEE 0%, #FFF0DC 100%);
+            border: 1.5px dashed #D4A574;
+            border-radius: 12px;
+        }
+        .conv-group.red {
+            background: linear-gradient(135deg, #FFFBEE 0%, #FFE8E0 100%);
+            border-color: #E85D3C;
+        }
+        .conv-group.green {
+            background: linear-gradient(135deg, #FFFBEE 0%, #E8F5EC 100%);
+            border-color: #4A8B7E;
+        }
+        .conv-group-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 14px;
+            color: #8B5A2B;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .conv-group.red .conv-group-title { color: #C2362B; }
+        .conv-group.green .conv-group-title { color: #4A7C7E; }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+        }
+        .field-label {
+            font-size: 12px;
+            color: #8B5A2B;
+            font-weight: 700;
+            letter-spacing: 1px;
+            width: 80px;
+            font-family: 'Ma Shan Zheng', cursive;
+            flex-shrink: 0;
+        }
+        .field-input {
+            width: 90px;
+            padding: 8px 6px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 8px;
+            background: #FFF8EC;
+            font-size: 13px;
+            color: #4A3728;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+        }
+        .field-unit {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            font-family: 'Ma Shan Zheng', cursive;
+            flex: 1;
+        }
+
+        /* 提交按钮 */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            background: linear-gradient(135deg,#C2362B 0%,#E85D3C 100%);
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 16px rgba(194,54,43,0.3);
+            margin-top: 16px;
+        }
+        .submit-btn.green {
+            background: linear-gradient(135deg,#4A7C7E,#8B5A2B);
+            box-shadow: 0 4px 16px rgba(74,124,126,0.3);
+        }
+
+        .admin-tip {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #8B7355;
+            opacity: 0.7;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .admin-tip-small {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 9px;
+            color: #8B7355;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family:'Ma Shan Zheng',cursive;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="phone-wrap">
+            <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+
+                <div class="page-header">
+                    <button class="back-btn" onclick="history.back()" aria-label="返回">‹</button>
+                    <div class="page-title">✦ 权限管理</div>
+                    <div style="width:30px"></div>
+                </div>
+
+                <div class="page-subtitle-bar">
+                    <span class="dot-red"></span>
+                    <span>超级管理员专属</span>
+                </div>
+
+                <div class="scroll-area">
+
+                    <!-- 超级管理员信息 -->
+                    <div class="admin-card super-info">
+                        <div class="super-badge">超 级 管 理 员</div>
+                        <div class="super-phone">189 4476 1788</div>
+                        <div class="super-note">Super Administrator · 最高权限</div>
+                    </div>
+
+                    <!-- 已授权管理员列表 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">
+                            ✦ 已授权管理员
+                            <span class="count">共 2 位</span>
+                        </div>
+                        <div class="admin-list-item">
+                            <div class="admin-avatar">管</div>
+                            <div class="admin-info">
+                                <div class="admin-info-name">管理员 · 净心</div>
+                                <div class="admin-info-phone">189****6688</div>
+                                <div class="admin-info-perms">发布商品 · 商品管理 · 发货管理 · 文章管理 · 编辑文章</div>
+                            </div>
+                            <div class="admin-item-actions">
+                                <button class="admin-item-btn" onclick="showToast('✦ 编辑权限')">编辑</button>
+                                <button class="admin-item-btn remove" onclick="showToast('✦ 已取消授权')">移除</button>
+                            </div>
+                        </div>
+                        <div class="admin-list-item">
+                            <div class="admin-avatar">助</div>
+                            <div class="admin-info">
+                                <div class="admin-info-name">管理员 · 妙真</div>
+                                <div class="admin-info-phone">138****9901</div>
+                                <div class="admin-info-perms">发货管理 · 文章管理</div>
+                            </div>
+                            <div class="admin-item-actions">
+                                <button class="admin-item-btn" onclick="showToast('✦ 编辑权限')">编辑</button>
+                                <button class="admin-item-btn remove" onclick="showToast('✦ 已取消授权')">移除</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 添加新管理员 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">✦ 添加新管理员</div>
+                        <input class="admin-input" type="tel" placeholder="输入手机号码，如 138****9901" maxlength="11">
+                        <div class="perm-group-title">选择授权权限</div>
+
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox" checked>
+                            <div class="perm-checkbox">✓</div>
+                            <div>
+                                <div class="perm-label">发布商品</div>
+                            </div>
+                        </div>
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox" checked>
+                            <div class="perm-checkbox">✓</div>
+                            <div>
+                                <div class="perm-label">商品管理</div>
+                            </div>
+                        </div>
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox" checked>
+                            <div class="perm-checkbox">✓</div>
+                            <div>
+                                <div class="perm-label">发货管理</div>
+                            </div>
+                        </div>
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox">
+                            <div class="perm-checkbox"></div>
+                            <div>
+                                <div class="perm-label">文章管理</div>
+                            </div>
+                        </div>
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox">
+                            <div class="perm-checkbox"></div>
+                            <div>
+                                <div class="perm-label">编辑文章</div>
+                            </div>
+                        </div>
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox">
+                            <div class="perm-checkbox"></div>
+                            <div>
+                                <div class="perm-label">会员管理</div>
+                                <div class="perm-desc">管理菩提奖励规则、会员设置等</div>
+                            </div>
+                        </div>
+                        <div class="perm-check-row" onclick="toggleCheck(this)">
+                            <input type="checkbox">
+                            <div class="perm-checkbox"></div>
+                            <div>
+                                <div class="perm-label">图标管理</div>
+                                <div class="perm-desc">修改商城LOGO、导航图标、广告词等</div>
+                            </div>
+                        </div>
+
+                        <button class="submit-btn" onclick="showToast('✦ 授权成功，管理员已添加')">✦ 确认授权</button>
+                    </div>
+
+                    <!-- 转换提现管理 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">✦ 转换提现管理</div>
+                        <div style="font-size:10px;color:#8B7355;letter-spacing:1px;margin-bottom:14px;opacity:0.8;line-height:1.6;text-align:center">
+                            此板块为超级管理员专属，用于设置「愿力 → 奖金」、「奖金 → 喜呗」、「喜呗提现」的兑换比例、<br>最低金额与手续费，设置保存后自动应用到全平台用户，请谨慎操作
+                        </div>
+
+                        <!-- 7.1 愿力 → 奖金 -->
+                        <div class="conv-group">
+                            <div class="conv-group-title">愿力 → 奖金</div>
+                            <div class="field-row">
+                                <span class="field-label">兑换比例</span>
+                                <input class="field-input" type="number" value="10" min="1">
+                                <span class="field-unit">愿力 = 1 元奖金</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">最低转换</span>
+                                <input class="field-input" type="number" value="500" min="100" step="100">
+                                <span class="field-unit">愿力</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">递增倍数</span>
+                                <input class="field-input" type="number" value="500" min="100" step="100">
+                                <span class="field-unit">愿力</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">平台手续费</span>
+                                <input class="field-input" type="number" value="0" min="0" max="100" step="0.1">
+                                <span class="field-unit">%</span>
+                            </div>
+                        </div>
+
+                        <!-- 7.2 奖金 → 喜呗 -->
+                        <div class="conv-group red">
+                            <div class="conv-group-title">奖金 → 喜呗</div>
+                            <div class="field-row">
+                                <span class="field-label">兑换比例</span>
+                                <input class="field-input" type="number" value="1" min="0.01" step="0.01">
+                                <span class="field-unit">元 = 1 喜呗</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">最低转换</span>
+                                <input class="field-input" type="number" value="100" min="10" step="10">
+                                <span class="field-unit">元</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">递增倍数</span>
+                                <input class="field-input" type="number" value="100" min="10" step="10">
+                                <span class="field-unit">元</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">平台服务费</span>
+                                <input class="field-input" type="number" value="20" min="0" max="100" step="0.1">
+                                <span class="field-unit">%（实得 80%）</span>
+                            </div>
+                        </div>
+
+                        <!-- 7.3 喜呗提现 -->
+                        <div class="conv-group green">
+                            <div class="conv-group-title">喜呗提现</div>
+                            <div class="field-row">
+                                <span class="field-label">兑换比例</span>
+                                <input class="field-input" type="number" value="1" min="0.01" step="0.01">
+                                <span class="field-unit">喜呗 = 1 元</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">最低提现</span>
+                                <input class="field-input" type="number" value="100" min="10" step="10">
+                                <span class="field-unit">喜呗</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">递增倍数</span>
+                                <input class="field-input" type="number" value="100" min="10" step="10">
+                                <span class="field-unit">喜呗</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">平台手续费</span>
+                                <input class="field-input" type="number" value="1.2" min="0" max="100" step="0.1">
+                                <span class="field-unit">%（实得 98.8%）</span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">到账周期</span>
+                                <input class="field-input" type="number" value="3" min="1" step="1">
+                                <span class="field-unit">个工作日</span>
+                            </div>
+                        </div>
+
+                        <button class="submit-btn green" onclick="showToast('✦ 转换提现规则已保存')">💾 保存转换提现规则</button>
+                        <div class="admin-tip-small">— 保存后立即生效，所有用户按此规则进行转换 —</div>
+                    </div>
+
+                    <div class="admin-tip">— 仅超级管理员 18944761788 可操作 —</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+        function toggleCheck(row) {
+            const cb = row.querySelector('input[type="checkbox"]');
+            const box = row.querySelector('.perm-checkbox');
+            cb.checked = !cb.checked;
+            box.textContent = cb.checked ? '✓' : '';
+        }
+    </script>
+</body>
+</html>

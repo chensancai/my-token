@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>祈个福 · 掷骰子</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: "KaiTi", "STKaiti", "楷体", serif;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 25%, #3a2515 0%, #1a0f08 60%, #0a0504 100%);
+  min-height: 100vh;
+  height: 100dvh;
+  color: #f5e6c8;
+}
+
+/* 顶部状态栏 */
+.top-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 8px;
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 20;
+}
+.chip {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, rgba(139,90,43,0.7), rgba(90,61,31,0.7));
+  padding: 7px 14px; border-radius: 20px;
+  border: 1px solid rgba(212,175,55,0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 0 10px rgba(255,215,0,0.1);
+  font-size: 13px;
+}
+.chip .icon { font-size: 16px; }
+.chip .val { color: #ffe066; font-weight: bold; letter-spacing: 1px; }
+
+/* 标题 */
+.title {
+  position: absolute; top: calc(60px + env(safe-area-inset-top)); left: 50%;
+  transform: translateX(-50%);
+  text-align: center; z-index: 10; white-space: nowrap;
+}
+.title-text {
+  font-size: 26px; color: #ffe066; font-weight: bold;
+  letter-spacing: 6px;
+  text-shadow: 0 0 15px rgba(255,215,0,0.6), 0 2px 4px rgba(0,0,0,0.8);
+}
+.title-sub {
+  font-size: 12px; color: rgba(245,230,200,0.7); letter-spacing: 4px;
+  margin-top: 6px;
+}
+
+/* ========== 舞台 ========== */
+.stage {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  perspective: 1400px;
+  z-index: 5;
+  width: 100%;
+  height: 420px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+/* 3D 场景 */
+.scene {
+  position: relative;
+  width: 240px; height: 240px;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+}
+
+/* 骰子容器 */
+.dice {
+  position: relative;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateX(-25deg) rotateY(-35deg);
+  transition: transform 3.5s cubic-bezier(0.15, 0.8, 0.2, 1);
+}
+
+/* 骰子6面 */
+.face {
+  position: absolute;
+  width: 180px; height: 180px;
+  left: 30px; top: 30px;
+  /* 白色质感、半透明 */
+  background:
+    radial-gradient(ellipse at 30% 25%,
+      rgba(255,255,255,0.95) 0%,
+      rgba(255,255,255,0.88) 15%,
+      rgba(245,240,230,0.85) 35%,
+      rgba(230,220,200,0.82) 60%,
+      rgba(210,195,175,0.8) 85%,
+      rgba(190,175,155,0.78) 100%
+    );
+  border-radius: 22px;
+  border: 2px solid rgba(210,195,175,0.9);
+  box-shadow:
+    inset 0 0 25px rgba(255,255,255,0.6),
+    inset 2px 2px 8px rgba(255,255,255,0.7),
+    inset -2px -2px 8px rgba(150,130,110,0.4),
+    0 8px 25px rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+}
+
+/* 6个面的位置（每个面相对骰子中心偏移 90px，即面宽的一半） */
+.face-front  { transform: translateZ(90px); }
+.face-back   { transform: rotateY(180deg) translateZ(90px); }
+.face-right  { transform: rotateY(90deg) translateZ(90px); }
+.face-left   { transform: rotateY(-90deg) translateZ(90px); }
+.face-top    { transform: rotateX(90deg) translateZ(90px); }
+.face-bottom { transform: rotateX(-90deg) translateZ(90px); }
+
+/* 各面的叠加阴影——使三个正面可见的面最亮，背面稍暗 */
+.face-front {
+  box-shadow:
+    inset 0 0 30px rgba(255,255,255,0.7),
+    inset 3px 3px 10px rgba(255,255,255,0.8),
+    inset -3px -3px 10px rgba(150,130,110,0.35),
+    0 10px 30px rgba(0,0,0,0.5);
+}
+.face-right {
+  box-shadow:
+    inset 0 0 30px rgba(255,255,255,0.45),
+    inset 3px 3px 10px rgba(255,255,255,0.6),
+    inset -3px -3px 10px rgba(130,110,90,0.4),
+    0 8px 25px rgba(0,0,0,0.4);
+}
+.face-top {
+  box-shadow:
+    inset 0 0 30px rgba(255,255,255,0.5),
+    inset 3px 3px 10px rgba(255,255,255,0.7),
+    inset -3px -3px 10px rgba(140,120,100,0.35),
+    0 8px 25px rgba(0,0,0,0.4);
+}
+/* 后面三个面：隐隐约约能看到（半透明变暗） */
+.face-back, .face-left, .face-bottom {
+  background:
+    radial-gradient(ellipse at 70% 75%,
+      rgba(230,220,200,0.55) 0%,
+      rgba(210,195,175,0.5) 30%,
+      rgba(180,165,145,0.45) 70%,
+      rgba(160,145,130,0.4) 100%
+    );
+  filter: brightness(0.7) saturate(0.8);
+}
+
+/* 点数（圆点）布局 —— 使用 grid 的 3x3 排布 */
+.pip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  width: 100%; height: 100%;
+  gap: 4px;
+}
+.pip {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  align-self: center;
+  justify-self: center;
+  /* 默认黑点：真实骰子黑点 */
+  background: radial-gradient(circle at 35% 30%, #3a3a3a 0%, #1a1a1a 40%, #000 80%);
+  box-shadow:
+    inset 1px 1px 2px rgba(0,0,0,0.8),
+    inset -1px -1px 2px rgba(80,80,80,0.6),
+    0 1px 2px rgba(255,255,255,0.3);
+}
+
+/* 一点（1点）为红色 —— 真实骰子惯例 */
+.face-1 .pip {
+  background: radial-gradient(circle at 35% 30%, #ff6b6b 0%, #e53935 40%, #8b0000 90%);
+  box-shadow:
+    inset 1px 1px 2px rgba(80,0,0,0.7),
+    inset -1px -1px 2px rgba(255,150,150,0.3),
+    0 1px 3px rgba(255,180,180,0.4);
+}
+/* 一点居中放大 */
+.face-1 .pip { width: 48px; height: 48px; }
+
+/* 1点：中心 */
+.face-1 .pip { grid-column: 2; grid-row: 2; }
+/* 2点：左上、右下 */
+.face-2 .pip:nth-child(1) { grid-column: 1; grid-row: 1; }
+.face-2 .pip:nth-child(2) { grid-column: 3; grid-row: 3; }
+/* 3点：左上、中心、右下 */
+.face-3 .pip:nth-child(1) { grid-column: 1; grid-row: 1; }
+.face-3 .pip:nth-child(2) { grid-column: 2; grid-row: 2; }
+.face-3 .pip:nth-child(3) { grid-column: 3; grid-row: 3; }
+/* 4点：四个角 */
+.face-4 .pip:nth-child(1) { grid-column: 1; grid-row: 1; }
+.face-4 .pip:nth-child(2) { grid-column: 3; grid-row: 1; }
+.face-4 .pip:nth-child(3) { grid-column: 1; grid-row: 3; }
+.face-4 .pip:nth-child(4) { grid-column: 3; grid-row: 3; }
+/* 5点：四个角+中心 */
+.face-5 .pip:nth-child(1) { grid-column: 1; grid-row: 1; }
+.face-5 .pip:nth-child(2) { grid-column: 3; grid-row: 1; }
+.face-5 .pip:nth-child(3) { grid-column: 2; grid-row: 2; }
+.face-5 .pip:nth-child(4) { grid-column: 1; grid-row: 3; }
+.face-5 .pip:nth-child(5) { grid-column: 3; grid-row: 3; }
+/* 6点：上下两行，各三个 */
+.face-6 .pip:nth-child(1) { grid-column: 1; grid-row: 1; }
+.face-6 .pip:nth-child(2) { grid-column: 2; grid-row: 1; }
+.face-6 .pip:nth-child(3) { grid-column: 3; grid-row: 1; }
+.face-6 .pip:nth-child(4) { grid-column: 1; grid-row: 3; }
+.face-6 .pip:nth-child(5) { grid-column: 2; grid-row: 3; }
+.face-6 .pip:nth-child(6) { grid-column: 3; grid-row: 3; }
+
+/* 后面三个面上的点数：暗淡 */
+.face-back .pip, .face-left .pip, .face-bottom .pip {
+  background: radial-gradient(circle at 35% 30%, #555 0%, #333 50%, #222 100%);
+  filter: brightness(0.6);
+  opacity: 0.6;
+}
+
+/* 投掷中动画（旋转翻滚）- 由 JS 通过内联 transform 控制 */
+
+/* ===== 骰子从右上角小筛子跳动（中筛子）滚到屏幕中间（大骰子） ===== */
+.scene.rolling {
+  animation: diceRollIn 2.5s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes diceRollIn {
+  0%   { transform: translate(180px, -200px) rotate(-60deg) scale(0.2); opacity: 0; }
+  15%  { transform: translate(60px, -80px) rotate(30deg) scale(0.55); opacity: 1; }
+  30%  { transform: translate(-30px, 30px) rotate(-20deg) scale(0.8); }
+  50%  { transform: translate(20px, -50px) rotate(15deg) scale(0.95); }
+  70%  { transform: translate(-10px, 15px) rotate(-8deg) scale(1.08); }
+  85%  { transform: translate(5px, -15px) rotate(4deg) scale(1.02); }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* 骰子停止后——不透明透视质感 */
+.dice.settled .face {
+  background:
+    radial-gradient(ellipse at 30% 25%,
+      rgba(255,255,255,0.98) 0%,
+      rgba(255,255,255,0.92) 15%,
+      rgba(248,242,232,0.90) 35%,
+      rgba(235,225,210,0.88) 60%,
+      rgba(215,200,180,0.85) 85%,
+      rgba(195,175,155,0.82) 100%
+    );
+  filter: none !important;
+}
+.dice.settled .face-front,
+.dice.settled .face-right,
+.dice.settled .face-top {
+  box-shadow:
+    inset 0 0 35px rgba(255,255,255,0.8),
+    inset 3px 3px 12px rgba(255,255,255,0.9),
+    inset -3px -3px 10px rgba(140,120,100,0.3),
+    0 12px 35px rgba(0,0,0,0.5);
+}
+.dice.settled .face-back,
+.dice.settled .face-left,
+.dice.settled .face-bottom {
+  filter: brightness(0.85) saturate(0.9) !important;
+}
+
+/* 中奖发光效果 */
+.dice.winner {
+  animation: winnerGlow 1s ease-in-out infinite;
+}
+@keyframes winnerGlow {
+  0%, 100% { filter: drop-shadow(0 0 25px rgba(255,215,0,0.85)); }
+  50% { filter: drop-shadow(0 0 45px rgba(255,215,0,1)); }
+}
+
+/* 中奖时所有面的点数（黑点）闪金光边框 —— 强化边光 + 停稳后黑色加深 */
+.dice.winner .pip {
+  animation: pipGoldGlow 0.9s ease-in-out infinite;
+  position: relative;
+  background: radial-gradient(circle at 35% 30%, #1a1a1a 0%, #000 80%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+.dice.winner .pip::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 14px rgba(255,215,0,1),
+    0 0 28px rgba(255,180,50,0.9),
+    0 0 48px rgba(255,220,100,0.7);
+  pointer-events: none;
+  animation: pipOuterGlow 0.9s ease-in-out infinite;
+}
+@keyframes pipGoldGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(255,220,100,1),
+      0 0 22px rgba(255,190,60,0.95),
+      0 0 36px rgba(255,215,0,0.8),
+      inset 0 0 6px rgba(255,255,200,0.9);
+    outline: 3px solid rgba(255,230,120,1);
+    outline-offset: 2px;
+  }
+  50% {
+    box-shadow:
+      0 0 18px rgba(255,255,200,1),
+      0 0 36px rgba(255,230,100,1),
+      0 0 60px rgba(255,200,80,0.9),
+      inset 0 0 10px rgba(255,255,255,1);
+    outline: 5px solid rgba(255,255,220,1);
+    outline-offset: 3px;
+  }
+}
+@keyframes pipOuterGlow {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+
+/* 中奖时 1 点（红）的金光也覆盖红色，同时颜色加深到接近深金 */
+.dice.winner .face-1 .pip {
+  background: radial-gradient(circle at 35% 30%, #7a0000 0%, #220000 80%);
+  box-shadow:
+    0 0 16px rgba(255,100,100,1),
+    0 0 32px rgba(255,60,60,1),
+    0 0 52px rgba(200,40,40,0.9),
+    inset 0 0 8px rgba(255,180,180,1);
+}
+
+/* ========== 结果展示 ========== */
+.result-panel {
+  margin-top: 30px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.result-panel.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.result-big-num {
+  font-size: 48px; font-weight: bold; color: #ffe066;
+  text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 2px 6px rgba(0,0,0,0.7);
+  letter-spacing: 4px;
+}
+.result-label {
+  font-size: 16px; color: #f5e6c8; letter-spacing: 4px; margin-top: 8px;
+}
+.result-reward {
+  font-size: 20px; color: #ff6b6b; font-weight: bold; margin-top: 6px;
+  text-shadow: 0 0 10px rgba(255,107,107,0.5);
+  letter-spacing: 3px;
+}
+
+/* ========== 按钮 ========== */
+.btn-area {
+  position: absolute;
+  bottom: calc(55px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.throw-btn {
+  width: 110px; height: 110px; border-radius: 50%;
+  border: 3px solid #d4af37;
+  background: radial-gradient(circle at 30% 30%, #d4a877 0%, #a67c52 40%, #6b4423 80%);
+  color: #ffe066;
+  font-size: 15px; font-weight: bold; letter-spacing: 2px;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow:
+    0 0 30px rgba(255,215,0,0.4),
+    0 0 60px rgba(255,180,100,0.2),
+    inset 0 0 20px rgba(139,90,43,0.5),
+    inset 2px 2px 6px rgba(255,220,150,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "KaiTi", "STKaiti", serif;
+}
+.throw-btn:active:not(:disabled) { transform: scale(0.93); }
+.throw-btn::before {
+  content: ''; position: absolute; inset: -50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,215,0,0.15) 60deg, transparent 120deg, rgba(255,215,0,0.15) 240deg, transparent 360deg);
+  animation: rotateGlow 4s linear infinite;
+}
+@keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.throw-btn span { position: relative; z-index: 1; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
+.throw-btn:disabled { filter: brightness(0.5); cursor: not-allowed; }
+
+.throw-cost { font-size: 12px; color: rgba(245,230,200,0.6); letter-spacing: 2px; font-family: "KaiTi", serif; }
+
+/* ========== 粒子 ========== */
+.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
+.gold-particle {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  background: radial-gradient(circle, #fff8a0, #ffd700 50%, transparent);
+  animation: particleFall linear forwards;
+  box-shadow: 0 0 10px #ffd700, 0 0 20px rgba(255,215,0,0.5);
+}
+@keyframes particleFall {
+  0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg) scale(0.3); opacity: 0; }
+}
+/* 炸出的星星（6点特效） */
+.star-piece {
+  position: absolute; font-size: 22px; color: #fff8a0;
+  text-shadow: 0 0 10px #ffd700, 0 0 20px rgba(255,215,0,0.8);
+  animation: starFly 1.5s ease-out forwards;
+}
+@keyframes starFly {
+  0% { transform: translate(0,0) scale(0.3); opacity: 0; }
+  15% { opacity: 1; transform: translate(calc(var(--sx)/3), calc(var(--sy)/3)) scale(1.2); }
+  100% { transform: translate(var(--sx), var(--sy)) scale(0.2); opacity: 0; }
+}
+
+/* ========== 弹窗 ========== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s; padding: 20px;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: linear-gradient(160deg,
+    rgba(255,248,220,0.96) 0%,
+    rgba(245,230,200,0.94) 40%,
+    rgba(232,213,168,0.95) 80%,
+    rgba(212,175,55,0.9) 100%
+  );
+  border: 3px solid #d4af37;
+  border-radius: 22px;
+  padding: 32px 25px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  transform: scale(0.6) rotate(-5deg);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.6),
+    0 0 40px rgba(255,215,0,0.4),
+    inset 0 0 20px rgba(255,255,255,0.3),
+    inset 0 0 60px rgba(255,215,0,0.1);
+  position: relative;
+  overflow: visible;
+}
+.modal-overlay.show .modal { transform: scale(1) rotate(0deg); }
+
+.modal-close {
+  position: absolute; top: 10px; right: 12px;
+  background: rgba(139,90,43,0.15);
+  border: 2px solid rgba(139,90,43,0.4);
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: 18px; color: #6b4423; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10; transition: transform 0.2s;
+}
+.modal-close:active { transform: scale(0.9); }
+
+.modal-emoji { font-size: 60px; margin-bottom: 8px; }
+.modal-title { font-size: 24px; color: #6b4423; font-weight: bold; margin-bottom: 8px; letter-spacing: 4px; }
+.modal-desc { font-size: 14px; color: #8b5a2b; margin-bottom: 12px; letter-spacing: 2px; }
+.modal-value { font-size: 22px; color: #e53935; font-weight: bold; margin-bottom: 20px; }
+.modal-value .val-num {
+  color: #d4af37; font-size: 44px;
+  text-shadow: 0 0 10px rgba(255,215,0,0.7), 0 2px 4px rgba(139,90,43,0.4);
+  margin: 0 6px;
+}
+
+.modal-share-btn {
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+  color: #3a2410; border: none;
+  padding: 14px 35px; border-radius: 28px;
+  font-size: 16px; font-weight: bold; cursor: pointer;
+  box-shadow: 0 5px 18px rgba(139,90,43,0.5), inset 0 1px 3px rgba(255,255,255,0.4);
+  transition: transform 0.15s; letter-spacing: 3px;
+  font-family: "KaiTi", "STKaiti", serif;
+}
+.modal-share-btn:active { transform: scale(0.95); }
+
+/* Toast */
+.toast-hint {
+  position: fixed; top: 35%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(90,61,31,0.92);
+  color: #ffe066;
+  padding: 11px 26px; border-radius: 26px;
+  font-size: 14px; letter-spacing: 2px; z-index: 250;
+  border: 1px solid #d4af37;
+  animation: toastFade 1.8s ease-out forwards; pointer-events: none;
+  text-shadow: 0 0 10px rgba(255,215,0,0.6);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 30px rgba(255,215,0,0.2);
+  font-family: "KaiTi", "STKaiti", serif;
+}
+@keyframes toastFade {
+  0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.85); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -70%); }
+}
+
+.reward-popup {
+  position: fixed; top: 40%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px; font-weight: bold; color: #ffe066;
+  text-shadow: 0 0 20px #ffd700, 0 2px 4px rgba(0,0,0,0.8);
+  z-index: 260; pointer-events: none;
+  animation: rewardPop 2s ease-out forwards;
+  letter-spacing: 3px;
+  font-family: "KaiTi", serif;
+}
+@keyframes rewardPop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+  100% { opacity: 0; transform: translate(-50%, -120%); }
+}
+
+/* 金色光晕特效层（1点） */
+.halo-effect {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,240,160,0.9) 0%, rgba(255,215,0,0.5) 30%, transparent 70%);
+  z-index: 499; pointer-events: none;
+  animation: haloBurst 1.5s ease-out forwards;
+}
+@keyframes haloBurst {
+  0% { width: 20px; height: 20px; opacity: 1; }
+  50% { width: 600px; height: 600px; opacity: 0.8; }
+  100% { width: 900px; height: 900px; opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="top-bar">
+  <div class="chip"><span class="icon">💰</span><span class="val" id="balanceDisplay">欢喜: 100</span></div>
+  <div class="chip"><span class="icon">🎲</span><span class="val" id="throwsDisplay">剩余: 5次</span></div>
+</div>
+
+<div class="title">
+  <div class="title-text">心 跳 骰 子</div>
+  <div class="title-sub">摇一摇 · 求好运</div>
+</div>
+
+<div class="stage">
+  <div class="scene">
+    <div class="dice" id="dice">
+      <!-- 1点(前面) -->
+      <div class="face face-front face-1">
+        <div class="pip-grid"><div class="pip"></div></div>
+      </div>
+      <!-- 2点(后面) -->
+      <div class="face face-back face-2">
+        <div class="pip-grid"><div class="pip"></div><div class="pip"></div></div>
+      </div>
+      <!-- 3点(右面) -->
+      <div class="face face-right face-3">
+        <div class="pip-grid"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+      </div>
+      <!-- 4点(左面) -->
+      <div class="face face-left face-4">
+        <div class="pip-grid"><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+      </div>
+      <!-- 5点(上面) -->
+      <div class="face face-top face-5">
+        <div class="pip-grid"><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+      </div>
+      <!-- 6点(下面) -->
+      <div class="face face-bottom face-6">
+        <div class="pip-grid"><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-panel" id="resultPanel">
+    <div class="result-big-num" id="resultBigNum">1</div>
+    <div class="result-label" id="resultLabel">福星高照</div>
+    <div class="result-reward" id="resultReward">+10 欢喜</div>
+  </div>
+</div>
+
+<div class="btn-area">
+  <button class="throw-btn" id="throwBtn"><span>摇一摇</span></button>
+  <div class="throw-cost">每次消耗 2 欢喜</div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">×</button>
+    <div class="modal-emoji" id="modalEmoji">🎉</div>
+    <div class="modal-title" id="modalTitle">恭喜中奖</div>
+    <div class="modal-desc" id="modalDesc">福星高照</div>
+    <div class="modal-value">+<span class="val-num" id="winAmount">10</span> 欢喜</div>
+    <button class="modal-share-btn" id="modalShareBtn">📤 分享奖励</button>
+  </div>
+</div>
+
+<script>
+const COST_PER_THROW = 2;
+const MAX_THROWS = Infinity;
+const REWARDS = { 1: 10, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
+const LABELS = {
+  1: '福星高照', 2: '平平无奇', 3: '三生有幸',
+  4: '四喜临门', 5: '五福骈臻', 6: '六六大顺'
+};
+const EMOJIS = { 1: '🌟', 2: '😅', 3: '🙂', 4: '😊', 5: '🎊', 6: '🎆' };
+
+let DICE_CONFIG = { probs: [0.15, 0.2, 0.15, 0.15, 0.15, 0.2] };
+
+const faceRotations = {
+  1: { x: -25, y: -35 },
+  2: { x: -25, y: 145 },
+  3: { x: -25, y: -125 },
+  4: { x: -25, y: 55 },
+  5: { x: -115, y: -35 },
+  6: { x: 65, y: -35 }
+};
+
+function pickResultByProbs(probs) {
+  const total = probs.reduce((a, b) => a + b, 0);
+  const r = Math.random() * total;
+  let acc = 0;
+  for (let i = 0; i < probs.length; i++) {
+    acc += probs[i];
+    if (r < acc) return i + 1;
+  }
+  return probs.length;
+}
+
+let state = { todayThrows: 0, lastDate: null, currentResult: null, isThrowing: false };
+let totalSpins = { x: 0, y: 0 };
+
+function getBalance() { return parseInt(localStorage.getItem('userJoy') || '100', 10); }
+function setBalance(v) { localStorage.setItem('userJoy', v); }
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('diceState') || '{}');
+    state.todayThrows = s.todayThrows || 0;
+    state.lastDate = s.lastDate || null;
+  } catch(e) {}
+}
+function saveState() {
+  const today = new Date().toDateString();
+  localStorage.setItem('diceState', JSON.stringify({ todayThrows: state.todayThrows, lastDate: today }));
+}
+function checkDailyReset() {
+  const today = new Date().toDateString();
+  if (state.lastDate !== today) { state.todayThrows = 0; state.lastDate = today; saveState(); }
+}
+
+function updateUI() {
+  document.getElementById('balanceDisplay').textContent = '欢喜: ' + getBalance();
+  document.getElementById('throwsDisplay').textContent = '剩余: ∞';
+  const btn = document.getElementById('throwBtn');
+  btn.disabled = false;
+  btn.querySelector('span').textContent = '摇一摇';
+}
+
+// 触发投掷
+function triggerThrow() {
+  if (state.isThrowing) return;
+  const bal = getBalance();
+  if (bal < COST_PER_THROW) { showToast('欢喜不足，请先充值！'); return; }
+
+  state.isThrowing = true;
+  setBalance(bal - COST_PER_THROW);
+  state.todayThrows++;
+  saveState();
+  updateUI();
+
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 150, 50, 200, 50, 200]);
+
+  document.getElementById('resultPanel').classList.remove('show');
+
+  const dice = document.getElementById('dice');
+  dice.classList.remove('winner');
+  dice.classList.remove('settled'); // 重置为非 settled 状态，准备新一轮跳动
+
+  const result = pickResultByProbs(DICE_CONFIG.probs);
+  const reward = REWARDS[result];
+  state.currentResult = { result, reward };
+
+  const target = faceRotations[result];
+  totalSpins.x += 1800;
+  totalSpins.y += 1440;
+
+  dice.style.transition = 'none';
+  dice.style.transform = `rotateX(${totalSpins.x - 1800}deg) rotateY(${totalSpins.y - 1440}deg)`;
+  void dice.offsetHeight;
+  // 慢速旋转 + 滚动跳动效果
+  dice.style.transition = 'transform 5.5s cubic-bezier(0.15, 0.8, 0.2, 1)';
+  dice.style.transform = `rotateX(${totalSpins.x + target.x}deg) rotateY(${totalSpins.y + target.y}deg)`;
+
+  // 给场景加上上下左右跳动动画
+  const scene = document.querySelector('.scene');
+  scene.classList.add('rolling');
+  dice.classList.add('rolling');
+
+  setTimeout(() => {
+    document.getElementById('resultBigNum').textContent = result;
+    document.getElementById('resultLabel').textContent = LABELS[result];
+    document.getElementById('resultReward').textContent = '+' + reward + ' 欢喜';
+    document.getElementById('resultPanel').classList.add('show');
+
+    setBalance(getBalance() + reward);
+    showRewardPopup('+' + reward + ' 欢喜');
+
+    // 停止滚动动画
+    scene.classList.remove('rolling');
+    dice.classList.remove('rolling');
+    dice.classList.add('settled'); // 停止后变为不透明透视质感
+
+    if (result === 1) {
+      triggerGoldenHalo();
+      dice.classList.add('winner');
+    } else if (result === 6) {
+      triggerStarExplosion();
+    } else {
+      createGoldParticles(reward * 3);
+    }
+
+    setTimeout(() => {
+      showWinModal(result, reward);
+      state.isThrowing = false;
+    }, 3000);
+
+  }, 5500);
+}
+
+// ===== 特效 =====
+function triggerGoldenHalo() {
+  const h = document.createElement('div');
+  h.className = 'halo-effect';
+  document.body.appendChild(h);
+  setTimeout(() => h.remove(), 1600);
+  createGoldParticles(80);
+}
+
+function triggerStarExplosion() {
+  const scene = document.querySelector('.scene');
+  const rect = scene.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'star-piece';
+    piece.textContent = i % 3 === 0 ? '★' : (i % 3 === 1 ? '✨' : '🌟');
+    piece.style.left = centerX + 'px';
+    piece.style.top = centerY + 'px';
+    const angle = (i / 30) * Math.PI * 2 + Math.random() * 0.3;
+    const dist = 120 + Math.random() * 200;
+    piece.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+    piece.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+    piece.style.animationDelay = (Math.random() * 0.2) + 's';
+    piece.style.fontSize = (16 + Math.random() * 20) + 'px';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 2000);
+  }
+  createGoldParticles(60);
+}
+
+function createGoldParticles(count) {
+  const layer = document.getElementById('particles');
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'gold-particle';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.animationDuration = (2 + Math.random() * 2) + 's';
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    p.style.width = (6 + Math.random() * 8) + 'px';
+    p.style.height = p.style.width;
+    layer.appendChild(p);
+    setTimeout(() => p.remove(), 5000);
+  }
+}
+
+function showRewardPopup(text) {
+  const p = document.createElement('div');
+  p.className = 'reward-popup';
+  p.textContent = text;
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 2200);
+}
+
+// ===== 弹窗 =====
+function showWinModal(result, reward) {
+  document.getElementById('modalEmoji').textContent = EMOJIS[result];
+  document.getElementById('modalTitle').textContent = LABELS[result];
+  document.getElementById('modalDesc').textContent = '掷出 ' + result + ' 点 · 福运连连';
+  document.getElementById('winAmount').textContent = reward;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('resultPanel').classList.remove('show');
+}
+
+function shareReward() {
+  const r = state.currentResult;
+  const text = `我在【祈个福】掷骰子掷出了 ${r.result} 点「${LABELS[r.result]}」，获得了 ${r.reward} 欢喜！快来一起祈福吧~`;
+  const url = window.location.origin + window.location.pathname;
+  const full = text + ' ' + url;
+  if (navigator.share) {
+    navigator.share({ title: '祈个福', text, url }).catch(() => {
+      navigator.clipboard.writeText(full).then(() => showToast('✨ 分享内容已复制'));
+    });
+  } else {
+    navigator.clipboard.writeText(full).then(() => showToast('✨ 分享内容已复制')).catch(() => alert('请复制：\n' + full));
+  }
+  closeModal();
+}
+
+function showToast(text) {
+  const t = document.createElement('div');
+  t.className = 'toast-hint';
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// 设备摇一摇
+function setupShake() {
+  if (window.DeviceMotionEvent) {
+    let lX = 0, lY = 0, accum = 0;
+    window.addEventListener('devicemotion', function(e) {
+      if (state.isThrowing) return;
+      const acc = e.accelerationIncludingGravity;
+      if (!acc) return;
+      const x = acc.x||0, y = acc.y||0;
+      const dX = Math.abs(x-lX), dY = Math.abs(y-lY);
+      if ((dX > 15 && dY > 15) || dX > 22 || dY > 22) {
+        accum++;
+        if (accum >= 3) { accum = 0; triggerThrow(); }
+      }
+      lX = x; lY = y;
+    });
+  }
+}
+
+function bindEvents() {
+  document.getElementById('throwBtn').addEventListener('click', triggerThrow);
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalShareBtn').addEventListener('click', shareReward);
+  document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+}
+
+function init() {
+  loadState(); checkDailyReset();
+  updateUI(); setupShake(); bindEvents();
+  // 背景粒子
+  setInterval(() => {
+    for (let i = 0; i < 2; i++) {
+      const p = document.createElement('div');
+      p.className = 'gold-particle';
+      p.style.left = (Math.random() * 100) + '%';
+      p.style.animationDuration = (3 + Math.random() * 3) + 's';
+      p.style.width = (4 + Math.random() * 4) + 'px';
+      p.style.height = p.style.width;
+      document.getElementById('particles').appendChild(p);
+      setTimeout(() => p.remove(), 6500);
+    }
+  }, 800);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

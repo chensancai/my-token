@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 - 完整页面展示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        /* 顶部导航 */
+        .top-nav {
+            background: linear-gradient(180deg, #2a0a0a, #1a0505);
+            padding: 10px 15px;
+            padding-top: calc(10px + env(safe-area-inset-top, 0px));
+            border-bottom: 2px solid #8B0000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .top-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #D4AF37;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        .top-info {
+            font-size: 12px;
+            color: #888;
+        }
+        /* 选项卡导航 */
+        .tab-nav {
+            display: flex;
+            background: #0d0d0d;
+            overflow-x: auto;
+            flex-shrink: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            flex-shrink: 0;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #D4AF37;
+            border-bottom-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .tab-btn:active { transform: scale(0.95); }
+        /* 内容区 */
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        .iframe-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+        }
+        .iframe-container.active {
+            display: block;
+        }
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+        /* 加载状态 */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #888;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(212, 175, 55, 0.2);
+            border-top-color: #D4AF37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* 底部标签栏 */
+        .bottom-tabs {
+            display: flex;
+            background: #0d0d0d;
+            border-top: 1px solid #333;
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .bottom-tab {
+            flex: 1;
+            padding: 10px 5px;
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.2s;
+        }
+        .bottom-tab .icon {
+            font-size: 20px;
+        }
+        .bottom-tab.active {
+            color: #D4AF37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        /* 分类标签 */
+        .category-section {
+            padding: 10px 15px;
+            background: #151515;
+            border-bottom: 1px solid #333;
+        }
+        .category-title {
+            font-size: 12px;
+            color: #D4AF37;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        /* 缩略图网格 */
+        .thumb-grid {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .thumb-grid::-webkit-scrollbar { display: none; }
+        .thumb-item {
+            flex-shrink: 0;
+            width: 70px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .thumb-preview {
+            width: 70px;
+            height: 100px;
+            background: #2a2a2a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+        .thumb-item:hover .thumb-preview,
+        .thumb-item.active .thumb-preview {
+            border-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .thumb-label {
+            font-size: 10px;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .thumb-item.active .thumb-label {
+            color: #D4AF37;
+        }
+        /* 提示条 */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: #D4AF37;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="top-title">🙏 祈个福 完整展示</div>
+            <div class="top-info">v1.0 | H5页面</div>
+        </div>
+
+        <!-- 分类导航 -->
+        <div class="category-section">
+            <div class="category-title">🏛️ 核心功能</div>
+            <div class="thumb-grid" id="corePages">
+                <div class="thumb-item active" data-page="index" data-src="index.html">
+                    <div class="thumb-preview">🙏</div>
+                    <div class="thumb-label">祈福拜佛</div>
+                </div>
+                <div class="thumb-item" data-page="remembrance" data-src="remembrance.html">
+                    <div class="thumb-preview">🕯️</div>
+                    <div class="thumb-label">超度追思</div>
+                </div>
+                <div class="thumb-item" data-page="animal" data-src="animal-release.html">
+                    <div class="thumb-preview">🐟</div>
+                    <div class="thumb-label">灵宠放生</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">🎮 互动功能</div>
+            <div class="thumb-grid" id="gamePages">
+                <div class="thumb-item" data-page="flip" data-src="flip-card.html">
+                    <div class="thumb-preview">🃏</div>
+                    <div class="thumb-label">福运卡牌</div>
+                </div>
+                <div class="thumb-item" data-page="slot" data-src="slot-machine.html">
+                    <div class="thumb-preview">🎰</div>
+                    <div class="thumb-label">老虎机</div>
+                </div>
+                <div class="thumb-item" data-page="share" data-src="share-card.html">
+                    <div class="thumb-preview">📤</div>
+                    <div class="thumb-label">分享卡片</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">🛡️ 管理系统</div>
+            <div class="thumb-grid" id="adminPages">
+                <div class="thumb-item" data-page="admin" data-src="admin.html">
+                    <div class="thumb-preview">⚙️</div>
+                    <div class="thumb-label">后台管理</div>
+                </div>
+                <div class="thumb-item" data-page="settings" data-src="settings.html">
+                    <div class="thumb-preview">📋</div>
+                    <div class="thumb-label">设置</div>
+                </div>
+                <div class="thumb-item" data-page="profile" data-src="profile.html">
+                    <div class="thumb-preview">👤</div>
+                    <div class="thumb-label">个人中心</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="iframe-container active" id="frame-index">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="index.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-remembrance">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="remembrance.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-animal">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="animal-release.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-flip">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="flip-card.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-slot">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="slot-machine.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-share">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="share-card.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-admin">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="admin.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-settings">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="settings.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+            <div class="iframe-container" id="frame-profile">
+                <div class="loading"><div class="loading-spinner"></div>加载中...</div>
+                <iframe src="profile.html" onload="this.previousElementSibling.style.display='none'"></iframe>
+            </div>
+        </div>
+
+        <!-- 底部标签栏 -->
+        <div class="bottom-tabs">
+            <button class="bottom-tab active" data-page="index">
+                <span class="icon">🏛️</span>
+                <span>祈福</span>
+            </button>
+            <button class="bottom-tab" data-page="remembrance">
+                <span class="icon">🕯️</span>
+                <span>追思</span>
+            </button>
+            <button class="bottom-tab" data-page="animal">
+                <span class="icon">🐟</span>
+                <span>放生</span>
+            </button>
+            <button class="bottom-tab" data-page="flip">
+                <span class="icon">🃏</span>
+                <span>卡牌</span>
+            </button>
+            <button class="bottom-tab" data-page="admin">
+                <span class="icon">⚙️</span>
+                <span>管理</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        var currentPage = 'index';
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 2000);
+        }
+
+        function switchPage(page) {
+            if (currentPage === page) return;
+            currentPage = page;
+
+            // 隐藏所有iframe容器
+            document.querySelectorAll('.iframe-container').forEach(function(el) {
+                el.classList.remove('active');
+            });
+
+            // 显示目标iframe
+            var target = document.getElementById('frame-' + page);
+            if (target) {
+                target.classList.add('active');
+            }
+
+            // 更新缩略图选中状态
+            document.querySelectorAll('.thumb-item').forEach(function(el) {
+                el.classList.toggle('active', el.dataset.page === page);
+            });
+
+            // 更新底部标签选中状态
+            document.querySelectorAll('.bottom-tab').forEach(function(el) {
+                el.classList.toggle('active', el.dataset.page === page);
+            });
+
+            showToast('已切换到: ' + page);
+        }
+
+        // 缩略图点击
+        document.querySelectorAll('.thumb-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                var page = this.dataset.page;
+                switchPage(page);
+            });
+        });
+
+        // 底部标签点击
+        document.querySelectorAll('.bottom-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                var page = this.dataset.page;
+                switchPage(page);
+            });
+        });
+
+        // 默认显示首页
+        switchPage('index');
+    </script>
+</body>
+</html>

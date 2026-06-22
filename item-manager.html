@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 · 道具管理</title>
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        margin: 0;
+        background: linear-gradient(180deg, #1a0a2e 0%, #0d0015 100%);
+        min-height: 100vh;
+        color: #FFD700;
+        padding-bottom: 80px;
+    }
+    
+    /* 头部 */
+    .header {
+        background: linear-gradient(180deg, #3d2a0f 0%, #2a1a08 100%);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #D4AF37;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    
+    .header h1 { font-size: 18px; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+    
+    .header-actions { display: flex; gap: 10px; }
+    
+    .header-btn {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .header-btn.reset { background: linear-gradient(135deg, #666, #444); color: #FFF; }
+    
+    /* 主内容 */
+    .container { padding: 15px; }
+    
+    /* 分类卡片 */
+    .category-card {
+        background: rgba(61, 42, 15, 0.8);
+        border: 2px solid #D4AF37;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    
+    .category-header {
+        background: linear-gradient(90deg, #D4AF37, #8B7355);
+        padding: 12px 15px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #1a0a2e;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .category-content { padding: 10px; }
+    
+    /* 道具项 */
+    .item-row {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        gap: 10px;
+    }
+    
+    .item-row:last-child { border-bottom: none; }
+    
+    .item-preview {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+        border: 2px solid #D4AF37;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    
+    .item-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .item-info { flex: 1; min-width: 0; }
+    
+    .item-label {
+        font-size: 13px;
+        color: rgba(255, 215, 0, 0.9);
+        margin-bottom: 5px;
+    }
+    
+    .item-inputs { display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .text-input {
+        flex: 1;
+        min-width: 80px;
+        padding: 8px 10px;
+        border: 2px solid #D4AF37;
+        border-radius: 8px;
+        background: #FFF8DC;
+        color: #8B4513;
+        font-size: 13px;
+    }
+    
+    .text-input:focus { outline: none; border-color: #FF6347; }
+    
+    /* 上传按钮 */
+    .upload-btn {
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: #FFF;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    
+    .upload-btn.video { background: linear-gradient(135deg, #2196F3, #1976D2); }
+    
+    .upload-btn:active { transform: scale(0.95); }
+    
+    /* 隐藏的文件输入 */
+    .file-input { display: none; }
+    
+    /* 预览图片/视频 */
+    .media-preview {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 2px solid #D4AF37;
+    }
+    
+    /* 提示信息 */
+    .toast {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        color: #FFD700;
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-size: 16px;
+        z-index: 2000;
+        display: none;
+        text-align: center;
+    }
+    
+    .toast.show { display: block; animation: fadeIn 0.3s; }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    /* 返回按钮 */
+    .back-home {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(255,165,0,0.4);
+        z-index: 100;
+    }
+    
+    /* 子标题 */
+    .sub-section {
+        padding: 10px 15px;
+        background: rgba(139, 69, 19, 0.3);
+        font-size: 12px;
+        color: #FFD700;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 道具管理</h1>
+        <div class="header-actions">
+            <button class="header-btn reset" onclick="resetToDefault()">恢复默认</button>
+            <button class="header-btn" onclick="saveChanges()">💾 保存</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 祈福拜佛页 - 佛像 -->
+        <div class="category-card">
+            <div class="category-header">🏛️ 祈福拜佛页 - 佛像</div>
+            <div class="category-content">
+                <div class="item-row" data-key="buddha_sakyamuni">
+                    <div class="item-preview" id="preview-buddha_sakyamuni">🧘</div>
+                    <div class="item-info">
+                        <div class="item-label">释迦牟尼佛</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="buddha_sakyamuni" value="🧘" placeholder="图标" onchange="updatePreview('buddha_sakyamuni')">
+                            <button class="upload-btn" onclick="uploadImage('buddha_sakyamuni')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('buddha_sakyamuni')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="buddha_maitreya">
+                    <div class="item-preview" id="preview-buddha_maitreya">😊</div>
+                    <div class="item-info">
+                        <div class="item-label">弥勒佛</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="buddha_maitreya" value="😊" placeholder="图标" onchange="updatePreview('buddha_maitreya')">
+                            <button class="upload-btn" onclick="uploadImage('buddha_maitreya')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('buddha_maitreya')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="buddha_guanyin">
+                    <div class="item-preview" id="preview-buddha_guanyin">🌸</div>
+                    <div class="item-info">
+                        <div class="item-label">观音菩萨</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="buddha_guanyin" value="🌸" placeholder="图标" onchange="updatePreview('buddha_guanyin')">
+                            <button class="upload-btn" onclick="uploadImage('buddha_guanyin')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('buddha_guanyin')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="buddha_caishen">
+                    <div class="item-preview" id="preview-buddha_caishen">💰</div>
+                    <div class="item-info">
+                        <div class="item-label">财神</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="buddha_caishen" value="💰" placeholder="图标" onchange="updatePreview('buddha_caishen')">
+                            <button class="upload-btn" onclick="uploadImage('buddha_caishen')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('buddha_caishen')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="buddha_guangong">
+                    <div class="item-preview" id="preview-buddha_guangong">⚔️</div>
+                    <div class="item-info">
+                        <div class="item-label">关公</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="buddha_guangong" value="⚔️" placeholder="图标" onchange="updatePreview('buddha_guangong')">
+                            <button class="upload-btn" onclick="uploadImage('buddha_guangong')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('buddha_guangong')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="buddha_mazu">
+                    <div class="item-preview" id="preview-buddha_mazu">🌊</div>
+                    <div class="item-info">
+                        <div class="item-label">妈祖</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="buddha_mazu" value="🌊" placeholder="图标" onchange="updatePreview('buddha_mazu')">
+                            <button class="upload-btn" onclick="uploadImage('buddha_mazu')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('buddha_mazu')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 祈福拜佛页 - 供品 -->
+        <div class="category-card">
+            <div class="category-header">🌸 祈福拜佛页 - 供品</div>
+            <div class="category-content">
+                <div class="item-row" data-key="offering_flower">
+                    <div class="item-preview" id="preview-offering_flower">🌸</div>
+                    <div class="item-info">
+                        <div class="item-label">鲜花供奉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_flower" value="🌸" placeholder="图标" onchange="updatePreview('offering_flower')">
+                            <button class="upload-btn" onclick="uploadImage('offering_flower')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_fruit">
+                    <div class="item-preview" id="preview-offering_fruit">🍇</div>
+                    <div class="item-info">
+                        <div class="item-label">水果供奉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_fruit" value="🍇" placeholder="图标" onchange="updatePreview('offering_fruit')">
+                            <button class="upload-btn" onclick="uploadImage('offering_fruit')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_dessert">
+                    <div class="item-preview" id="preview-offering_dessert">🥮</div>
+                    <div class="item-info">
+                        <div class="item-label">点心供奉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_dessert" value="🥮" placeholder="图标" onchange="updatePreview('offering_dessert')">
+                            <button class="upload-btn" onclick="uploadImage('offering_dessert')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_tea">
+                    <div class="item-preview" id="preview-offering_tea">🍵</div>
+                    <div class="item-info">
+                        <div class="item-label">清水供奉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_tea" value="🍵" placeholder="图标" onchange="updatePreview('offering_tea')">
+                            <button class="upload-btn" onclick="uploadImage('offering_tea')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_lamp">
+                    <div class="item-preview" id="preview-offering_lamp">🪔</div>
+                    <div class="item-info">
+                        <div class="item-label">祈福灯</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_lamp" value="🪔" placeholder="图标" onchange="updatePreview('offering_lamp')">
+                            <button class="upload-btn" onclick="uploadImage('offering_lamp')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_incense">
+                    <div class="item-preview" id="preview-offering_incense">🪬</div>
+                    <div class="item-info">
+                        <div class="item-label">香炉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_incense" value="🪬" placeholder="图标" onchange="updatePreview('offering_incense')">
+                            <button class="upload-btn" onclick="uploadImage('offering_incense')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_candle">
+                    <div class="item-preview" id="preview-offering_candle">🕯️</div>
+                    <div class="item-info">
+                        <div class="item-label">蜡烛</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_candle" value="🕯️" placeholder="图标" onchange="updatePreview('offering_candle')">
+                            <button class="upload-btn" onclick="uploadImage('offering_candle')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="offering_buddha">
+                    <div class="item-preview" id="preview-offering_buddha">✨</div>
+                    <div class="item-info">
+                        <div class="item-label">涂身供奉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="offering_buddha" value="✨" placeholder="图标" onchange="updatePreview('offering_buddha')">
+                            <button class="upload-btn" onclick="uploadImage('offering_buddha')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 超度追思页 - 场景 -->
+        <div class="category-card">
+            <div class="category-header">🕯️ 超度追思页 - 场景</div>
+            <div class="category-content">
+                <div class="item-row" data-key="scene_temple">
+                    <div class="item-preview" id="preview-scene_temple">🏛️</div>
+                    <div class="item-info">
+                        <div class="item-label">祠堂场景</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="scene_temple" value="🏛️" placeholder="图标" onchange="updatePreview('scene_temple')">
+                            <button class="upload-btn" onclick="uploadImage('scene_temple')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('scene_temple')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="scene_garden">
+                    <div class="item-preview" id="preview-scene_garden">💐</div>
+                    <div class="item-info">
+                        <div class="item-label">花园场景</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="scene_garden" value="💐" placeholder="图标" onchange="updatePreview('scene_garden')">
+                            <button class="upload-btn" onclick="uploadImage('scene_garden')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('scene_garden')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="scene_ai">
+                    <div class="item-preview" id="preview-scene_ai">🤖</div>
+                    <div class="item-info">
+                        <div class="item-label">AI场景</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="scene_ai" value="🤖" placeholder="图标" onchange="updatePreview('scene_ai')">
+                            <button class="upload-btn" onclick="uploadImage('scene_ai')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('scene_ai')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 超度追思页 - 供品 -->
+        <div class="category-card">
+            <div class="category-header">🪔 超度追思页 - 供品</div>
+            <div class="category-content">
+                <div class="item-row" data-key="rem_vase">
+                    <div class="item-preview" id="preview-rem_vase">🏺</div>
+                    <div class="item-info">
+                        <div class="item-label">花瓶</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_vase" value="🏺" placeholder="图标" onchange="updatePreview('rem_vase')">
+                            <button class="upload-btn" onclick="uploadImage('rem_vase')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_lamp">
+                    <div class="item-preview" id="preview-rem_lamp">🪔</div>
+                    <div class="item-info">
+                        <div class="item-label">酥油灯</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_lamp" value="🪔" placeholder="图标" onchange="updatePreview('rem_lamp')">
+                            <button class="upload-btn" onclick="uploadImage('rem_lamp')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_incense">
+                    <div class="item-preview" id="preview-rem_incense">🪬</div>
+                    <div class="item-info">
+                        <div class="item-label">香炉</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_incense" value="🪬" placeholder="图标" onchange="updatePreview('rem_incense')">
+                            <button class="upload-btn" onclick="uploadImage('rem_incense')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_fruit">
+                    <div class="item-preview" id="preview-rem_fruit">🍇</div>
+                    <div class="item-info">
+                        <div class="item-label">水果</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_fruit" value="🍇" placeholder="图标" onchange="updatePreview('rem_fruit')">
+                            <button class="upload-btn" onclick="uploadImage('rem_fruit')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_meat">
+                    <div class="item-preview" id="preview-rem_meat">🍗</div>
+                    <div class="item-info">
+                        <div class="item-label">肉类</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_meat" value="🍗" placeholder="图标" onchange="updatePreview('rem_meat')">
+                            <button class="upload-btn" onclick="uploadImage('rem_meat')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_pig">
+                    <div class="item-preview" id="preview-rem_pig">🐷</div>
+                    <div class="item-info">
+                        <div class="item-label">猪头</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_pig" value="🐷" placeholder="图标" onchange="updatePreview('rem_pig')">
+                            <button class="upload-btn" onclick="uploadImage('rem_pig')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_pudding">
+                    <div class="item-preview" id="preview-rem_pudding">🍮</div>
+                    <div class="item-info">
+                        <div class="item-label">布丁</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_pudding" value="🍮" placeholder="图标" onchange="updatePreview('rem_pudding')">
+                            <button class="upload-btn" onclick="uploadImage('rem_pudding')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_tea">
+                    <div class="item-preview" id="preview-rem_tea">🍵</div>
+                    <div class="item-info">
+                        <div class="item-label">茶水</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_tea" value="🍵" placeholder="图标" onchange="updatePreview('rem_tea')">
+                            <button class="upload-btn" onclick="uploadImage('rem_tea')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="rem_perfume">
+                    <div class="item-preview" id="preview-rem_perfume">🧴</div>
+                    <div class="item-info">
+                        <div class="item-label">香水</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="rem_perfume" value="🧴" placeholder="图标" onchange="updatePreview('rem_perfume')">
+                            <button class="upload-btn" onclick="uploadImage('rem_perfume')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 超度追思页 - 灯类型 -->
+        <div class="category-card">
+            <div class="category-header">🔥 超度追思页 - 灯类型</div>
+            <div class="category-content">
+                <div class="item-row" data-key="lamp_fire">
+                    <div class="item-preview" id="preview-lamp_fire">🔥</div>
+                    <div class="item-info">
+                        <div class="item-label">火焰灯</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="lamp_fire" value="🔥" placeholder="图标" onchange="updatePreview('lamp_fire')">
+                            <button class="upload-btn" onclick="uploadImage('lamp_fire')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="lamp_ice">
+                    <div class="item-preview" id="preview-lamp_ice">❄️</div>
+                    <div class="item-info">
+                        <div class="item-label">冰焰灯</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="lamp_ice" value="❄️" placeholder="图标" onchange="updatePreview('lamp_ice')">
+                            <button class="upload-btn" onclick="uploadImage('lamp_ice')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="lamp_heart">
+                    <div class="item-preview" id="preview-lamp_heart">❤️</div>
+                    <div class="item-info">
+                        <div class="item-label">红心灯</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="lamp_heart" value="❤️" placeholder="图标" onchange="updatePreview('lamp_heart')">
+                            <button class="upload-btn" onclick="uploadImage('lamp_heart')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="lamp_gold">
+                    <div class="item-preview" id="preview-lamp_gold">🏆</div>
+                    <div class="item-info">
+                        <div class="item-label">金色灯</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="lamp_gold" value="🏆" placeholder="图标" onchange="updatePreview('lamp_gold')">
+                            <button class="upload-btn" onclick="uploadImage('lamp_gold')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 超度追思页 - 香类型 -->
+        <div class="category-card">
+            <div class="category-header">🌿 超度追思页 - 香类型</div>
+            <div class="category-content">
+                <div class="item-row" data-key="incense_candle">
+                    <div class="item-preview" id="preview-incense_candle">🕯️</div>
+                    <div class="item-info">
+                        <div class="item-label">蜡烛香</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="incense_candle" value="🕯️" placeholder="图标" onchange="updatePreview('incense_candle')">
+                            <button class="upload-btn" onclick="uploadImage('incense_candle')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="incense_lantern">
+                    <div class="item-preview" id="preview-incense_lantern">🏮</div>
+                    <div class="item-info">
+                        <div class="item-label">灯笼香</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="incense_lantern" value="🏮" placeholder="图标" onchange="updatePreview('incense_lantern')">
+                            <button class="upload-btn" onclick="uploadImage('incense_lantern')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="incense_sandalwood">
+                    <div class="item-preview" id="preview-incense_sandalwood">🌿</div>
+                    <div class="item-info">
+                        <div class="item-label">檀香</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="incense_sandalwood" value="🌿" placeholder="图标" onchange="updatePreview('incense_sandalwood')">
+                            <button class="upload-btn" onclick="uploadImage('incense_sandalwood')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 灵宠放生页 - 灵宠 -->
+        <div class="category-card">
+            <div class="category-header">🐟 灵宠放生页 - 灵宠</div>
+            <div class="category-content">
+                <div class="item-row" data-key="pet_koi">
+                    <div class="item-preview" id="preview-pet_koi">🐟</div>
+                    <div class="item-info">
+                        <div class="item-label">锦鲤</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="pet_koi" value="🐟" placeholder="图标" onchange="updatePreview('pet_koi')">
+                            <button class="upload-btn" onclick="uploadImage('pet_koi')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('pet_koi')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="pet_goldfish">
+                    <div class="item-preview" id="preview-pet_goldfish">🐠</div>
+                    <div class="item-info">
+                        <div class="item-label">金鱼</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="pet_goldfish" value="🐠" placeholder="图标" onchange="updatePreview('pet_goldfish')">
+                            <button class="upload-btn" onclick="uploadImage('pet_goldfish')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('pet_goldfish')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="pet_turtle">
+                    <div class="item-preview" id="preview-pet_turtle">🐢</div>
+                    <div class="item-info">
+                        <div class="item-label">乌龟</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="pet_turtle" value="🐢" placeholder="图标" onchange="updatePreview('pet_turtle')">
+                            <button class="upload-btn" onclick="uploadImage('pet_turtle')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('pet_turtle')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="pet_crab">
+                    <div class="item-preview" id="preview-pet_crab">🦀</div>
+                    <div class="item-info">
+                        <div class="item-label">螃蟹</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="pet_crab" value="🦀" placeholder="图标" onchange="updatePreview('pet_crab')">
+                            <button class="upload-btn" onclick="uploadImage('pet_crab')">📷 图片</button>
+                            <button class="upload-btn video" onclick="uploadVideo('pet_crab')">🎬 视频</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通用按钮图标 -->
+        <div class="category-card">
+            <div class="category-header">🔘 通用按钮图标</div>
+            <div class="category-content">
+                <div class="item-row" data-key="btn_home">
+                    <div class="item-preview" id="preview-btn_home">🏛️</div>
+                    <div class="item-info">
+                        <div class="item-label">首页按钮</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="btn_home" value="🏛️" placeholder="图标" onchange="updatePreview('btn_home')">
+                            <button class="upload-btn" onclick="uploadImage('btn_home')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="btn_candle">
+                    <div class="item-preview" id="preview-btn_candle">🕯️</div>
+                    <div class="item-info">
+                        <div class="item-label">蜡烛按钮</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="btn_candle" value="🕯️" placeholder="图标" onchange="updatePreview('btn_candle')">
+                            <button class="upload-btn" onclick="uploadImage('btn_candle')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="btn_fish">
+                    <div class="item-preview" id="preview-btn_fish">🐟</div>
+                    <div class="item-info">
+                        <div class="item-label">放生按钮</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="btn_fish" value="🐟" placeholder="图标" onchange="updatePreview('btn_fish')">
+                            <button class="upload-btn" onclick="uploadImage('btn_fish')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="btn_bell">
+                    <div class="item-preview" id="preview-btn_bell">🔔</div>
+                    <div class="item-info">
+                        <div class="item-label">音效按钮</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="btn_bell" value="🔔" placeholder="图标" onchange="updatePreview('btn_bell')">
+                            <button class="upload-btn" onclick="uploadImage('btn_bell')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="btn_sound_off">
+                    <div class="item-preview" id="preview-btn_sound_off">🔕</div>
+                    <div class="item-info">
+                        <div class="item-label">静音按钮</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="btn_sound_off" value="🔕" placeholder="图标" onchange="updatePreview('btn_sound_off')">
+                            <button class="upload-btn" onclick="uploadImage('btn_sound_off')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 其他图标 -->
+        <div class="category-card">
+            <div class="category-header">✨ 其他图标</div>
+            <div class="category-content">
+                <div class="item-row" data-key="icon_avatar">
+                    <div class="item-preview" id="preview-icon_avatar">🙏</div>
+                    <div class="item-info">
+                        <div class="item-label">默认头像</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="icon_avatar" value="🙏" placeholder="图标" onchange="updatePreview('icon_avatar')">
+                            <button class="upload-btn" onclick="uploadImage('icon_avatar')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="icon_finger">
+                    <div class="item-preview" id="preview-icon_finger">👆</div>
+                    <div class="item-info">
+                        <div class="item-label">引导手指</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="icon_finger" value="👆" placeholder="图标" onchange="updatePreview('icon_finger')">
+                            <button class="upload-btn" onclick="uploadImage('icon_finger')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="icon_diamond">
+                    <div class="item-preview" id="preview-icon_diamond">💎</div>
+                    <div class="item-info">
+                        <div class="item-label">钻石/欢喜</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="icon_diamond" value="💎" placeholder="图标" onchange="updatePreview('icon_diamond')">
+                            <button class="upload-btn" onclick="uploadImage('icon_diamond')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="icon_light">
+                    <div class="item-preview" id="preview-icon_light">✨</div>
+                    <div class="item-info">
+                        <div class="item-label">佛光</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="icon_light" value="✨" placeholder="图标" onchange="updatePreview('icon_light')">
+                            <button class="upload-btn" onclick="uploadImage('icon_light')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row" data-key="icon_gift">
+                    <div class="item-preview" id="preview-icon_gift">🎁</div>
+                    <div class="item-info">
+                        <div class="item-label">礼物</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="icon_gift" value="🎁" placeholder="图标" onchange="updatePreview('icon_gift')">
+                            <button class="upload-btn" onclick="uploadImage('icon_gift')">📷 图片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <a href="showcase.html" class="back-home">← 返回展示台</a>
+    
+    <!-- 隐藏的文件输入 -->
+    <input type="file" class="file-input" id="imageInput" accept="image/*">
+    <input type="file" class="file-input" id="videoInput" accept="video/*">
+    
+    <!-- 提示 -->
+    <div class="toast" id="toast"></div>
+    
+    <script src="app-state.js"></script>
+    <script>
+    // 存储键名
+    const STORAGE_KEY = 'pray_items_v2';
+    
+    // 当前编辑的字段
+    let currentEditField = null;
+    
+    // 加载保存的数据
+    function loadData() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(key => {
+                    const input = document.getElementById(key);
+                    const preview = document.getElementById('preview-' + key);
+                    if (input && preview) {
+                        input.value = data[key].emoji || data[key];
+                        // 如果有图片，显示图片
+                        if (data[key].image) {
+                            preview.innerHTML = '<img src="' + data[key].image + '" alt="预览">';
+                        } else if (data[key].video) {
+                            preview.innerHTML = '<video src="' + data[key].video + '" class="media-preview"></video>';
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.log('加载数据失败', e);
+        }
+    }
+    
+    // 更新预览
+    function updatePreview(key) {
+        const input = document.getElementById(key);
+        const preview = document.getElementById('preview-' + key);
+        if (input && preview) {
+            preview.textContent = input.value;
+        }
+    }
+    
+    // 上传图片
+    function uploadImage(key) {
+        currentEditField = key;
+        const input = document.getElementById('imageInput');
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('preview-' + currentEditField);
+                    preview.innerHTML = '<img src="' + event.target.result + '" alt="预览">';
+                    // 保存图片数据
+                    saveImageData(currentEditField, event.target.result, 'image');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        input.click();
+    }
+    
+    // 上传视频
+    function uploadVideo(key) {
+        currentEditField = key;
+        const input = document.getElementById('videoInput');
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('preview-' + currentEditField);
+                    preview.innerHTML = '<video src="' + event.target.result + '" class="media-preview" controls></video>';
+                    // 保存视频数据
+                    saveImageData(currentEditField, event.target.result, 'video');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        input.click();
+    }
+    
+    // 保存图片/视频数据
+    function saveImageData(key, data, type) {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY) || '{}';
+            const items = JSON.parse(saved);
+            items[key] = { emoji: document.getElementById(key).value };
+            items[key][type] = data;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        } catch (e) {
+            console.log('保存失败', e);
+        }
+    }
+    
+    // 保存更改
+    function saveChanges() {
+        const items = {};
+        document.querySelectorAll('.item-row').forEach(row => {
+            const key = row.getAttribute('data-key');
+            const input = document.getElementById(key);
+            if (input) {
+                items[key] = { emoji: input.value };
+            }
+        });
+        
+        // 保留已有的图片/视频数据
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const oldData = JSON.parse(saved);
+                Object.keys(oldData).forEach(key => {
+                    if (oldData[key].image || oldData[key].video) {
+                        if (items[key]) {
+                            items[key].image = oldData[key].image;
+                            items[key].video = oldData[key].video;
+                        }
+                    }
+                });
+            }
+        } catch (e) {}
+        
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        showToast('保存成功！刷新页面后生效');
+    }
+    
+    // 恢复默认
+    function resetToDefault() {
+        if (confirm('确定恢复所有默认设置吗？')) {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+    }
+    
+    // 显示提示
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    
+    // 初始化
+    loadData();
+    </script>
+</body>
+</html>

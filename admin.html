@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 - 超级后台管理</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 后台管理页面样式 - 深色主题 */
+        .admin-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #0D0D0D 0%, #1A1A1A 30%, #2A2A2A 60%, #1A1A1A 100%);
+            padding-bottom: 100px;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding-top: calc(44px + env(safe-area-inset-top, 0px));
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 15px;
+            padding-right: 15px;
+            z-index: 100;
+            background: linear-gradient(180deg, #2A0000, #1A0000);
+            border-bottom: 2px solid #B22222;
+        }
+
+        .top-right-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ask-buddha-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B0000, #B22222);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(178, 34, 34, 0.5);
+            transition: transform 0.2s;
+            z-index: 100;
+        }
+
+        .ask-buddha-btn:active { transform: scale(0.95); }
+
+        .ask-buddha-label {
+            font-size: 10px;
+            color: #FF6347;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            font-weight: bold;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #FF6347;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+            padding: 5px 10px;
+            background: rgba(139, 0, 0, 0.3);
+            border-radius: 15px;
+            text-decoration: none;
+        }
+
+        /* 页面主体内容 */
+        .page-content {
+            padding-top: calc(70px + env(safe-area-inset-top, 0px));
+            padding-bottom: 30px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        /* 登录页面 */
+        .login-box {
+            max-width: 360px;
+            margin: 80px auto 0;
+            background: linear-gradient(135deg, rgba(42, 0, 0, 0.9), rgba(26, 0, 0, 0.9));
+            border-radius: 20px;
+            padding: 30px 25px;
+            border: 2px solid #8B0000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .login-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #FF4500;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+            letter-spacing: 3px;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            font-size: 12px;
+            color: #FF6347;
+            margin-bottom: 25px;
+            opacity: 0.8;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #5A0000;
+            border-radius: 12px;
+            color: #FFD700;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 4px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+
+        .login-input:focus {
+            border-color: #FF4500;
+            box-shadow: 0 0 12px rgba(255, 69, 0, 0.4);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #FF4500, #8B0000);
+            border: none;
+            border-radius: 12px;
+            color: #FFF;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.4);
+            letter-spacing: 5px;
+        }
+
+        .login-btn:active { transform: scale(0.98); }
+
+        .login-hint {
+            text-align: center;
+            font-size: 11px;
+            color: #FF6347;
+            margin-top: 15px;
+            opacity: 0.7;
+        }
+
+        /* 超级管理员标识 */
+        .admin-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 18px;
+            background: linear-gradient(135deg, #2A0000, #1A0000);
+            border-radius: 15px;
+            border: 2px solid #8B0000;
+            box-shadow: 0 5px 20px rgba(139, 0, 0, 0.3);
+        }
+
+        .admin-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #FF4500;
+            text-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+            margin-bottom: 5px;
+            letter-spacing: 3px;
+        }
+
+        .admin-subtitle {
+            font-size: 12px;
+            color: #FF6347;
+            opacity: 0.7;
+        }
+
+        /* 管理员信息卡 */
+        .admin-info-card {
+            background: linear-gradient(135deg, rgba(42, 0, 0, 0.8), rgba(26, 0, 0, 0.8));
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 20px;
+            border: 2px solid #8B0000;
+        }
+
+        .admin-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .admin-info-row:last-child { border-bottom: none; }
+
+        .admin-info-label {
+            font-size: 13px;
+            color: #CCCCCC;
+        }
+
+        .admin-info-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FF4500;
+        }
+
+        /* 导航选项卡 */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            flex-shrink: 0;
+            padding: 10px 16px;
+            background: rgba(139, 0, 0, 0.3);
+            border: 1px solid #5A0000;
+            border-radius: 20px;
+            color: #FF6347;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #8B0000, #B22222);
+            border-color: #FF4500;
+            color: #FFF;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+        }
+
+        .nav-tab:active { transform: scale(0.95); }
+
+        /* 配置区块 */
+        .config-section {
+            background: linear-gradient(135deg, rgba(42, 0, 0, 0.6), rgba(26, 0, 0, 0.6));
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 18px;
+            border: 2px solid #5A0000;
+        }
+
+        .config-section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 表单输入项 */
+        .form-item {
+            margin-bottom: 14px;
+        }
+
+        .form-item:last-child { margin-bottom: 0; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: #CCCCCC;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #5A0000;
+            border-radius: 10px;
+            color: #FFD700;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            border-color: #FF4500;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* 开关样式 */
+        .switch-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .switch-item:last-child { border-bottom: none; }
+
+        .switch-label-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .switch-icon {
+            font-size: 22px;
+            width: 32px;
+            text-align: center;
+        }
+
+        .switch-text {
+            font-size: 13px;
+            color: #CCCCCC;
+        }
+
+        .switch-text-desc {
+            font-size: 11px;
+            color: #999;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: #444;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+
+        .switch.active { background: linear-gradient(135deg, #FF4500, #B22222); }
+
+        .switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #FFF;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .switch.active::before { transform: translateX(22px); }
+
+        /* 佛像道具管理列表 */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-list-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .item-icon {
+            font-size: 28px;
+            width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .item-name-input {
+            flex: 1;
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #5A0000;
+            border-radius: 8px;
+            color: #FFD700;
+            font-size: 13px;
+            outline: none;
+            min-width: 0;
+        }
+
+        .item-name-input:focus { border-color: #FF4500; }
+
+        .upload-btn {
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #8B0000, #B22222);
+            border: none;
+            border-radius: 8px;
+            color: #FFF;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .upload-btn:active { transform: scale(0.95); }
+
+        .upload-preview {
+            width: 100%;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed #5A0000;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            cursor: pointer;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .upload-preview img, .upload-preview video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* 层级标签 */
+        .layer-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            background: linear-gradient(135deg, #8B0000, #B22222);
+            border-radius: 10px;
+            font-size: 10px;
+            color: #FFF;
+            margin-right: 6px;
+        }
+
+        /* 广告图预览区 */
+        .ad-preview {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #2A0000, #1A0000);
+            border: 2px dashed #5A0000;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .ad-preview-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .ad-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* textarea */
+        textarea.form-input {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        /* 保存按钮 */
+        .save-btn-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+            background: linear-gradient(180deg, transparent, #0D0D0D 30%);
+            z-index: 50;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #FF4500, #8B0000);
+            border: none;
+            border-radius: 14px;
+            color: #FFF;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 25px rgba(255, 69, 0, 0.4);
+            letter-spacing: 5px;
+        }
+
+        .save-btn:active { transform: scale(0.98); }
+
+        /* 同步状态 */
+        .sync-status {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            padding: 10px 0;
+        }
+
+        .sync-status.success { color: #32CD32; }
+        .sync-status.error { color: #FF4500; }
+
+        /* 授权管理列表 */
+        .admin-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B0000, #B22222);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .admin-item-info {
+            flex: 1;
+        }
+
+        .admin-item-name {
+            font-size: 14px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .admin-item-phone {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .admin-item-perm {
+            font-size: 11px;
+            color: #FF6347;
+            margin-top: 3px;
+        }
+
+        .revoke-btn {
+            padding: 6px 12px;
+            background: rgba(139, 0, 0, 0.5);
+            border: 1px solid #5A0000;
+            border-radius: 8px;
+            color: #FF6347;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* 菜单项管理 */
+        .menu-item-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 80px 60px;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .menu-item-row:last-child { border-bottom: none; }
+
+        .menu-icon-preview {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* 隐藏文件上传 */
+        .hidden-input { display: none; }
+
+        /* 提示信息 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 215, 0, 0.95);
+            color: #8B0000;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+            animation: toastIn 0.3s ease;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 内容区域 */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主页面容器 -->
+    <div class="page-container admin-container" id="adminApp">
+        <!-- 登录页面 -->
+        <div class="tab-content active" id="loginTab">
+            <div class="login-box">
+                <div class="login-title">🛡️ 超级管理</div>
+                <div class="login-subtitle">祈个福后台配置中心</div>
+                <input type="tel" class="login-input" id="loginPhone" placeholder="请输入手机号" maxlength="11">
+                <input type="password" class="login-input" id="loginPwd" placeholder="请输入密码" style="letter-spacing: normal;">
+                <button class="login-btn" onclick="adminLogin()">登 录</button>
+                <div class="login-hint">仅限超级管理员账号：18944761788</div>
+            </div>
+        </div>
+
+        <!-- 管理后台主页 -->
+        <div class="tab-content" id="adminTab">
+            <!-- 顶部导航 -->
+            <div class="top-nav">
+                <a href="settings.html" class="back-btn">← 返回</a>
+                <span style="color: #FF4500; font-size: 14px; font-weight: bold;">🛡️ 管理后台</span>
+                <div class="top-right-group">
+                    <button class="ask-buddha-btn" onclick="logout()" title="退出登录">🚪</button>
+                    <span class="ask-buddha-label">退出</span>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <!-- 超级管理员标识 -->
+                <div class="admin-header">
+                    <div class="admin-title">🛡️ 超级管理员</div>
+                    <div class="admin-subtitle" id="adminPhone">账号：18944761788</div>
+                </div>
+
+                <!-- 管理员信息卡 -->
+                <div class="admin-info-card">
+                    <div class="admin-info-row">
+                        <span class="admin-info-label">账号身份</span>
+                        <span class="admin-info-value">SUPER</span>
+                    </div>
+                    <div class="admin-info-row">
+                        <span class="admin-info-label">授权管理员</span>
+                        <span class="admin-info-value" id="adminCount">0 人</span>
+                    </div>
+                    <div class="admin-info-row">
+                        <span class="admin-info-label">配置版本</span>
+                        <span class="admin-info-value" id="configVersion">v1.0.0</span>
+                    </div>
+                    <div class="admin-info-row">
+                        <span class="admin-info-label">最后同步</span>
+                        <span class="admin-info-value" id="lastSync">--</span>
+                    </div>
+                </div>
+
+                <!-- 导航选项卡 -->
+                <div class="nav-tabs">
+                    <div class="nav-tab active" data-tab="params" onclick="switchTab('params')">💰 参数</div>
+                    <div class="nav-tab" data-tab="scenes" onclick="switchTab('scenes')">🔔 场景</div>
+                    <div class="nav-tab" data-tab="statues" onclick="switchTab('statues')">🗿 佛像</div>
+                    <div class="nav-tab" data-tab="menus" onclick="switchTab('menus')">📋 菜单</div>
+                    <div class="nav-tab" data-tab="admins" onclick="switchTab('admins')">👑 权限</div>
+                </div>
+
+                <!-- ========== 参数管理 ========== -->
+                <div class="tab-content active" id="params-content">
+                    <!-- 付费道具价格管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>💰</span>
+                            <span>付费道具价格管理</span>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-item">
+                                <label class="form-label">普通香（欢喜）</label>
+                                <input type="number" class="form-input" id="priceIncense3" value="10">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">清香6支（欢喜）</label>
+                                <input type="number" class="form-input" id="priceIncense6" value="20">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-item">
+                                <label class="form-label">高香9支（欢喜）</label>
+                                <input type="number" class="form-input" id="priceIncense9" value="30">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label"> Premium香（欢喜）</label>
+                                <input type="number" class="form-input" id="priceIncensePrem" value="50">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-item">
+                                <label class="form-label">莲花灯（欢喜）</label>
+                                <input type="number" class="form-input" id="priceLamp" value="20">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">长明灯（欢喜）</label>
+                                <input type="number" class="form-input" id="priceLampPerm" value="100">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-item">
+                                <label class="form-label">鲜花供奉（欢喜）</label>
+                                <input type="number" class="form-input" id="priceFlower" value="1">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">水果供奉（欢喜）</label>
+                                <input type="number" class="form-input" id="priceFruit" value="1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-item">
+                                <label class="form-label">茶供奉（欢喜）</label>
+                                <input type="number" class="form-input" id="priceTea" value="1">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">甜品供奉（欢喜）</label>
+                                <input type="number" class="form-input" id="priceDessert" value="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 充值奖励参数管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🎁</span>
+                            <span>充值奖励参数管理</span>
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">充值档位配置（金额→欢喜+佛光）</label>
+                        </div>
+
+                        <div class="form-row-3" style="margin-bottom: 10px;">
+                            <div class="form-item">
+                                <label class="form-label">档1 金额(元)</label>
+                                <input type="number" class="form-input" id="rech1Price" value="6">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">欢喜</label>
+                                <input type="number" class="form-input" id="rech1Huaxi" value="60">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">佛光</label>
+                                <input type="number" class="form-input" id="rech1Foguang" value="6">
+                            </div>
+                        </div>
+
+                        <div class="form-row-3" style="margin-bottom: 10px;">
+                            <div class="form-item">
+                                <label class="form-label">档2 金额(元)</label>
+                                <input type="number" class="form-input" id="rech2Price" value="20">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">欢喜</label>
+                                <input type="number" class="form-input" id="rech2Huaxi" value="220">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">佛光</label>
+                                <input type="number" class="form-input" id="rech2Foguang" value="22">
+                            </div>
+                        </div>
+
+                        <div class="form-row-3" style="margin-bottom: 10px;">
+                            <div class="form-item">
+                                <label class="form-label">档3 金额(元)</label>
+                                <input type="number" class="form-input" id="rech3Price" value="50">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">欢喜</label>
+                                <input type="number" class="form-input" id="rech3Huaxi" value="600">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">佛光</label>
+                                <input type="number" class="form-input" id="rech3Foguang" value="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row-3">
+                            <div class="form-item">
+                                <label class="form-label">档4 金额(元)</label>
+                                <input type="number" class="form-input" id="rech4Price" value="100">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">欢喜</label>
+                                <input type="number" class="form-input" id="rech4Huaxi" value="1500">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">佛光</label>
+                                <input type="number" class="form-input" id="rech4Foguang" value="150">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 每日任务奖励 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>📝</span>
+                            <span>每日任务奖励</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-item">
+                                <label class="form-label">每日首次登录欢喜</label>
+                                <input type="number" class="form-input" id="dailyLoginReward" value="20">
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">跪拜奖励佛光</label>
+                                <input type="number" class="form-input" id="worshipReward" value="10">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 场景开关 ========== -->
+                <div class="tab-content" id="scenes-content">
+                    <!-- 首页场景开关 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🏛️</span>
+                            <span>祈福拜佛场景开关</span>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🕯️</span>
+                                <div>
+                                    <span class="switch-text">上香功能</span>
+                                    <span class="switch-text-desc">香炉上香交互</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneIncense"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">💡</span>
+                                <div>
+                                    <span class="switch-text">点灯功能</span>
+                                    <span class="switch-text-desc">莲花灯祈福</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneLamp"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🌺</span>
+                                <div>
+                                    <span class="switch-text">供奉功能</span>
+                                    <span class="switch-text-desc">鲜花水果茶等供奉</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneOffering"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🙏</span>
+                                <div>
+                                    <span class="switch-text">跪拜功能</span>
+                                    <span class="switch-text-desc">跪拜垫交互</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneWorship"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🎋</span>
+                                <div>
+                                    <span class="switch-text">求签功能</span>
+                                    <span class="switch-text-desc">摇签筒求签</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneShake"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">💬</span>
+                                <div>
+                                    <span class="switch-text">问佛对话</span>
+                                    <span class="switch-text-desc">AI智能问答</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneChat"></div>
+                        </div>
+                    </div>
+
+                    <!-- 超度追思场景开关 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🕯️</span>
+                            <span>超度追思场景开关</span>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🏛️</span>
+                                <div>
+                                    <span class="switch-text">万佛场景</span>
+                                    <span class="switch-text-desc">万佛背景</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneRemWanfo"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">💐</span>
+                                <div>
+                                    <span class="switch-text">鲜花场景</span>
+                                    <span class="switch-text-desc">鲜花追思</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneRemFlower"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🤖</span>
+                                <div>
+                                    <span class="switch-text">音容宛在场景</span>
+                                    <span class="switch-text-desc">AI对话</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="sceneRemAI"></div>
+                        </div>
+                    </div>
+
+                    <!-- 灵宠放生场景开关 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🐟</span>
+                            <span>灵宠放生场景开关</span>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🐠</span>
+                                <div>
+                                    <span class="switch-text">灵宠购买</span>
+                                    <span class="switch-text-desc">购买灵宠</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="scenePetBuy"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🍞</span>
+                                <div>
+                                    <span class="switch-text">灵宠喂养</span>
+                                    <span class="switch-text-desc">喂养功能</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="scenePetFeed"></div>
+                        </div>
+                    </div>
+
+                    <!-- 弹窗开关 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>📢</span>
+                            <span>弹窗开关管理</span>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🌅</span>
+                                <div>
+                                    <span class="switch-text">每日欢迎弹窗</span>
+                                    <span class="switch-text-desc">每日首次进入弹出</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="popupWelcome"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">📤</span>
+                                <div>
+                                    <span class="switch-text">分享奖励弹窗</span>
+                                    <span class="switch-text-desc">分享成功奖励提示</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="popupShare"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🃏</span>
+                                <div>
+                                    <span class="switch-text">福运卡牌弹窗</span>
+                                    <span class="switch-text-desc">随机福运卡牌奖励</span>
+                                </div>
+                            </div>
+                            <div class="switch" data-key="popupCard"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🎰</span>
+                                <div>
+                                    <span class="switch-text">老虎机弹窗</span>
+                                    <span class="switch-text-desc">抽奖老虎机</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="popupSlot"></div>
+                        </div>
+                    </div>
+
+                    <!-- 广告图管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🖼️</span>
+                            <span>广告图管理</span>
+                        </div>
+
+                        <div class="ad-preview" id="adPreview1" onclick="uploadAd(1)">
+                            <div class="ad-preview-icon">🖼️</div>
+                            <div>点击上传广告图 1</div>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">广告1 文案</label>
+                            <input type="text" class="form-input" id="adText1" placeholder="广告文案" value="邀请好友一起祈福，共创功德！">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">广告1 链接</label>
+                            <input type="text" class="form-input" id="adLink1" placeholder="跳转链接" value="">
+                        </div>
+
+                        <div class="ad-preview" id="adPreview2" onclick="uploadAd(2)" style="margin-top: 15px;">
+                            <div class="ad-preview-icon">🖼️</div>
+                            <div>点击上传广告图 2</div>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">广告2 文案</label>
+                            <input type="text" class="form-input" id="adText2" placeholder="广告文案" value="">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">广告2 链接</label>
+                            <input type="text" class="form-input" id="adLink2" placeholder="跳转链接" value="">
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)" style="margin-top: 15px;">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">👁️</span>
+                                <div>
+                                    <span class="switch-text">广告展示状态</span>
+                                    <span class="switch-text-desc">是否显示广告</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="adEnabled"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 佛像道具管理 ========== -->
+                <div class="tab-content" id="statues-content">
+                    <!-- 佛像管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🙏</span>
+                            <span>佛像管理（第一层：佛像主体）</span>
+                        </div>
+
+                        <div class="item-list">
+                            <div class="item-list-row">
+                                <span class="item-icon">🙏</span>
+                                <input type="text" class="item-name-input" value="释迦牟尼佛" data-field="statue1Name">
+                                <button class="upload-btn" onclick="uploadAsset('statue1')">上传3D/2D</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🪷</span>
+                                <input type="text" class="item-name-input" value="观音菩萨" data-field="statue2Name">
+                                <button class="upload-btn" onclick="uploadAsset('statue2')">上传3D/2D</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">📿</span>
+                                <input type="text" class="item-name-input" value="弥勒佛" data-field="statue3Name">
+                                <button class="upload-btn" onclick="uploadAsset('statue3')">上传3D/2D</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🪔</span>
+                                <input type="text" class="item-name-input" value="地藏王菩萨" data-field="statue4Name">
+                                <button class="upload-btn" onclick="uploadAsset('statue4')">上传3D/2D</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">✨</span>
+                                <input type="text" class="item-name-input" value="文殊菩萨" data-field="statue5Name">
+                                <button class="upload-btn" onclick="uploadAsset('statue5')">上传3D/2D</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 光环管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🌟</span>
+                            <span>光环管理（第二层：头部光环）</span>
+                        </div>
+
+                        <div class="item-list">
+                            <div class="item-list-row">
+                                <span class="item-icon">✨</span>
+                                <input type="text" class="item-name-input" value="金色佛光" data-field="halo1Name">
+                                <button class="upload-btn" onclick="uploadAsset('halo1')">上传光环</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">💫</span>
+                                <input type="text" class="item-name-input" value="七彩光环" data-field="halo2Name">
+                                <button class="upload-btn" onclick="uploadAsset('halo2')">上传光环</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🌈</span>
+                                <input type="text" class="item-name-input" value="彩虹光环" data-field="halo3Name">
+                                <button class="upload-btn" onclick="uploadAsset('halo3')">上传光环</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 背景管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🖼️</span>
+                            <span>背景管理（第三层：场景背景）</span>
+                        </div>
+
+                        <div class="item-list">
+                            <div class="item-list-row">
+                                <span class="item-icon">🏛️</span>
+                                <input type="text" class="item-name-input" value="佛殿背景" data-field="bg1Name">
+                                <button class="upload-btn" onclick="uploadAsset('bg1')">上传背景</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">⛰️</span>
+                                <input type="text" class="item-name-input" value="山水背景" data-field="bg2Name">
+                                <button class="upload-btn" onclick="uploadAsset('bg2')">上传背景</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🌸</span>
+                                <input type="text" class="item-name-input" value="樱花背景" data-field="bg3Name">
+                                <button class="upload-btn" onclick="uploadAsset('bg3')">上传背景</button>
+                            </div>
+                        </div>
+
+                        <!-- 画中画视频管理 -->
+                        <div style="margin-top: 15px;">
+                            <div class="form-label" style="margin-bottom: 10px;">画中画视频上传（自动蓝色背景抠图）</div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🎬</span>
+                                <input type="text" class="item-name-input" value="佛像视频" data-field="videoName" readonly style="opacity: 0.6;">
+                                <button class="upload-btn" onclick="uploadAsset('video')">上传视频</button>
+                            </div>
+                            <div class="form-item" style="margin-top: 10px;">
+                                <label class="form-label">视频说明</label>
+                                <div style="font-size: 11px; color: #999; line-height: 1.5;">
+                                    支持上传MP4/WebM格式视频，系统自动识别蓝色背景并生成画中画效果。<br>
+                                    三层叠加顺序：佛像(第一层) > 光环(第二层) > 背景(第三层)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 音乐管理 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🎵</span>
+                            <span>场景音乐管理</span>
+                        </div>
+
+                        <div class="item-list">
+                            <div class="item-list-row">
+                                <span class="item-icon">🔔</span>
+                                <input type="text" class="item-name-input" value="拜佛背景音乐" data-field="musicPray">
+                                <button class="upload-btn" onclick="uploadAsset('musicPray')">上传音乐</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🎋</span>
+                                <input type="text" class="item-name-input" value="求签音效" data-field="musicShake">
+                                <button class="upload-btn" onclick="uploadAsset('musicShake')">上传音乐</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🕯️</span>
+                                <input type="text" class="item-name-input" value="上香音效" data-field="musicIncense">
+                                <button class="upload-btn" onclick="uploadAsset('musicIncense')">上传音乐</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">💬</span>
+                                <input type="text" class="item-name-input" value="问佛语音" data-field="musicChat">
+                                <button class="upload-btn" onclick="uploadAsset('musicChat')">上传音乐</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 超度追思页面资源 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🕯️</span>
+                            <span>超度追思页资源管理</span>
+                        </div>
+
+                        <div class="form-label" style="margin-bottom: 10px;">背景上传</div>
+                        <div class="item-list">
+                            <div class="item-list-row">
+                                <span class="item-icon">🏛️</span>
+                                <input type="text" class="item-name-input" value="万佛场景背景" data-field="remBgWanfo">
+                                <button class="upload-btn" onclick="uploadAsset('remBgWanfo')">上传背景</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">💐</span>
+                                <input type="text" class="item-name-input" value="鲜花场景背景" data-field="remBgFlower">
+                                <button class="upload-btn" onclick="uploadAsset('remBgFlower')">上传背景</button>
+                            </div>
+                            <div class="item-list-row">
+                                <span class="item-icon">🤖</span>
+                                <input type="text" class="item-name-input" value="音容宛在背景" data-field="remBgAI">
+                                <button class="upload-btn" onclick="uploadAsset('remBgAI')">上传背景</button>
+                            </div>
+                        </div>
+
+                        <div class="form-label" style="margin: 15px 0 10px;">音乐上传</div>
+                        <div class="item-list">
+                            <div class="item-list-row">
+                                <span class="item-icon">🎵</span>
+                                <input type="text" class="item-name-input" value="超度背景音乐" data-field="remMusic">
+                                <button class="upload-btn" onclick="uploadAsset('remMusic')">上传音乐</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 菜单按钮管理 ========== -->
+                <div class="tab-content" id="menus-content">
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>📋</span>
+                            <span>页面菜单按钮管理</span>
+                        </div>
+                        <div style="font-size: 11px; color: #999; margin-bottom: 15px;">
+                            管理页面内所有图标和菜单名称，支持拖拽排序
+                        </div>
+
+                        <!-- 首页菜单 -->
+                        <div class="form-label" style="margin-bottom: 10px;">🏛️ 祈福拜佛页菜单</div>
+                        <div class="item-list" id="menuListPray">
+                            <div class="item-list-row" data-menu="incense">
+                                <span class="menu-icon-preview" id="menuIconIncense">🕯️</span>
+                                <input type="text" class="item-name-input" value="上香" data-field="menuIncense">
+                                <button class="upload-btn" onclick="uploadMenuIcon('incense')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('incense')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="lamp">
+                                <span class="menu-icon-preview" id="menuIconLamp">💡</span>
+                                <input type="text" class="item-name-input" value="点灯" data-field="menuLamp">
+                                <button class="upload-btn" onclick="uploadMenuIcon('lamp')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('lamp')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="offering">
+                                <span class="menu-icon-preview" id="menuIconOffering">🌺</span>
+                                <input type="text" class="item-name-input" value="供奉" data-field="menuOffering">
+                                <button class="upload-btn" onclick="uploadMenuIcon('offering')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('offering')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="shake">
+                                <span class="menu-icon-preview" id="menuIconShake">🎋</span>
+                                <input type="text" class="item-name-input" value="求签" data-field="menuShake">
+                                <button class="upload-btn" onclick="uploadMenuIcon('shake')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('shake')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="chat">
+                                <span class="menu-icon-preview" id="menuIconChat">💬</span>
+                                <input type="text" class="item-name-input" value="问佛" data-field="menuChat">
+                                <button class="upload-btn" onclick="uploadMenuIcon('chat')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('chat')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="worship">
+                                <span class="menu-icon-preview" id="menuIconWorship">🙏</span>
+                                <input type="text" class="item-name-input" value="跪拜" data-field="menuWorship">
+                                <button class="upload-btn" onclick="uploadMenuIcon('worship')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('worship')">显/隐</button>
+                            </div>
+                        </div>
+
+                        <!-- 底部菜单 -->
+                        <div class="form-label" style="margin: 20px 0 10px;">📍 底部导航菜单</div>
+                        <div class="item-list" id="menuListBottom">
+                            <div class="item-list-row" data-menu="bottomPray">
+                                <span class="menu-icon-preview" id="menuIconBottomPray">🏛️</span>
+                                <input type="text" class="item-name-input" value="祈福" data-field="menuBottomPray">
+                                <button class="upload-btn" onclick="uploadMenuIcon('bottomPray')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('bottomPray')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="bottomRem">
+                                <span class="menu-icon-preview" id="menuIconBottomRem">🕯️</span>
+                                <input type="text" class="item-name-input" value="追思" data-field="menuBottomRem">
+                                <button class="upload-btn" onclick="uploadMenuIcon('bottomRem')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('bottomRem')">显/隐</button>
+                            </div>
+                            <div class="item-list-row" data-menu="bottomPet">
+                                <span class="menu-icon-preview" id="menuIconBottomPet">🐟</span>
+                                <input type="text" class="item-name-input" value="放生" data-field="menuBottomPet">
+                                <button class="upload-btn" onclick="uploadMenuIcon('bottomPet')">图标</button>
+                                <button class="upload-btn" style="background: rgba(255,69,0,0.5);" onclick="toggleMenu('bottomPet')">显/隐</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 权限管理 ========== -->
+                <div class="tab-content" id="admins-content">
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>👑</span>
+                            <span>管理员授权管理</span>
+                        </div>
+
+                        <div class="form-item" style="margin-bottom: 15px;">
+                            <label class="form-label">授权新管理员</label>
+                            <div class="form-row">
+                                <input type="tel" class="form-input" id="newAdminPhone" placeholder="手机号" maxlength="11">
+                                <button class="upload-btn" style="padding: 12px 16px; font-size: 14px;" onclick="addAdmin()">授权</button>
+                            </div>
+                        </div>
+
+                        <div class="form-label" style="margin-bottom: 10px;">已授权管理员列表</div>
+                        <div class="admin-list" id="adminList">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">👑</div>
+                                <div>暂无已授权的管理员</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 权限配置 -->
+                    <div class="config-section">
+                        <div class="config-section-title">
+                            <span>🔐</span>
+                            <span>管理员权限配置</span>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">💰</span>
+                                <div>
+                                    <span class="switch-text">参数管理权限</span>
+                                    <span class="switch-text-desc">修改道具价格、充值奖励</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="permParams" id="permParams"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🔔</span>
+                                <div>
+                                    <span class="switch-text">场景开关权限</span>
+                                    <span class="switch-text-desc">管理场景和弹窗开关</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="permScenes" id="permScenes"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">🗿</span>
+                                <div>
+                                    <span class="switch-text">佛像道具权限</span>
+                                    <span class="switch-text-desc">上传佛像、光环、背景</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="permStatues" id="permStatues"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">📋</span>
+                                <div>
+                                    <span class="switch-text">菜单管理权限</span>
+                                    <span class="switch-text-desc">修改菜单图标和名称</span>
+                                </div>
+                            </div>
+                            <div class="switch active" data-key="permMenus" id="permMenus"></div>
+                        </div>
+
+                        <div class="switch-item" onclick="toggleSwitch(this)">
+                            <div class="switch-label-group">
+                                <span class="switch-icon">👑</span>
+                                <div>
+                                    <span class="switch-text">授权管理员权限</span>
+                                    <span class="switch-text-desc">新增/撤销其他管理员</span>
+                                </div>
+                            </div>
+                            <div class="switch" data-key="permAdmins" id="permAdmins"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 同步状态 -->
+                <div class="sync-status" id="syncStatus">
+                    ☁️ 点击保存后将同步到云端
+                </div>
+            </div>
+
+            <!-- 保存配置按钮 -->
+            <div class="save-btn-container">
+                <button class="save-btn" onclick="saveAllConfig()">
+                    💾 保存配置并同步云端
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的文件上传input -->
+    <input type="file" id="fileUpload" class="hidden-input" accept="image/*,video/*,audio/*,.glb,.gltf,.obj,.fbx" onchange="handleFileUpload(event)">
+    <input type="file" id="imageUpload" class="hidden-input" accept="image/*" onchange="handleImageUpload(event)">
+    <input type="file" id="musicUpload" class="hidden-input" accept="audio/*" onchange="handleMusicUpload(event)">
+
+    <script>
+        // ============ 全局状态 ============
+        var ADMIN_CONFIG_KEY = 'admin_system_config';
+        var SUPER_ADMIN_PHONE = '18944761788';
+
+        var adminConfig = {
+            isLoggedIn: false,
+            admins: [],  // 已授权管理员列表
+            permissions: {
+                params: true,
+                scenes: true,
+                statues: true,
+                menus: true,
+                admins: true
+            },
+            prices: {},
+            recharge: {},
+            scenes: {},
+            popups: {},
+            ads: {},
+            assets: {},
+            menus: {}
+        };
+
+        var currentUploadType = null;
+
+        // ============ 初始化 ============
+        function init() {
+            loadAdminConfig();
+            checkLogin();
+        }
+
+        function loadAdminConfig() {
+            try {
+                var saved = localStorage.getItem(ADMIN_CONFIG_KEY);
+                if (saved) {
+                    var parsed = JSON.parse(saved);
+                    adminConfig = Object.assign(adminConfig, parsed);
+                }
+            } catch (e) {}
+        }
+
+        function saveAdminConfig() {
+            try {
+                localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(adminConfig));
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function checkLogin() {
+            if (adminConfig.isLoggedIn) {
+                showAdminPanel();
+            }
+        }
+
+        // ============ 登录验证 ============
+        function adminLogin() {
+            var phone = document.getElementById('loginPhone').value.trim();
+            var pwd = document.getElementById('loginPwd').value.trim();
+
+            if (!phone || phone.length !== 11) {
+                showToast('请输入正确的11位手机号');
+                return;
+            }
+
+            if (phone !== SUPER_ADMIN_PHONE) {
+                showToast('您不是超级管理员');
+                return;
+            }
+
+            // 简单的密码验证（实际应该后端验证）
+            if (pwd.length < 4) {
+                showToast('密码不能少于4位');
+                return;
+            }
+
+            adminConfig.isLoggedIn = true;
+            saveAdminConfig();
+            showAdminPanel();
+            showToast('登录成功，欢迎超级管理员');
+        }
+
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                adminConfig.isLoggedIn = false;
+                saveAdminConfig();
+                document.getElementById('loginTab').classList.add('active');
+                document.getElementById('adminTab').classList.remove('active');
+                document.getElementById('loginPhone').value = '';
+                document.getElementById('loginPwd').value = '';
+                showToast('已退出登录');
+            }
+        }
+
+        function showAdminPanel() {
+            document.getElementById('loginTab').classList.remove('active');
+            document.getElementById('adminTab').classList.add('active');
+            document.getElementById('adminCount').textContent = adminConfig.admins.length + ' 人';
+            updateLastSync();
+            loadConfigToUI();
+        }
+
+        // ============ 选项卡切换 ============
+        function switchTab(tabName) {
+            // 移除所有active
+            document.querySelectorAll('.nav-tab').forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+
+            // 添加active
+            document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+            document.getElementById(tabName + '-content').classList.add('active');
+        }
+
+        // ============ 开关切换 ============
+        function toggleSwitch(item) {
+            var switchEl = item.querySelector('.switch');
+            if (switchEl) {
+                switchEl.classList.toggle('active');
+            }
+        }
+
+        // ============ 上传处理 ============
+        function uploadAsset(type) {
+            currentUploadType = type;
+            document.getElementById('fileUpload').click();
+        }
+
+        function uploadAd(adNum) {
+            currentUploadType = 'ad' + adNum;
+            document.getElementById('imageUpload').click();
+        }
+
+        function uploadMenuIcon(menuId) {
+            currentUploadType = 'menuIcon_' + menuId;
+            document.getElementById('imageUpload').click();
+        }
+
+        function handleFileUpload(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var dataUrl = e.target.result;
+                adminConfig.assets[currentUploadType] = dataUrl;
+                showToast('上传成功');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function handleImageUpload(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var dataUrl = e.target.result;
+
+                if (currentUploadType && currentUploadType.startsWith('ad')) {
+                    var adNum = currentUploadType.replace('ad', '');
+                    var preview = document.getElementById('adPreview' + adNum);
+                    if (preview) {
+                        preview.innerHTML = '<img src="' + dataUrl + '" alt="广告图">';
+                    }
+                    adminConfig.ads['img' + adNum] = dataUrl;
+                } else if (currentUploadType && currentUploadType.startsWith('menuIcon_')) {
+                    var menuId = currentUploadType.replace('menuIcon_', '');
+                    var iconPreview = document.getElementById('menuIcon' + menuId.charAt(0).toUpperCase() + menuId.slice(1));
+                    if (iconPreview) {
+                        iconPreview.innerHTML = '<img src="' + dataUrl + '" style="width:32px;height:32px;">';
+                    }
+                    adminConfig.menus['icon_' + menuId] = dataUrl;
+                }
+
+                showToast('上传成功');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function handleMusicUpload(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var dataUrl = e.target.result;
+                adminConfig.assets[currentUploadType] = dataUrl;
+                showToast('上传成功');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        // ============ 菜单显隐 ============
+        function toggleMenu(menuId) {
+            var row = document.querySelector('[data-menu="' + menuId + '"]');
+            if (row) {
+                row.style.opacity = row.style.opacity === '0.3' ? '1' : '0.3';
+            }
+        }
+
+        // ============ 管理员授权 ============
+        function addAdmin() {
+            var phone = document.getElementById('newAdminPhone').value.trim();
+
+            if (!phone || phone.length !== 11) {
+                showToast('请输入正确的11位手机号');
+                return;
+            }
+
+            if (phone === SUPER_ADMIN_PHONE) {
+                showToast('此为超级管理员账号');
+                return;
+            }
+
+            var exists = adminConfig.admins.some(function(a) { return a.phone === phone; });
+            if (exists) {
+                showToast('该账号已被授权');
+                return;
+            }
+
+            adminConfig.admins.push({
+                phone: phone,
+                name: '管理员' + phone.slice(-4),
+                permissions: ['params', 'scenes', 'statues', 'menus'],
+                createdAt: new Date().toISOString()
+            });
+
+            saveAdminConfig();
+            renderAdminList();
+            document.getElementById('newAdminPhone').value = '';
+            document.getElementById('adminCount').textContent = adminConfig.admins.length + ' 人';
+            showToast('授权成功');
+        }
+
+        function revokeAdmin(phone) {
+            if (confirm('确定要撤销该管理员权限吗？')) {
+                adminConfig.admins = adminConfig.admins.filter(function(a) { return a.phone !== phone; });
+                saveAdminConfig();
+                renderAdminList();
+                document.getElementById('adminCount').textContent = adminConfig.admins.length + ' 人';
+                showToast('已撤销权限');
+            }
+        }
+
+        function renderAdminList() {
+            var list = document.getElementById('adminList');
+            if (adminConfig.admins.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👑</div><div>暂无已授权的管理员</div></div>';
+                return;
+            }
+
+            var html = '';
+            adminConfig.admins.forEach(function(admin) {
+                html += '<div class="admin-item">';
+                html += '<div class="admin-avatar">👤</div>';
+                html += '<div class="admin-item-info">';
+                html += '<div class="admin-item-name">' + admin.name + '</div>';
+                html += '<div class="admin-item-phone">' + admin.phone + '</div>';
+                html += '<div class="admin-item-perm">权限：' + admin.permissions.length + '项</div>';
+                html += '</div>';
+                html += '<button class="revoke-btn" onclick="revokeAdmin(\'' + admin.phone + '\')">撤销</button>';
+                html += '</div>';
+            });
+            list.innerHTML = html;
+        }
+
+        // ============ 配置加载与保存 ============
+        function loadConfigToUI() {
+            // 加载开关状态
+            var switches = document.querySelectorAll('.switch[data-key]');
+            switches.forEach(function(sw) {
+                var key = sw.getAttribute('data-key');
+                if (adminConfig.scenes[key] !== undefined) {
+                    if (adminConfig.scenes[key]) {
+                        sw.classList.add('active');
+                    } else {
+                        sw.classList.remove('active');
+                    }
+                }
+            });
+
+            // 加载价格配置
+            var priceInputs = document.querySelectorAll('[id^="price"]');
+            priceInputs.forEach(function(input) {
+                var key = input.id.replace('price', '').toLowerCase();
+                if (adminConfig.prices[key] !== undefined) {
+                    input.value = adminConfig.prices[key];
+                }
+            });
+
+            renderAdminList();
+        }
+
+        function saveAllConfig() {
+            // 收集所有开关状态
+            var switches = document.querySelectorAll('.switch[data-key]');
+            switches.forEach(function(sw) {
+                var key = sw.getAttribute('data-key');
+                adminConfig.scenes[key] = sw.classList.contains('active');
+            });
+
+            // 收集价格配置
+            var priceInputs = document.querySelectorAll('[id^="price"]');
+            priceInputs.forEach(function(input) {
+                var key = input.id.replace('price', '').toLowerCase();
+                adminConfig.prices[key] = parseFloat(input.value) || 0;
+            });
+
+            // 收集充值配置
+            for (var i = 1; i <= 4; i++) {
+                adminConfig.recharge['tier' + i] = {
+                    price: parseFloat(document.getElementById('rech' + i + 'Price').value) || 0,
+                    huaxi: parseFloat(document.getElementById('rech' + i + 'Huaxi').value) || 0,
+                    foguang: parseFloat(document.getElementById('rech' + i + 'Foguang').value) || 0
+                };
+            }
+
+            // 收集广告配置
+            for (var j = 1; j <= 2; j++) {
+                adminConfig.ads['text' + j] = document.getElementById('adText' + j).value;
+                adminConfig.ads['link' + j] = document.getElementById('adLink' + j).value;
+            }
+
+            // 收集菜单名称
+            var menuInputs = document.querySelectorAll('.item-name-input[data-field]');
+            menuInputs.forEach(function(input) {
+                var key = input.getAttribute('data-field');
+                adminConfig.menus[key] = input.value;
+            });
+
+            // 保存到localStorage
+            var saved = saveAdminConfig();
+
+            // 同步到云端（模拟）
+            syncToCloud(function(success) {
+                if (success) {
+                    updateLastSync();
+                    showToast('配置保存成功，已同步云端');
+                    applyConfigToApp();
+                } else {
+                    showToast('保存成功，云端同步失败');
+                }
+            });
+        }
+
+        function syncToCloud(callback) {
+            // 模拟云端同步（实际应该调用后端API）
+            var configData = JSON.stringify(adminConfig);
+
+            // 尝试使用云端API（如果有的话）
+            if (navigator.onLine) {
+                // 模拟网络请求
+                setTimeout(function() {
+                    // 保存到云端存储（使用 localStorage 作为备选）
+                    try {
+                        localStorage.setItem('cloud_admin_config', configData);
+                        callback(true);
+                    } catch (e) {
+                        callback(false);
+                    }
+                }, 1000);
+            } else {
+                showToast('网络不可用，仅本地保存');
+                callback(false);
+            }
+        }
+
+        function updateLastSync() {
+            var now = new Date();
+            var time = now.getHours().toString().padStart(2, '0') + ':' +
+                       now.getMinutes().toString().padStart(2, '0') + ':' +
+                       now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('lastSync').textContent = time;
+            document.getElementById('syncStatus').textContent = '☁️ 已同步到云端';
+            document.getElementById('syncStatus').className = 'sync-status success';
+        }
+
+        function applyConfigToApp() {
+            // 将配置应用到全局状态
+            if (window.PrayApp) {
+                PrayApp.loadState();
+                var state = PrayApp.getState();
+                if (state.admin) {
+                    state.admin.config = adminConfig;
+                    PrayApp.saveState();
+                }
+            }
+        }
+
+        // ============ 提示信息 ============
+        function showToast(message) {
+            // 移除已存在的toast
+            var existing = document.querySelector('.toast');
+            if (existing) existing.parentNode.removeChild(existing);
+
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(function() {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 2000);
+        }
+
+        // ============ 页面加载时初始化 ============
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+    <script src="app-state.js"></script>
+</body>
+</html>

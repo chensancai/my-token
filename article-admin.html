@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章管理 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #4A3728;
+        }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .phone-wrap {
+            background: #111;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 0 2px #D4AF37, 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5);
+        }
+        .phone-notch {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 22px;
+            background: #000;
+            border-radius: 12px;
+            z-index: 50;
+        }
+        .phone-screen {
+            width: 100%;
+            min-height: 780px;
+            border-radius: 32px;
+            overflow: hidden;
+            background: #FFFBEE;
+            position: relative;
+        }
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            padding: 10px 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+            color: rgba(0,0,0,0.7);
+        }
+        .back-btn {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 100;
+            color: #fff;
+            border: none;
+        }
+        .back-btn:active { transform: scale(0.93); }
+        .scroll-area { padding: 60px 20px 30px; }
+        .page-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 22px;
+            color: #8B5A2B;
+            letter-spacing: 4px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .page-subtitle {
+            font-size: 11px;
+            color: #8B7355;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* 页面头（带深色渐变） */
+        .publish-header {
+            padding: 55px 20px 20px;
+            background: linear-gradient(135deg,#8B5A2B 0%,#D4A574 50%,#8B5A2B 100%);
+            color: #fff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin: -60px -20px 20px;
+        }
+        .publish-title {
+            font-family:'Ma Shan Zheng',cursive;
+            font-size:22px;
+            letter-spacing:5px;
+            margin-bottom:4px;
+            position: relative;
+            z-index: 2;
+        }
+        .publish-sub {
+            font-size:11px;
+            opacity:0.9;
+            letter-spacing:2px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 按钮 */
+        .pm-new-btn {
+            width:100%;
+            padding:14px 0;
+            border-radius:12px;
+            background:linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);
+            color:#fff;
+            border:none;
+            font-size:14px;
+            font-weight:700;
+            letter-spacing:3px;
+            cursor:pointer;
+            font-family:'Ma Shan Zheng',cursive;
+            box-shadow:0 4px 16px rgba(184,134,11,0.3);
+            margin-bottom:20px;
+        }
+
+        /* 文章卡片 */
+        .pm-product-row {
+            background:#fff;
+            border:2px solid #8B5A2B;
+            border-radius:14px;
+            padding:14px;
+            margin-bottom:12px;
+            box-shadow:0 2px 10px rgba(139,90,43,0.1);
+        }
+        .pm-product-row.draft { border-color: #B8860B; }
+
+        .art-head {
+            display:flex;
+            gap:14px;
+            align-items:flex-start;
+        }
+        .art-icon {
+            width:64px;
+            height:64px;
+            border-radius:10px;
+            background:linear-gradient(135deg,#D4A574,#8B5A2B);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:28px;
+            flex-shrink:0;
+            color:#fff;
+        }
+        .art-body { flex:1; min-width:0; }
+        .art-title-row {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            margin-bottom:4px;
+            flex-wrap:wrap;
+        }
+        .art-title {
+            font-size:14px;
+            font-weight:700;
+            color:#4A3728;
+        }
+        .status-badge {
+            padding:3px 10px;
+            border-radius:10px;
+            font-size:10px;
+            background:rgba(212,165,116,0.25);
+            color:#8B5A2B;
+            letter-spacing:1px;
+            flex-shrink:0;
+        }
+        .status-badge.draft { background: rgba(200,85,61,0.18); color: #C8553D; }
+        .status-badge.offline { background: rgba(139,90,43,0.12); color: #8B7355; }
+        .art-meta {
+            font-size:11px;
+            color:#8B7355;
+            margin-bottom:4px;
+            letter-spacing:1px;
+        }
+        .art-desc {
+            font-size:11px;
+            color:#8B7355;
+            opacity:0.7;
+            line-height:1.5;
+        }
+        .btn-actions {
+            display:flex;
+            gap:8px;
+            margin-top:12px;
+            padding-top:12px;
+            border-top:1px dashed rgba(184,134,11,0.2);
+        }
+        .btn-actions button {
+            flex:1;
+            padding:8px 0;
+            border-radius:8px;
+            background:#FFF8EC;
+            color:#8B5A2B;
+            border:1.5px solid #D4A574;
+            font-size:12px;
+            font-weight:700;
+            letter-spacing:2px;
+            cursor:pointer;
+            font-family:'Ma Shan Zheng',cursive;
+        }
+
+        /* 分类标题 */
+        .section-title {
+            font-size:13px;
+            font-weight:700;
+            color:#8B5A2B;
+            letter-spacing:2px;
+            margin:20px 0 10px;
+            padding-left:4px;
+            font-family:'Ma Shan Zheng',cursive;
+        }
+
+        /* 页脚 */
+        .page-footer-txt {
+            height:30px;
+            text-align:center;
+            font-size:11px;
+            color:#8B7355;
+            opacity:0.6;
+            letter-spacing:2px;
+            padding-top:10px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family:'Ma Shan Zheng',cursive;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="phone-wrap">
+            <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+                <div class="publish-page">
+                    <button class="back-btn" onclick="history.back()" aria-label="返回">‹</button>
+                    <div class="scroll-area">
+                        <div class="publish-header">
+                            <div class="publish-title">文章管理</div>
+                            <div class="publish-sub">协议 · 帮助 · 关于我们</div>
+                        </div>
+
+                        <button class="pm-new-btn" onclick="showToast('✦ 进入发布新文章')">＋ 发布新文章</button>
+
+                        <!-- 协议板块 -->
+                        <div class="section-title">✦ 协议管理</div>
+
+                        <!-- 用户协议 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">📜</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">用户协议</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-06-01 · 浏览 3,214 次</div>
+                                    <div class="art-desc">本协议是您使用佑愿好物商城服务所须遵守的条款与契约...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 隐私保护政策 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">🛡</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">隐私保护政策</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-05-28 · 浏览 2,876 次</div>
+                                    <div class="art-desc">我们如何收集、使用、存储和保护您的个人信息...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 会员协议 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">✦</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">会员协议</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-05-20 · 浏览 1,932 次</div>
+                                    <div class="art-desc">菩提会员的权益、义务、费用、续费与退款条款...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 菩提兑换规则（草稿） -->
+                        <div class="pm-product-row draft">
+                            <div class="art-head">
+                                <div class="art-icon" style="opacity:0.7">🧿</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">菩提兑换规则</span>
+                                        <span class="status-badge draft">待上架</span>
+                                    </div>
+                                    <div class="art-meta">保存于 2026-06-12 · 草稿未发布</div>
+                                    <div class="art-desc">菩提获取方式、兑换比例、使用限制与有效期...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 继续编辑')">继续编辑</button>
+                                <button onclick="showToast('✦ 已发布')" style="background:linear-gradient(135deg,#D4A574 0%,#8B5A2B 100%);color:#fff;border:1.5px solid #8B5A2B">立即上架</button>
+                                <button onclick="showToast('✦ 已删除')" style="background:#fff;color:#C8553D;border:1.5px solid rgba(200,85,61,0.5)">删除</button>
+                            </div>
+                        </div>
+
+                        <!-- 商品发布规范 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">📋</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">商品发布规范</span>
+                                        <span class="status-badge offline">已下架</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-04-15 · 浏览 842 次</div>
+                                    <div class="art-desc">商家/管理方发布商品时需遵守的内容审核规范...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已发布')">上架</button>
+                                <button onclick="showToast('✦ 已删除')" style="background:#fff;color:#C8553D;border:1.5px solid rgba(200,85,61,0.5)">删除</button>
+                            </div>
+                        </div>
+
+                        <!-- 帮助与反馈板块 -->
+                        <div class="section-title">✦ 帮助与反馈</div>
+
+                        <!-- 新手指南 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">🧭</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">新手指南 · 快速上手</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-06-10 · 浏览 5,412 次</div>
+                                    <div class="art-desc">3 分钟了解注册、下单、支付、物流、兑换全流程...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 常见问题 FAQ -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">❓</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">常见问题 FAQ</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-06-05 · 浏览 4,102 次</div>
+                                    <div class="art-desc">支付、退款、物流、会员等高频问题的详细解答...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 用户反馈 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">💬</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">用户反馈收集页</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-06-08 · 已收到 318 条反馈</div>
+                                    <div class="art-desc">欢迎您提交功能建议、问题反馈与合作咨询...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 关于我们板块 -->
+                        <div class="section-title">✦ 关于我们</div>
+
+                        <!-- 关于我们 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">🏛</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">关于我们 · 佑愿好物商城</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-06-01 · 浏览 1,536 次</div>
+                                    <div class="art-desc">我们的使命、愿景、团队介绍与联系方式...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <!-- 联系客服 -->
+                        <div class="pm-product-row">
+                            <div class="art-head">
+                                <div class="art-icon">📞</div>
+                                <div class="art-body">
+                                    <div class="art-title-row">
+                                        <span class="art-title">联系我们 / 客服支持</span>
+                                        <span class="status-badge">已发布</span>
+                                    </div>
+                                    <div class="art-meta">最后更新：2026-05-30 · 浏览 987 次</div>
+                                    <div class="art-desc">客服电话、工作时间、微信、邮箱、官方账号...</div>
+                                </div>
+                            </div>
+                            <div class="btn-actions">
+                                <button onclick="showToast('✦ 进入编辑')">编辑</button>
+                                <button onclick="showToast('✦ 已下架')">下架</button>
+                                <button onclick="showToast('✦ 已复制链接')">复制链接</button>
+                            </div>
+                        </div>
+
+                        <div class="page-footer-txt">— 共 10 篇文章 —</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+    </script>
+</body>
+</html>

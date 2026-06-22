@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 · 设置</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-warm: #F5E6D3;
+            --primary: #8B5A2B;
+            --primary-light: #A67B4B;
+            --accent: #C04040;
+            --text-dark: #4A3728;
+            --text-light: #8B7355;
+            --card-bg: #FDF8F3;
+            --border: rgba(184, 134, 11, 0.3);
+        }
+        body { font-family: 'Noto Serif SC', serif; background: var(--bg-warm); min-height: 100vh; }
+
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 54px;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 2px 10px rgba(184,134,11,0.18);
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 20px;
+            color: var(--primary);
+            letter-spacing: 4px;
+            margin-right: 36px;
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 70px 16px 30px;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        /* 设置组 */
+        .setting-group {
+            background: #fff;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(139,90,43,0.08);
+        }
+        .setting-title {
+            padding: 16px 20px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border);
+        }
+        .setting-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            cursor: pointer;
+        }
+        .setting-item + .setting-item {
+            border-top: 1px solid rgba(184, 134, 11, 0.1);
+        }
+        .setting-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        .setting-icon.orange { background: #FFF3E0; }
+        .setting-icon.blue { background: #E3F2FD; }
+        .setting-icon.red { background: #FFEBEE; }
+        .setting-icon.green { background: #E8F5E9; }
+        .setting-icon.purple { background: #F3E5F5; }
+        .setting-icon.gold { background: #FFF8E1; }
+        .setting-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .setting-arrow {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        /* 开关 */
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: #e0e0e0;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background .3s;
+            flex-shrink: 0;
+        }
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+        .toggle-switch::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: left .3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+
+        /* 版本信息 */
+        .version-info {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .version-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFFBF0 0%, #FDF8F3 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 12px;
+            border: 2px solid var(--border);
+        }
+        .version-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .version-number {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+
+        /* 退出按钮 */
+        .logout-btn {
+            width: 100%;
+            height: 48px;
+            background: #fff;
+            border: 1.5px solid var(--accent);
+            border-radius: 12px;
+            color: var(--accent);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* 底部版权 */
+        .copyright {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 11px;
+            color: var(--text-light);
+            opacity: 0.6;
+        }
+        .copyright-slogan {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        /* 管理员入口 */
+        .admin-entry {
+            text-align: center;
+            padding: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            opacity: 0.4;
+            user-select: none;
+        }
+        .admin-entry:hover {
+            opacity: 0.6;
+        }
+
+        /* 滑入面板 */
+        .slide-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 85%;
+            max-width: 380px;
+            background: #fff;
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        .slide-panel.active {
+            transform: translateX(0);
+        }
+        .slide-panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .slide-panel-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .slide-panel-header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            z-index: 1;
+        }
+        .slide-panel-back {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--primary);
+            margin-right: 12px;
+            user-select: none;
+        }
+        .slide-panel-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+            margin-right: 44px;
+        }
+        .slide-panel-content {
+            padding: 20px 16px;
+        }
+        .panel-form-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(184,134,11,0.1);
+            flex-wrap: wrap;
+        }
+        .panel-form-item:last-child {
+            border-bottom: none;
+        }
+        .panel-form-label {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .panel-form-value {
+            font-size: 14px;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .panel-form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-dark);
+            outline: none;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+        .panel-form-input:focus {
+            border-color: var(--primary);
+        }
+        .panel-btn {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: inherit;
+        }
+        .panel-btn:active {
+            transform: scale(0.98);
+        }
+        .panel-btn.secondary {
+            background: #fff;
+            color: var(--primary);
+            border: 1.5px solid var(--border);
+            margin-top: 10px;
+        }
+        .panel-btn.small {
+            width: auto;
+            height: 32px;
+            padding: 0 12px;
+            font-size: 12px;
+            margin-top: 0;
+            background: #fff;
+            color: var(--primary);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .panel-section {
+            margin-bottom: 24px;
+        }
+        .panel-section:last-child {
+            margin-bottom: 0;
+        }
+        .panel-section-title {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* 账户子信息 */
+        .panel-sub-info {
+            width: 100%;
+            font-size: 12px;
+            color: var(--text-light);
+            padding-top: 8px;
+            padding-left: 4px;
+            line-height: 1.6;
+        }
+        .panel-sub-info a {
+            color: var(--primary);
+            text-decoration: none;
+            margin-left: 8px;
+            cursor: pointer;
+            border-bottom: 1px dashed var(--primary);
+        }
+        .panel-sub-info .success {
+            color: #4CAF50;
+        }
+
+        /* 喜呗钱包 */
+        .xibei-card {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+        .xibei-balance-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+        .xibei-balance {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 28px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .xibei-balance small {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-left: 6px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        .xibei-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .xibei-actions .xibei-btn {
+            flex: 1;
+            height: 36px;
+            background: #fff;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .xibei-actions .xibei-btn.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* 头像选择区 */
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .avatar-item {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+        .avatar-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .avatar-item:hover, .avatar-item.selected {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* 头像预览 */
+        .avatar-preview {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            overflow: hidden;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+        }
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* 性别选择区 */
+        .gender-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .gender-item {
+            padding: 18px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--border);
+            font-size: 16px;
+            color: var(--text-dark);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .gender-item:hover, .gender-item.selected {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        /* 昵称输入计数 */
+        .char-counter {
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+
+        /* 验证码按钮 */
+        .sms-btn {
+            padding: 6px 12px;
+            background: var(--primary-light);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            margin-left: 8px;
+            font-family: inherit;
+        }
+        .sms-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 长文本滚动区 */
+        .scroll-text {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--text-dark);
+        }
+        .scroll-text h3 {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .scroll-text h4 {
+            color: var(--primary);
+            margin: 12px 0 6px;
+            font-size: 14px;
+        }
+        .scroll-text p {
+            margin-bottom: 8px;
+        }
+
+        /* 协议确认 */
+        .agreement-check {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+        .agreement-check input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* 支付密码输入 */
+        .pay-password-boxes {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .pay-password-boxes input {
+            width: 100%;
+            aspect-ratio: 1;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--card-bg);
+            outline: none;
+            font-family: inherit;
+        }
+        .pay-password-boxes input:focus {
+            border-color: var(--primary);
+        }
+
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="back-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.back();}">←</div>
+        <div class="header-title">设置</div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content">
+        <!-- 账号设置 -->
+        <div class="setting-group">
+            <div class="setting-title">账号设置</div>
+            <div class="setting-item" onclick="openPanel('accountPanel')">
+                <div class="setting-icon orange">👤</div>
+                <div class="setting-text">个人信息</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="openPanel('passwordPanel')">
+                <div class="setting-icon blue">🔐</div>
+                <div class="setting-text">修改密码</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="openPanel('bindPhonePanel')">
+                <div class="setting-icon green">📱</div>
+                <div class="setting-text">绑定手机</div>
+                <div class="setting-arrow">›</div>
+            </div>
+        </div>
+
+        <!-- 偏好设置 -->
+        <div class="setting-group">
+            <div class="setting-title">偏好设置</div>
+            <div class="setting-item" onclick="openPanel('notifyPanel')">
+                <div class="setting-icon purple">🔔</div>
+                <div class="setting-text">消息通知</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="event.stopPropagation();">
+                <div class="setting-icon orange">🎵</div>
+                <div class="setting-text">音效</div>
+                <div class="toggle-switch" data-key="soundOn" onclick="toggleSwitch(this, 'soundOn'); event.stopPropagation();"></div>
+            </div>
+            <div class="setting-item" onclick="event.stopPropagation();">
+                <div class="setting-icon blue">🌙</div>
+                <div class="setting-text">深色模式</div>
+                <div class="toggle-switch" data-key="darkMode" onclick="toggleSwitch(this, 'darkMode'); event.stopPropagation();"></div>
+            </div>
+            <div class="setting-item" onclick="event.stopPropagation();">
+                <div class="setting-icon green">📶</div>
+                <div class="setting-text">省流模式</div>
+                <div class="toggle-switch" data-key="dataSaver" onclick="toggleSwitch(this, 'dataSaver'); event.stopPropagation();"></div>
+            </div>
+        </div>
+
+        <!-- 支付设置 -->
+        <div class="setting-group">
+            <div class="setting-title">支付设置</div>
+            <div class="setting-item" onclick="openPanel('payPanel')">
+                <div class="setting-icon gold">💳</div>
+                <div class="setting-text">支付方式</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="openPanel('payPasswordPanel')">
+                <div class="setting-icon orange">🔐</div>
+                <div class="setting-text">支付密码</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="event.stopPropagation();">
+                <div class="setting-icon green">👆</div>
+                <div class="setting-text">指纹支付</div>
+                <div class="toggle-switch" data-key="fingerprint" onclick="toggleSwitch(this, 'fingerprint'); event.stopPropagation();"></div>
+            </div>
+        </div>
+
+        <!-- 通用设置 -->
+        <div class="setting-group">
+            <div class="setting-title">通用设置</div>
+            <div class="setting-item" onclick="clearCache()">
+                <div class="setting-icon red">🗑️</div>
+                <div class="setting-text">清理缓存</div>
+                <div class="setting-text" style="color: var(--text-light); font-size: 13px; margin-right: 8px; flex: 0;">23.5 MB</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="checkUpdate()">
+                <div class="setting-icon purple">📥</div>
+                <div class="setting-text">检查更新</div>
+                <div class="setting-text" style="color: #4CAF50; font-size: 13px; margin-right: 8px; flex: 0;">已是最新</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="showAgreement()">
+                <div class="setting-icon blue">📖</div>
+                <div class="setting-text">用户协议</div>
+                <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="showPrivacy()">
+                <div class="setting-icon green">🔒</div>
+                <div class="setting-text">隐私政策</div>
+                <div class="setting-arrow">›</div>
+            </div>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <div class="version-logo">🙏</div>
+            <div class="version-name">祈个福</div>
+            <div class="version-number">Version 1.0.0</div>
+        </div>
+
+        <!-- 管理员入口（长按进入） -->
+        <div class="admin-entry" id="adminEntry" onmousedown="startAdminTimer()" onmouseup="clearAdminTimer()" ontouchstart="startAdminTimer()" ontouchend="clearAdminTimer()">
+            <div class="copyright-slogan">愿力所及 · 皆为净土</div>
+            <div class="copyright">一心向善 © 2024</div>
+        </div>
+
+        <!-- 退出登录 -->
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+
+    <!-- 滑入面板遮罩 -->
+    <div class="slide-panel-overlay" id="slideOverlay" onclick="closeAllPanels()"></div>
+
+    <!-- 隐藏文件选择 -->
+    <input type="file" id="avatarFileInput" accept="image/*" style="display:none">
+
+    <!-- 账户与安全面板 -->
+    <div class="slide-panel" id="accountPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">账户与安全</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">基本信息</div>
+                <div class="panel-form-item" onclick="changeAvatar()">
+                    <span class="panel-form-label">头像</span>
+                    <div class="panel-form-value">
+                        <span id="avatarDisplay" class="avatar-preview">🙏</span>
+                        <span>›</span>
+                    </div>
+                </div>
+                <div class="panel-form-item" onclick="editNickname()">
+                    <span class="panel-form-label">昵称</span>
+                    <div class="panel-form-value">
+                        <span id="nicknameDisplay">一心向善</span>
+                        <span>›</span>
+                    </div>
+                </div>
+                <div class="panel-form-item" onclick="editGender()">
+                    <span class="panel-form-label">性别</span>
+                    <div class="panel-form-value">
+                        <span id="genderDisplay">未设置</span>
+                        <span>›</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-section-title">账号安全</div>
+                <div class="panel-form-item" onclick="openPanel('passwordPanel')">
+                    <span class="panel-form-label">修改密码</span>
+                    <div class="panel-form-value">›</div>
+                </div>
+                <div class="panel-form-item" onclick="openPanel('bindPhonePanel')">
+                    <span class="panel-form-label">绑定手机</span>
+                    <div class="panel-form-value">未绑定 ›</div>
+                </div>
+                <div class="panel-form-item" onclick="unbindWechat()">
+                    <span class="panel-form-label">微信绑定</span>
+                    <div class="panel-form-value" style="color:#4CAF50;">已绑定 ›</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支付设置面板 -->
+    <div class="slide-panel" id="payPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">支付设置</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">支付方式</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">微信支付</span>
+                    <div class="toggle-switch" data-key="wechatPay" onclick="toggleSwitch(this, 'wechatPay')"></div>
+                    <div class="panel-sub-info">
+                        已绑定账户：<span class="success">wx_user_8888@祈个福</span>
+                        <a onclick="changeBindAccount('wechat')">更换绑定账户</a>
+                    </div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">支付宝</span>
+                    <div class="toggle-switch" data-key="aliPay" onclick="toggleSwitch(this, 'aliPay')"></div>
+                    <div class="panel-sub-info">
+                        已绑定账户：<span class="success">ali_user_6666@祈个福</span>
+                        <a onclick="changeBindAccount('ali')">更换绑定账户</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-section-title">安全设置</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">指纹支付</span>
+                    <div class="toggle-switch" data-key="fingerprint" onclick="toggleSwitch(this, 'fingerprint')"></div>
+                    <div class="panel-sub-info">
+                        <span class="success">✓ 已启用指纹识别</span>
+                    </div>
+                </div>
+                <div class="panel-form-item" onclick="openPanel('payPasswordPanel')">
+                    <span class="panel-form-label">支付密码</span>
+                    <div class="panel-form-value">
+                        <button class="panel-btn small">修改</button>
+                    </div>
+                    <div class="panel-sub-info">
+                        <span class="success">已设置</span> · 上次修改 2026-06-15
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-section-title">✦ 喜呗账户</div>
+                <div class="xibei-card">
+                    <div class="xibei-balance-label">喜呗钱包余额</div>
+                    <div class="xibei-balance">2,580.00<small>喜呗（零钱）</small></div>
+                    <div class="xibei-actions">
+                        <button class="xibei-btn primary" onclick="xibeiAction('recharge')">充值</button>
+                        <button class="xibei-btn" onclick="xibeiAction('withdraw')">提现</button>
+                        <button class="xibei-btn" onclick="xibeiAction('detail')">明细</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息通知面板 -->
+    <div class="slide-panel" id="notifyPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">消息通知</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">通知类型</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">系统通知</span>
+                    <div class="toggle-switch" data-key="notifySystem" onclick="toggleSwitch(this, 'notifySystem')"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">祈愿提醒</span>
+                    <div class="toggle-switch" data-key="notifyPray" onclick="toggleSwitch(this, 'notifyPray')"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">放生活动</span>
+                    <div class="toggle-switch" data-key="notifyRelease" onclick="toggleSwitch(this, 'notifyRelease')"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">会员权益</span>
+                    <div class="toggle-switch" data-key="notifyVip" onclick="toggleSwitch(this, 'notifyVip')"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">系统公告</span>
+                    <div class="toggle-switch" data-key="notifyAnnounce" onclick="toggleSwitch(this, 'notifyAnnounce')"></div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-section-title">推送设置</div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">声音</span>
+                    <div class="toggle-switch" data-key="notifySound" onclick="toggleSwitch(this, 'notifySound')"></div>
+                </div>
+                <div class="panel-form-item">
+                    <span class="panel-form-label">震动</span>
+                    <div class="toggle-switch" data-key="notifyVibrate" onclick="toggleSwitch(this, 'notifyVibrate')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码面板 -->
+    <div class="slide-panel" id="passwordPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">修改密码</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">当前密码</span>
+                    <input type="password" class="panel-form-input" id="currentPassword" placeholder="请输入当前密码">
+                </div>
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">新密码</span>
+                    <input type="password" class="panel-form-input" id="newPassword" placeholder="请输入新密码（6-20位）" maxlength="20">
+                </div>
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">确认密码</span>
+                    <input type="password" class="panel-form-input" id="confirmPassword" placeholder="请再次输入新密码" maxlength="20">
+                </div>
+            </div>
+            <button class="panel-btn" onclick="savePassword()">确认修改</button>
+        </div>
+    </div>
+
+    <!-- 绑定手机面板 -->
+    <div class="slide-panel" id="bindPhonePanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">绑定手机</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">手机号</span>
+                    <input type="tel" class="panel-form-input" id="phoneNumber" placeholder="请输入11位手机号" maxlength="11">
+                </div>
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">验证码</span>
+                    <div style="display:flex; align-items:center; width:100%;">
+                        <input type="text" class="panel-form-input" id="smsCode" placeholder="请输入6位验证码" maxlength="6" style="flex:1; margin-top:8px;">
+                        <button class="sms-btn" id="smsBtn" onclick="sendSmsCode()">获取验证码</button>
+                    </div>
+                </div>
+            </div>
+            <button class="panel-btn" onclick="confirmBindPhone()">确认绑定</button>
+        </div>
+    </div>
+
+    <!-- 支付密码面板 -->
+    <div class="slide-panel" id="payPasswordPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">支付密码</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">请输入6位支付密码</span>
+                    <div class="pay-password-boxes">
+                        <input type="password" maxlength="1" inputmode="numeric" oninput="moveToNext(this, 0)">
+                        <input type="password" maxlength="1" inputmode="numeric" oninput="moveToNext(this, 1)">
+                        <input type="password" maxlength="1" inputmode="numeric" oninput="moveToNext(this, 2)">
+                        <input type="password" maxlength="1" inputmode="numeric" oninput="moveToNext(this, 3)">
+                        <input type="password" maxlength="1" inputmode="numeric" oninput="moveToNext(this, 4)">
+                        <input type="password" maxlength="1" inputmode="numeric" oninput="moveToNext(this, 5)">
+                    </div>
+                </div>
+            </div>
+            <button class="panel-btn" onclick="setPayPassword()">设置支付密码</button>
+        </div>
+    </div>
+
+    <!-- 用户协议面板 -->
+    <div class="slide-panel" id="agreementPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">用户协议</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="scroll-text">
+                <h3>祈个福用户服务协议</h3>
+                <p>欢迎使用"祈个福"应用。在使用本应用前，请您仔细阅读以下服务协议。</p>
+                <h4>一、服务内容</h4>
+                <p>本应用为用户提供在线祈福、许愿、放生活动通知等传统文化相关服务。用户可通过本应用进行虚拟祈福、查看相关活动信息、参与会员权益等。</p>
+                <h4>二、账号注册</h4>
+                <p>用户需注册账号后方可使用本应用的全部功能。用户应保证所提供的注册信息真实、准确、完整，并及时更新。</p>
+                <h4>三、用户行为规范</h4>
+                <p>用户在使用本应用时应遵守中华人民共和国相关法律法规，不得发布违法、违规、虚假、骚扰性信息。</p>
+                <h4>四、付费服务</h4>
+                <p>本应用部分功能为付费服务，用户可根据需求选择购买。付费项目包括但不限于：会员服务、虚拟供品、放生活动名额等。</p>
+                <h4>五、免责声明</h4>
+                <p>本应用提供的虚拟祈福服务仅为文化娱乐目的，不构成任何形式的承诺或保证。因不可抗力导致的服务中断，本应用不承担责任。</p>
+                <h4>六、协议变更</h4>
+                <p>本应用有权根据实际情况修改本协议内容，修改后的协议将在应用内公告，用户继续使用即视为同意修改后的协议。</p>
+                <h4>七、联系方式</h4>
+                <p>如有任何问题，可通过应用内"意见反馈"功能与我们联系。</p>
+                <p style="text-align:center; margin-top:20px; color: var(--text-light);">— 协议完 —</p>
+            </div>
+            <div class="agreement-check">
+                <input type="checkbox" id="agreementCheck">
+                <label for="agreementCheck">我已阅读并同意以上协议</label>
+            </div>
+            <button class="panel-btn" onclick="confirmAgreement('agreement')">确认</button>
+        </div>
+    </div>
+
+    <!-- 隐私政策面板 -->
+    <div class="slide-panel" id="privacyPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">隐私政策</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="scroll-text">
+                <h3>祈个福隐私政策</h3>
+                <p>我们深知个人信息对您的重要性，并会尽全力保护您的个人信息安全可靠。</p>
+                <h4>一、我们收集的信息</h4>
+                <p>1. 账号信息：昵称、头像、性别等您主动提供的信息。</p>
+                <p>2. 设备信息：设备型号、操作系统版本，用于优化应用体验。</p>
+                <p>3. 使用记录：您的祈福记录、活动参与记录，用于提供个性化服务。</p>
+                <h4>二、信息使用目的</h4>
+                <p>我们收集的信息将用于：提供核心服务、优化用户体验、保障账号安全、发送通知提醒（在您授权的前提下）。</p>
+                <h4>三、信息保护</h4>
+                <p>我们采用行业标准的加密技术保护您的个人信息。未经您的同意，我们不会向第三方分享您的个人信息，法律法规另有规定的除外。</p>
+                <h4>四、您的权利</h4>
+                <p>您有权随时查看、修改或删除您的个人信息。您可以在"设置-个人信息"中管理您的资料。</p>
+                <h4>五、通知权限</h4>
+                <p>本应用会根据您的通知设置发送祈愿提醒、活动通知等。您可以在"设置-消息通知"中随时调整。</p>
+                <h4>六、未成年人保护</h4>
+                <p>我们非常重视未成年人个人信息的保护。若您是未满18周岁的未成年人，请在监护人陪同下阅读本政策。</p>
+                <h4>七、政策更新</h4>
+                <p>本政策可能会不时更新，更新后的政策会在应用内进行公告。</p>
+                <p style="text-align:center; margin-top:20px; color: var(--text-light);">— 政策完 —</p>
+            </div>
+            <div class="agreement-check">
+                <input type="checkbox" id="privacyCheck">
+                <label for="privacyCheck">我已阅读并同意以上隐私政策</label>
+            </div>
+            <button class="panel-btn" onclick="confirmAgreement('privacy')">确认</button>
+        </div>
+    </div>
+
+    <!-- 头像选择面板 -->
+    <div class="slide-panel" id="avatarPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">选择头像</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section-title">选择一个表情作为您的头像</div>
+            <div class="avatar-grid" id="avatarGrid">
+                <div class="avatar-item" onclick="selectAvatar('🙏')">🙏</div>
+                <div class="avatar-item" onclick="selectAvatar('🧘')">🧘</div>
+                <div class="avatar-item" onclick="selectAvatar('🌟')">🌟</div>
+                <div class="avatar-item" onclick="selectAvatar('🌺')">🌺</div>
+                <div class="avatar-item" onclick="selectAvatar('🐉')">🐉</div>
+                <div class="avatar-item" onclick="selectAvatar('🦋')">🦋</div>
+            </div>
+            <button class="panel-btn secondary" onclick="uploadAvatar()">上传照片</button>
+        </div>
+    </div>
+
+    <!-- 昵称编辑面板 -->
+    <div class="slide-panel" id="nicknamePanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">修改昵称</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section">
+                <div class="panel-form-item" style="flex-direction:column;align-items:stretch;">
+                    <span class="panel-form-label" style="margin-bottom:8px;">昵称（最多20字）</span>
+                    <input type="text" class="panel-form-input" id="nicknameInput" placeholder="请输入昵称" maxlength="20" oninput="updateNicknameCounter()">
+                    <div class="char-counter"><span id="nicknameCount">0</span>/20</div>
+                </div>
+            </div>
+            <button class="panel-btn" onclick="saveNickname()">保存</button>
+            <button class="panel-btn secondary" onclick="closeAllPanels()">取消</button>
+        </div>
+    </div>
+
+    <!-- 性别选择面板 -->
+    <div class="slide-panel" id="genderPanel">
+        <div class="slide-panel-header">
+            <div class="slide-panel-back">‹</div>
+            <div class="slide-panel-title">选择性别</div>
+        </div>
+        <div class="slide-panel-content">
+            <div class="panel-section-title">请选择您的性别</div>
+            <div class="gender-grid">
+                <div class="gender-item" onclick="selectGender('male', '男')">男 👨</div>
+                <div class="gender-item" onclick="selectGender('female', '女')">女 👩</div>
+                <div class="gender-item" onclick="selectGender('secret', '保密')">保密 🤫</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        var adminTimer = null;
+        var smsTimer = null;
+        var smsCountdown = 0;
+        var currentPanel = null;
+        var SETTINGS_KEY = 'settings_v2';
+        var PROFILE_KEY = 'user_profile_v2';
+
+        var defaultSettings = {
+            soundOn: true,
+            darkMode: false,
+            dataSaver: false,
+            fingerprint: true,
+            wechatPay: true,
+            aliPay: false,
+            notifySystem: true,
+            notifyPray: true,
+            notifyRelease: true,
+            notifyVip: false,
+            notifyAnnounce: true,
+            notifySound: true,
+            notifyVibrate: true
+        };
+
+        var defaultProfile = {
+            avatar: '🙏',
+            nickname: '一心向善',
+            gender: '未设置'
+        };
+
+        function getSettings() {
+            try {
+                var saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                return Object.assign({}, defaultSettings, saved);
+            } catch (e) {
+                return defaultSettings;
+            }
+        }
+
+        function saveSettings(settings) {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        function getProfile() {
+            try {
+                var saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+                return Object.assign({}, defaultProfile, saved);
+            } catch (e) {
+                return defaultProfile;
+            }
+        }
+
+        function saveProfile(profile) {
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        }
+
+        function renderAvatar(displayEl, avatarValue) {
+            if (avatarValue && avatarValue.indexOf('data:image') === 0) {
+                displayEl.innerHTML = '<img src="' + avatarValue + '" alt="avatar">';
+            } else {
+                displayEl.textContent = avatarValue || '🙏';
+            }
+        }
+
+        function initSettings() {
+            var settings = getSettings();
+            var profile = getProfile();
+
+            document.querySelectorAll('.toggle-switch').forEach(function(el) {
+                var key = el.getAttribute('data-key');
+                if (key && settings[key]) {
+                    el.classList.add('active');
+                } else if (key && !settings[key]) {
+                    el.classList.remove('active');
+                }
+            });
+
+            renderAvatar(document.getElementById('avatarDisplay'), profile.avatar);
+            document.getElementById('nicknameDisplay').textContent = profile.nickname;
+            document.getElementById('genderDisplay').textContent = profile.gender;
+
+            bindPanelBacks();
+            bindAvatarFileInput();
+        }
+
+        function bindPanelBacks() {
+            document.querySelectorAll('.slide-panel').forEach(function(panel) {
+                var backBtn = panel.querySelector('.slide-panel-back, .back-btn');
+                if (backBtn) {
+                    backBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        closeAllPanels();
+                    };
+                }
+            });
+        }
+
+        function bindAvatarFileInput() {
+            var fileInput = document.getElementById('avatarFileInput');
+            if (!fileInput) return;
+            fileInput.onchange = function(e) {
+                var file = e.target.files && e.target.files[0];
+                if (!file) return;
+                if (!file.type.match(/^image\//)) {
+                    showToast('请选择图片文件');
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function(evt) {
+                    var base64 = evt.target.result;
+                    var profile = getProfile();
+                    profile.avatar = base64;
+                    saveProfile(profile);
+                    renderAvatar(document.getElementById('avatarDisplay'), base64);
+                    showToast('头像上传成功');
+                    setTimeout(closeAllPanels, 400);
+                };
+                reader.onerror = function() {
+                    showToast('读取图片失败');
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = '';
+            };
+        }
+
+        function openPanel(panelId) {
+            var overlay = document.getElementById('slideOverlay');
+            document.querySelectorAll('.slide-panel').forEach(function(p) {
+                p.classList.remove('active');
+            });
+            overlay.classList.add('active');
+            var panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.add('active');
+                currentPanel = panelId;
+            }
+
+            if (panelId === 'nicknamePanel') {
+                var profile = getProfile();
+                var input = document.getElementById('nicknameInput');
+                input.value = profile.nickname;
+                updateNicknameCounter();
+            }
+        }
+
+        function closeAllPanels() {
+            var overlay = document.getElementById('slideOverlay');
+            if (overlay) overlay.classList.remove('active');
+            document.querySelectorAll('.slide-panel').forEach(function(p) {
+                p.classList.remove('active');
+            });
+            currentPanel = null;
+        }
+
+        function toggleSwitch(el, key) {
+            el.classList.toggle('active');
+            if (key) {
+                var settings = getSettings();
+                settings[key] = el.classList.contains('active');
+                saveSettings(settings);
+
+                document.querySelectorAll('.toggle-switch[data-key="' + key + '"]').forEach(function(other) {
+                    if (other !== el) {
+                        if (settings[key]) other.classList.add('active');
+                        else other.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        function changeAvatar() {
+            openPanel('avatarPanel');
+        }
+
+        function selectAvatar(emoji) {
+            var profile = getProfile();
+            profile.avatar = emoji;
+            saveProfile(profile);
+            renderAvatar(document.getElementById('avatarDisplay'), emoji);
+            showToast('头像已更新');
+            setTimeout(closeAllPanels, 400);
+        }
+
+        function uploadAvatar() {
+            var fileInput = document.getElementById('avatarFileInput');
+            if (fileInput) fileInput.click();
+        }
+
+        function editNickname() {
+            openPanel('nicknamePanel');
+        }
+
+        function updateNicknameCounter() {
+            var val = document.getElementById('nicknameInput').value;
+            document.getElementById('nicknameCount').textContent = val.length;
+        }
+
+        function saveNickname() {
+            var val = document.getElementById('nicknameInput').value.trim();
+            if (!val) {
+                showToast('昵称不能为空');
+                return;
+            }
+            var profile = getProfile();
+            profile.nickname = val;
+            saveProfile(profile);
+            document.getElementById('nicknameDisplay').textContent = val;
+            showToast('昵称已修改');
+            setTimeout(closeAllPanels, 400);
+        }
+
+        function editGender() {
+            openPanel('genderPanel');
+        }
+
+        function selectGender(g, label) {
+            var profile = getProfile();
+            profile.gender = label;
+            saveProfile(profile);
+            document.getElementById('genderDisplay').textContent = label;
+            showToast('性别已设置');
+            setTimeout(closeAllPanels, 400);
+        }
+
+        function clearCache() {
+            if (confirm('确定清理 23.5 MB 缓存？')) {
+                showToast('缓存已清理，释放 23.5 MB');
+            }
+        }
+
+        function checkUpdate() {
+            showToast('正在检查更新...');
+            setTimeout(function() {
+                showToast('已是最新版本');
+            }, 1500);
+        }
+
+        function sendSmsCode() {
+            var phone = document.getElementById('phoneNumber').value.trim();
+            if (!/^1\d{10}$/.test(phone)) {
+                showToast('请输入正确的手机号');
+                return;
+            }
+            var btn = document.getElementById('smsBtn');
+            smsCountdown = 60;
+            btn.disabled = true;
+            btn.textContent = smsCountdown + 's 后重发';
+            showToast('验证码已发送');
+            smsTimer = setInterval(function() {
+                smsCountdown--;
+                if (smsCountdown <= 0) {
+                    clearInterval(smsTimer);
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                } else {
+                    btn.textContent = smsCountdown + 's 后重发';
+                }
+            }, 1000);
+        }
+
+        function confirmBindPhone() {
+            var phone = document.getElementById('phoneNumber').value.trim();
+            var code = document.getElementById('smsCode').value.trim();
+            if (!/^1\d{10}$/.test(phone)) {
+                showToast('请输入正确的手机号');
+                return;
+            }
+            if (!/^\d{6}$/.test(code)) {
+                showToast('请输入6位验证码');
+                return;
+            }
+            showToast('绑定成功');
+            setTimeout(closeAllPanels, 800);
+        }
+
+        function moveToNext(el, idx) {
+            var val = el.value;
+            if (val && idx < 5) {
+                var inputs = el.parentElement.querySelectorAll('input');
+                if (inputs[idx + 1]) inputs[idx + 1].focus();
+            }
+        }
+
+        function setPayPassword() {
+            var inputs = document.querySelectorAll('#payPasswordPanel .pay-password-boxes input');
+            var code = '';
+            inputs.forEach(function(i) { code += i.value; });
+            if (code.length < 6) {
+                showToast('请输入完整6位密码');
+                return;
+            }
+            showToast('支付密码设置成功');
+            setTimeout(closeAllPanels, 800);
+            inputs.forEach(function(i) { i.value = ''; });
+        }
+
+        function savePassword() {
+            var cur = document.getElementById('currentPassword').value;
+            var np = document.getElementById('newPassword').value;
+            var cp = document.getElementById('confirmPassword').value;
+            if (!cur) { showToast('请输入当前密码'); return; }
+            if (np.length < 6 || np.length > 20) { showToast('新密码需6-20位'); return; }
+            if (np !== cp) { showToast('两次密码不一致'); return; }
+            showToast('密码修改成功');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            setTimeout(closeAllPanels, 1000);
+        }
+
+        function showAgreement() {
+            document.getElementById('agreementCheck').checked = false;
+            openPanel('agreementPanel');
+        }
+
+        function showPrivacy() {
+            document.getElementById('privacyCheck').checked = false;
+            openPanel('privacyPanel');
+        }
+
+        function confirmAgreement(type) {
+            var checkId = type === 'agreement' ? 'agreementCheck' : 'privacyCheck';
+            if (!document.getElementById(checkId).checked) {
+                showToast('请先阅读并同意');
+                return;
+            }
+            showToast('已确认');
+            setTimeout(closeAllPanels, 600);
+        }
+
+        function unbindWechat() {
+            if (confirm('确定要解除微信绑定吗？')) {
+                showToast('已解除微信绑定');
+            }
+        }
+
+        function changeBindAccount(type) {
+            if (type === 'wechat') {
+                showToast('正在跳转微信授权...');
+            } else if (type === 'ali') {
+                showToast('正在跳转支付宝授权...');
+            }
+        }
+
+        function xibeiAction(action) {
+            if (action === 'recharge') {
+                showToast('跳转喜呗充值页');
+            } else if (action === 'withdraw') {
+                showToast('跳转喜呗提现页');
+            } else if (action === 'detail') {
+                showToast('跳转喜呗明细页');
+            }
+        }
+
+        function logout() {
+            if (confirm('确定退出登录？')) {
+                showToast('已退出登录');
+                setTimeout(function() {
+                    window.location.href = 'login.html';
+                }, 1000);
+            }
+        }
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 1500);
+        }
+
+        function startAdminTimer() {
+            adminTimer = setTimeout(function() {
+                showToast('正在进入管理员后台...');
+                setTimeout(function() {
+                    window.location.href = 'admin.html';
+                }, 800);
+            }, 2000);
+        }
+
+        function clearAdminTimer() {
+            if (adminTimer) {
+                clearTimeout(adminTimer);
+                adminTimer = null;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initSettings();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 · 抽奖管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        :root {
+            --bg-dark: #1a0a0a;
+            --bg-card: #2d1810;
+            --primary: #8B5A2B;
+            --primary-light: #A67B4B;
+            --accent: #C04040;
+            --gold: #D4AF37;
+            --text-dark: #4A3728;
+            --text-light: #8B7355;
+            --card-bg: #FFFBEE;
+            --border: rgba(184, 134, 11, 0.3);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .page-container {
+            padding: 10px;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .phone-wrap {
+            background: #111;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 0 2px #D4AF37, 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5);
+        }
+
+        .phone-screen {
+            width: 100%;
+            min-height: 1200px;
+            border-radius: 32px;
+            overflow: hidden;
+            background: #FFFBEE;
+            position: relative;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            padding: 10px 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+            color: rgba(0,0,0,0.7);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 8px; left: 10px;
+            width: 30px; height: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 100;
+            color: #fff;
+            border: none;
+            text-decoration: none;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .page-header {
+            padding: 64px 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-center;
+        }
+        .page-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 20px;
+            color: #8B5A2B;
+            letter-spacing: 4px;
+        }
+
+        .page-subtitle-bar {
+            padding: 0 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #FF6347;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .scroll-area {
+            padding: 0 16px 30px;
+        }
+
+        .admin-card {
+            background: #fff;
+            border: 2px solid #8B5A2B;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(139,90,43,0.1);
+        }
+        .admin-card-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 15px;
+            color: #8B5A2B;
+            letter-spacing: 3px;
+            margin-bottom: 14px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .game-switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(139,90,43,0.1);
+        }
+        .game-switch-row:last-child { border-bottom: none; }
+        .game-info { flex: 1; padding-right: 12px; }
+        .game-name {
+            font-size: 14px;
+            color: #4A3728;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .game-desc {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+        }
+        .game-icon {
+            font-size: 28px;
+            margin-right: 12px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #ccc;
+            border-radius: 13px;
+            transition: 0.3s;
+        }
+        .toggle-slider::before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch input:checked + .toggle-slider { background: #4CAF50; }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+        .param-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(139,90,43,0.1);
+        }
+        .param-row:last-child { border-bottom: none; }
+        .param-name {
+            flex: 1;
+            font-size: 13px;
+            color: #4A3728;
+            font-weight: 600;
+        }
+        .param-name small {
+            display: block;
+            font-size: 10px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            margin-top: 3px;
+            font-weight: normal;
+            font-family: 'Courier New', monospace;
+        }
+        .param-input {
+            width: 70px;
+            padding: 8px 6px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 8px;
+            background: #FFF8EC;
+            font-size: 13px;
+            color: #4A3728;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+        }
+        .param-unit {
+            font-size: 12px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            font-family: 'Ma Shan Zheng', cursive;
+            min-width: 30px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 12px rgba(184,134,11,0.3);
+            margin-top: 8px;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+
+        .admin-tip {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #8B7355;
+            opacity: 0.7;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+
+        .game-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: linear-gradient(135deg, #FFF8EC, #FFF);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(184,134,11,0.2);
+        }
+        .game-card-mini:last-child { margin-bottom: 0; }
+        .game-card-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #D4AF37, #B8860B);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .game-card-info { flex: 1; }
+        .game-card-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4A3728;
+            margin-bottom: 2px;
+        }
+        .game-card-status {
+            font-size: 11px;
+            color: #4CAF50;
+        }
+        .game-card-status.off { color: #999; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="phone-wrap">
+            <div class="phone-screen">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>●●● 5G</span>
+                </div>
+
+                <a href="admin.html" class="back-btn">‹</a>
+
+                <div class="page-header">
+                    <div class="page-title">🎰 抽奖管理</div>
+                </div>
+
+                <div class="page-subtitle-bar">
+                    <span>⚙️</span>
+                    <span>游戏开关与参数设置</span>
+                </div>
+
+                <div class="scroll-area">
+                    <!-- 游戏总开关 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🎮 游戏总开关</div>
+                        <div class="game-switch-row">
+                            <span class="game-icon">🎰</span>
+                            <div class="game-info">
+                                <div class="game-name">全部游戏模块</div>
+                                <div class="game-desc">关闭后所有游戏将不可见</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="masterSwitch" checked onchange="toggleMasterSwitch()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 抽奖游戏 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🎯 抽奖游戏</div>
+                        <div class="game-switch-row">
+                            <span class="game-icon">🎯</span>
+                            <div class="game-info">
+                                <div class="game-name">抽奖功能</div>
+                                <div class="game-desc">开启/关闭抽奖游戏</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="lotterySwitch" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(139,90,43,0.15);">
+                            <div class="param-row">
+                                <div class="param-name">
+                                    单次抽奖消耗
+                                    <small>lottery_price (每次消耗 · 欢喜)</small>
+                                </div>
+                                <input type="number" class="param-input" id="lottery_price" value="10">
+                                <span class="param-unit">欢喜</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每日免费次数
+                                    <small>lottery_freeTimes (每日次数 · 次)</small>
+                                </div>
+                                <input type="number" class="param-input" id="lottery_freeTimes" value="3">
+                                <span class="param-unit">次</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    中奖概率
+                                    <small>lottery_probability (中奖概率 · %)</small>
+                                </div>
+                                <input type="number" class="param-input" id="lottery_probability" value="30">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 福运卡牌 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🃏 福运卡牌</div>
+                        <div class="game-switch-row">
+                            <span class="game-icon">🃏</span>
+                            <div class="game-info">
+                                <div class="game-name">卡牌功能</div>
+                                <div class="game-desc">开启/关闭福运卡牌游戏</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="cardSwitch" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(139,90,43,0.15);">
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每局消耗
+                                    <small>card_price (每次消耗 · 欢喜)</small>
+                                </div>
+                                <input type="number" class="param-input" id="card_price" value="20">
+                                <span class="param-unit">欢喜</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每日可抽次数
+                                    <small>card_freeTimes (每日次数 · 次)</small>
+                                </div>
+                                <input type="number" class="param-input" id="card_freeTimes" value="5">
+                                <span class="param-unit">次</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    获胜奖励倍数
+                                    <small>card_probability (奖励倍率 · 倍)</small>
+                                </div>
+                                <input type="number" class="param-input" id="card_probability" value="2">
+                                <span class="param-unit">倍</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 老虎机 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🎰 老虎机</div>
+                        <div class="game-switch-row">
+                            <span class="game-icon">🎰</span>
+                            <div class="game-info">
+                                <div class="game-name">老虎机功能</div>
+                                <div class="game-desc">开启/关闭老虎机游戏</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="slotSwitch" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(139,90,43,0.15);">
+                            <div class="param-row">
+                                <div class="param-name">
+                                    最小充值档位
+                                    <small>slot_price (每次消耗 · 元)</small>
+                                </div>
+                                <input type="number" class="param-input" id="slot_price" value="60">
+                                <span class="param-unit">元</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每日可玩次数
+                                    <small>slot_freeTimes (每日次数 · 次)</small>
+                                </div>
+                                <input type="number" class="param-input" id="slot_freeTimes" value="10">
+                                <span class="param-unit">次</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    返还率
+                                    <small>slot_probability (中奖概率 · %)</small>
+                                </div>
+                                <input type="number" class="param-input" id="slot_probability" value="95">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 大转盘 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🎡 大转盘</div>
+                        <div class="game-switch-row">
+                            <span class="game-icon">🎡</span>
+                            <div class="game-info">
+                                <div class="game-name">大转盘功能</div>
+                                <div class="game-desc">开启/关闭大转盘游戏</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="rouletteSwitch" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(139,90,43,0.15);">
+                            <div class="param-row">
+                                <div class="param-name">
+                                    转一次消耗
+                                    <small>roulette_price (每次消耗 · 欢喜)</small>
+                                </div>
+                                <input type="number" class="param-input" id="roulette_price" value="50">
+                                <span class="param-unit">欢喜</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每日免费转动
+                                    <small>roulette_freeTimes (每日次数 · 次)</small>
+                                </div>
+                                <input type="number" class="param-input" id="roulette_freeTimes" value="1">
+                                <span class="param-unit">次</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    大奖概率
+                                    <small>roulette_probability (中奖概率 · %)</small>
+                                </div>
+                                <input type="number" class="param-input" id="roulette_probability" value="5">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 掷骰子 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🎲 掷骰子</div>
+                        <div class="game-switch-row">
+                            <span class="game-icon">🎲</span>
+                            <div class="game-info">
+                                <div class="game-name">掷骰子功能</div>
+                                <div class="game-desc">开启/关闭掷骰子游戏</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="diceSwitch" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(139,90,43,0.15);">
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每局消耗
+                                    <small>dice_price (每次消耗 · 欢喜)</small>
+                                </div>
+                                <input type="number" class="param-input" id="dice_price" value="10">
+                                <span class="param-unit">欢喜</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    每日可掷次数
+                                    <small>dice_freeTimes (每日次数 · 次)</small>
+                                </div>
+                                <input type="number" class="param-input" id="dice_freeTimes" value="8">
+                                <span class="param-unit">次</span>
+                            </div>
+                            <div class="param-row">
+                                <div class="param-name">
+                                    胜率加成
+                                    <small>dice_probability (中奖概率 · %)</small>
+                                </div>
+                                <input type="number" class="param-input" id="dice_probability" value="10">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 游戏入口配置 -->
+                    <div class="admin-card">
+                        <div class="admin-card-title">🔗 游戏入口配置</div>
+                        <div style="font-size:11px; color:#8B7355; margin-bottom:12px; opacity:0.8; line-height:1.6;">
+                            配置各游戏在客户端页面中的入口显示位置
+                        </div>
+
+                        <div class="game-card-mini">
+                            <div class="game-card-icon">🎯</div>
+                            <div class="game-card-info">
+                                <div class="game-card-name">抽奖</div>
+                                <div class="game-card-status" id="lotteryStatus">已开启</div>
+                            </div>
+                        </div>
+                        <div class="game-card-mini">
+                            <div class="game-card-icon">🃏</div>
+                            <div class="game-card-info">
+                                <div class="game-card-name">福运卡牌</div>
+                                <div class="game-card-status" id="cardStatus">已开启</div>
+                            </div>
+                        </div>
+                        <div class="game-card-mini">
+                            <div class="game-card-icon">🎰</div>
+                            <div class="game-card-info">
+                                <div class="game-card-name">老虎机</div>
+                                <div class="game-card-status" id="slotStatus">已开启</div>
+                            </div>
+                        </div>
+                        <div class="game-card-mini">
+                            <div class="game-card-icon">🎡</div>
+                            <div class="game-card-info">
+                                <div class="game-card-name">大转盘</div>
+                                <div class="game-card-status" id="rouletteStatus">已开启</div>
+                            </div>
+                        </div>
+                        <div class="game-card-mini">
+                            <div class="game-card-icon">🎲</div>
+                            <div class="game-card-info">
+                                <div class="game-card-name">掷骰子</div>
+                                <div class="game-card-status" id="diceStatus">已开启</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 参数数据一致性说明 -->
+                    <div class="admin-card" style="border-color: #D4AF37; background: rgba(212,175,55,0.05);">
+                        <div class="admin-card-title" style="color: #8B5A2B;">📋 参数数据一致性说明</div>
+                        <div style="padding: 8px 4px; font-size: 11px; color: #4A3728; line-height: 1.8; letter-spacing: 1px;">
+                            <div style="margin-bottom: 6px;">🎯 <b>与参数管理页的对应关系：</b></div>
+                            <div>• 每次消耗 → 对应 <b>香/灯/贡品</b> 的"价格"字段</div>
+                            <div>• 每日次数 → 对应 <b>香/灯/贡品</b> 的"展示时长(天)"字段</div>
+                            <div>• 中奖概率 → 对应 <b>香/灯/贡品</b> 的"佛光奖励"字段</div>
+                            <div>• 动物喂养 → 对应 <b>放生页</b> 的"喂养奖励/次数"字段</div>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(139,90,43,0.2); color: #8B5A2B;">
+                            ⚡ 所有参数均保存到 localStorage，键名 gameSettings / pray_params_v2 / user_profile_v2 / settings_v2，便于跨页面读取。
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="submit-btn" onclick="saveSettings()">💾 保存游戏设置</button>
+                    <div class="admin-tip">— 游戏管理 · 谨慎操作 —</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 游戏配置数据（与参数管理页一致：price / freeTimes / probability） ==========
+        var gameConfig = {
+            masterSwitch: true,
+            lottery: { enabled: true, price: 10, freeTimes: 3, probability: 30 },
+            card: { enabled: true, price: 20, freeTimes: 5, probability: 2 },
+            slot: { enabled: true, price: 60, freeTimes: 10, probability: 95 },
+            roulette: { enabled: true, price: 50, freeTimes: 1, probability: 5 },
+            dice: { enabled: true, price: 10, freeTimes: 8, probability: 10 }
+        };
+
+        // ========== 初始化 ==========
+        function init() {
+            loadSettings();
+            updateStatusDisplay();
+        }
+
+        // ========== 加载设置 ==========
+        function loadSettings() {
+            try {
+                var saved = localStorage.getItem('gameSettings');
+                if (saved) {
+                    gameConfig = JSON.parse(saved);
+
+                    document.getElementById('masterSwitch').checked = gameConfig.masterSwitch;
+
+                    ['lottery', 'card', 'slot', 'roulette', 'dice'].forEach(function(game) {
+                        document.getElementById(game + 'Switch').checked = gameConfig[game].enabled;
+                        document.getElementById(game + '_price').value = gameConfig[game].price;
+                        document.getElementById(game + '_freeTimes').value = gameConfig[game].freeTimes;
+                        document.getElementById(game + '_probability').value = gameConfig[game].probability;
+                    });
+
+                    updateSwitchStates();
+                }
+            } catch (e) {
+                console.log('加载游戏设置失败', e);
+            }
+        }
+
+        // ========== 总开关切换 ==========
+        function toggleMasterSwitch() {
+            var masterOn = document.getElementById('masterSwitch').checked;
+            gameConfig.masterSwitch = masterOn;
+            updateSwitchStates();
+        }
+
+        // ========== 更新开关状态 ==========
+        function updateSwitchStates() {
+            var masterOn = document.getElementById('masterSwitch').checked;
+
+            ['lottery', 'card', 'slot', 'roulette', 'dice'].forEach(function(game) {
+                document.getElementById(game + 'Switch').disabled = !masterOn;
+            });
+
+            var inputs = document.querySelectorAll('.param-input');
+            inputs.forEach(function(input) {
+                input.disabled = !masterOn;
+            });
+        }
+
+        // ========== 更新状态显示 ==========
+        function updateStatusDisplay() {
+            var masterOn = document.getElementById('masterSwitch').checked;
+
+            var statuses = ['lottery', 'card', 'slot', 'roulette', 'dice'];
+            statuses.forEach(function(game) {
+                var el = document.getElementById(game + 'Status');
+                if (!masterOn) {
+                    el.textContent = '已关闭';
+                    el.className = 'game-card-status off';
+                } else {
+                    var switchEl = document.getElementById(game + 'Switch');
+                    el.textContent = switchEl.checked ? '已开启' : '已关闭';
+                    el.className = switchEl.checked ? 'game-card-status' : 'game-card-status off';
+                }
+            });
+        }
+
+        // ========== 保存设置 ==========
+        function saveSettings() {
+            gameConfig.masterSwitch = document.getElementById('masterSwitch').checked;
+
+            ['lottery', 'card', 'slot', 'roulette', 'dice'].forEach(function(game) {
+                gameConfig[game] = {
+                    enabled: document.getElementById(game + 'Switch').checked,
+                    price: parseInt(document.getElementById(game + '_price').value) || 0,
+                    freeTimes: parseInt(document.getElementById(game + '_freeTimes').value) || 0,
+                    probability: parseInt(document.getElementById(game + '_probability').value) || 0
+                };
+            });
+
+            try {
+                localStorage.setItem('gameSettings', JSON.stringify(gameConfig));
+                localStorage.setItem('gameSettingsUpdated', Date.now().toString());
+                showToast('✅ 游戏设置已保存');
+                updateStatusDisplay();
+            } catch (e) {
+                showToast('❌ 保存失败：' + e.message);
+            }
+        }
+
+        // ========== Toast提示 ==========
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ========== 监听开关变化更新状态 ==========
+        document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', updateStatusDisplay);
+        });
+
+        init();
+    </script>
+</body>
+</html>

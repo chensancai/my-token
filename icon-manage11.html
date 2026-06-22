@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>图标管理 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #FFFBEE;
+            min-height: 100vh;
+            color: #4A3728;
+            max-width: 430px;
+            margin: 0 auto;
+            position: relative;
+            padding-bottom: 40px;
+        }
+
+        /* ============ 顶部状态栏 & 头部 ============ */
+        .status-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            padding: 10px 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 10;
+            color: #8B5A2B;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 8px; left: 12px;
+            width: 32px; height: 32px;
+            background: rgba(139, 90, 43, 0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            color: #8B5A2B;
+            border: none;
+            font-weight: 700;
+        }
+
+        .back-btn:active { transform: scale(0.93); background: rgba(139, 90, 43, 0.2); }
+
+        .page-header {
+            padding: 64px 20px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .page-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 22px;
+            color: #8B5A2B;
+            letter-spacing: 4px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .page-subtitle-bar {
+            padding: 0 20px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #C2362B;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .dot-red {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #C2362B;
+            animation: pulse 1.6s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .scroll-area { padding: 0 20px 20px; }
+
+        /* ============ 顶部操作按钮条 ============ */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 11px 8px;
+            border-radius: 12px;
+            border: 1.5px solid #D4A574;
+            background: #FFF8EC;
+            color: #8B5A2B;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            transition: all 0.2s;
+        }
+
+        .action-btn:active { transform: scale(0.97); background: #FFE8C8; }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #C2362B 0%, #E85D3C 100%);
+            color: #FFFBEE;
+            border-color: #C2362B;
+            box-shadow: 0 3px 10px rgba(194, 54, 43, 0.25);
+        }
+
+        .action-btn.gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+            color: #FFFBEE;
+            border-color: #D4AF37;
+            box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        /* ============ 分类标题（左侧金色竖条） ============ */
+        .category-section {
+            margin-bottom: 22px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 2px 0 10px 0;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+            position: relative;
+        }
+
+        .category-header::before {
+            content: "";
+            display: inline-block;
+            width: 3px;
+            height: 18px;
+            background: linear-gradient(180deg, #D4AF37, #8B6914);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .category-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 17px;
+            color: #8B5A2B;
+            letter-spacing: 2px;
+            flex: 1;
+        }
+
+        .category-count {
+            font-size: 11px;
+            color: #B8860B;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            background: #FFF8EC;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .category-note {
+            padding: 6px 14px 10px;
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            font-family: 'Ma Shan Zheng', cursive;
+            opacity: 0.8;
+        }
+
+        /* ============ 图标网格（库） ============ */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            padding: 4px 0 8px;
+        }
+
+        .icon-tile {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: #FFF8EC;
+            border: 1.5px solid rgba(212, 175, 55, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .icon-tile:active { transform: scale(0.92); border-color: #D4AF37; }
+
+        .icon-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .icon-tile .del-x {
+            position: absolute;
+            top: 2px; right: 2px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: rgba(194, 54, 43, 0.9);
+            color: #FFFBEE;
+            font-size: 11px;
+            line-height: 16px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .icon-tile:hover .del-x,
+        body .icon-tile .del-x { opacity: 1; }
+
+        .icon-tile.add-tile {
+            background: transparent;
+            border: 1.5px dashed rgba(212, 175, 55, 0.55);
+            color: #B8860B;
+            font-size: 24px;
+            font-weight: 300;
+        }
+
+        .icon-tile.add-tile:active { background: #FFF8EC; }
+
+        /* ============ 横向图标行（系统图标管理） ============ */
+        .item-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 4px;
+            gap: 12px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .item-row:last-child { border-bottom: none; }
+
+        .item-preview {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            background: #FFF8EC;
+            border: 1.5px solid rgba(212, 175, 55, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .item-preview img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .item-info { flex: 1; min-width: 0; }
+
+        .item-label {
+            font-size: 13px;
+            color: #6B4423;
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .item-inputs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .text-input {
+            flex: 1;
+            min-width: 70px;
+            padding: 6px 10px;
+            border: 1.5px solid rgba(212, 175, 55, 0.45);
+            border-radius: 8px;
+            background: #FFFBEE;
+            color: #6B4423;
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .text-input:focus { border-color: #D4AF37; background: #FFF8EC; }
+
+        /* ============ 扁平按钮 ============ */
+        .mini-btn {
+            padding: 6px 11px;
+            border-radius: 14px;
+            border: 1.5px solid #D4A574;
+            background: transparent;
+            color: #8B5A2B;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        .mini-btn:active { transform: scale(0.95); background: #FFE8C8; }
+
+        .mini-btn.gold-text {
+            border-color: #D4AF37;
+            color: #B8860B;
+        }
+
+        .mini-btn.danger {
+            border-color: rgba(194, 54, 43, 0.6);
+            color: #C2362B;
+        }
+
+        .mini-btn.danger:active { background: rgba(194, 54, 43, 0.1); }
+
+        /* ============ 上传弹窗 ============ */
+        .modal-mask {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(74, 55, 40, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+        }
+
+        .modal-mask.show {
+            display: flex;
+            animation: maskFade 0.25s ease;
+        }
+
+        @keyframes maskFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: #FFFBEE;
+            border: 1.5px solid #D4AF37;
+            border-radius: 14px;
+            padding: 18px 20px 14px;
+            width: 310px;
+            max-width: 90vw;
+            box-shadow: 0 8px 24px rgba(74, 55, 40, 0.25);
+            animation: modalPop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.88); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 16px;
+            color: #8B5A2B;
+            text-align: center;
+            margin-bottom: 2px;
+            letter-spacing: 2px;
+        }
+
+        .modal-sub {
+            font-size: 11px;
+            color: #8B7355;
+            text-align: center;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+        }
+
+        .modal-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .modal-opt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 12px 8px;
+            background: #FFF8EC;
+            border: 1.5px solid rgba(212, 175, 55, 0.4);
+            border-radius: 10px;
+            color: #8B5A2B;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+        }
+
+        .modal-opt:active,
+        .modal-opt:hover { background: #FFE8C8; border-color: #D4AF37; }
+
+        .modal-opt .emo { font-size: 22px; }
+
+        .modal-close {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            background: transparent;
+            border: 1.5px solid rgba(212, 175, 55, 0.4);
+            border-radius: 10px;
+            color: #8B7355;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 2px;
+        }
+
+        .modal-close:active { background: #FFF8EC; }
+
+        .modal-input-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .modal-input-row label {
+            font-size: 11px;
+            color: #8B5A2B;
+            letter-spacing: 1px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1.5px solid rgba(212, 175, 55, 0.5);
+            border-radius: 10px;
+            background: #FFFBEE;
+            color: #6B4423;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .modal-input:focus { border-color: #D4AF37; background: #FFF8EC; }
+
+        .modal-preview {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 12px;
+            border-radius: 14px;
+            background: #FFF8EC;
+            border: 1.5px solid rgba(212, 175, 55, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            overflow: hidden;
+        }
+
+        .modal-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ============ Toast ============ */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 90, 43, 0.94);
+            color: #FFFBEE;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.9);
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* ============ 底部按钮 ============ */
+        .bottom-action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .big-btn {
+            flex: 1;
+            padding: 13px;
+            border-radius: 14px;
+            border: 1.5px solid #D4A574;
+            background: #FFF8EC;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #8B5A2B;
+            transition: all 0.2s;
+        }
+
+        .big-btn:active { transform: scale(0.97); }
+
+        .big-btn.save {
+            background: linear-gradient(135deg, #C2362B 0%, #E85D3C 100%);
+            color: #FFFBEE;
+            border-color: #C2362B;
+            box-shadow: 0 4px 14px rgba(194, 54, 43, 0.3);
+        }
+
+        .big-btn.gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #8B6914 100%);
+            color: #FFFBEE;
+            border-color: #D4AF37;
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+        }
+
+        .admin-tip {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #8B7355;
+            opacity: 0.75;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+            line-height: 1.6;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            padding: 18px 0 12px;
+            text-align: center;
+            color: #8B7355;
+            font-size: 12px;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部状态栏 -->
+    <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● 5G</span>
+    </div>
+
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <button class="back-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.back();}" aria-label="返回">‹</button>
+        <div class="page-title">✦ 图标管理</div>
+        <div style="width:32px"></div>
+    </div>
+
+    <div class="page-subtitle-bar">
+        <span class="dot-red"></span>
+        <span>自定义图标 · 支持上传 · 自动保存</span>
+        <span class="dot-red"></span>
+    </div>
+
+    <div class="scroll-area">
+
+        <!-- 顶部操作按钮 -->
+        <div class="action-bar">
+            <button class="action-btn primary" onclick="saveAll()">✦ 保 存</button>
+            <button class="action-btn gold" onclick="openUploadModal(null, 'library-pray')">＋ 上传图标</button>
+            <button class="action-btn" onclick="resetAll()">↺ 重置</button>
+        </div>
+
+        <!-- ============ 1. 祈福图标库 ============ -->
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-title">祈福图标库</div>
+                <div class="category-count" id="cnt-pray">共 0 项</div>
+            </div>
+            <div class="category-note">· 用于祈福页的装饰图标，可直接替换 ·</div>
+            <div class="icon-grid" id="grid-pray">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- ============ 2. 追思图标库 ============ -->
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-title">追思图标库</div>
+                <div class="category-count" id="cnt-rem">共 0 项</div>
+            </div>
+            <div class="category-note">· 用于追思页的庄重图标 ·</div>
+            <div class="icon-grid" id="grid-rem">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- ============ 3. 游戏图标库 ============ -->
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-title">游戏图标库</div>
+                <div class="category-count" id="cnt-game">共 0 项</div>
+            </div>
+            <div class="category-note">· 用于游戏模块的趣味图标 ·</div>
+            <div class="icon-grid" id="grid-game">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- ============ 4. 系统按钮与导航图标 ============ -->
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-title">系统导航图标</div>
+                <div class="category-count" id="cnt-nav">共 0 项</div>
+            </div>
+            <div class="category-note">· 首页导航、头像、功能按钮等入口图标 ·</div>
+            <div id="nav-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- ============ 5. 通用按钮图标 ============ -->
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-title">通用按钮图标</div>
+                <div class="category-count" id="cnt-btn">共 0 项</div>
+            </div>
+            <div id="btn-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- ============ 底部按钮 ============ -->
+        <div class="bottom-action-bar">
+            <button class="big-btn save" onclick="saveAll()">✦ 保存所有</button>
+            <button class="big-btn gold" onclick="openUploadModal(null, 'library-pray')">＋ 新增图标</button>
+            <button class="big-btn" onclick="resetAll()">↺ 恢复默认</button>
+        </div>
+
+        <div class="admin-tip">— 保存后生效 · 图标自动存储到本地 —</div>
+    </div>
+
+    <!-- 上传类型选择弹窗 -->
+    <div class="modal-mask" id="uploadTypeModal">
+        <div class="modal">
+            <div class="modal-title">选择上传类型</div>
+            <div class="modal-sub" id="uploadTypeSub">为图标库上传新资源</div>
+            <div class="modal-options">
+                <div class="modal-opt" onclick="pickUploadType('emoji')">
+                    <span class="emo">✨</span>
+                    <span>文字/Emoji</span>
+                </div>
+                <div class="modal-opt" onclick="pickUploadType('image')">
+                    <span class="emo">🖼️</span>
+                    <span>上传图片</span>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeUploadTypeModal()">取消</button>
+        </div>
+    </div>
+
+    <!-- Emoji 输入弹窗 -->
+    <div class="modal-mask" id="emojiModal">
+        <div class="modal">
+            <div class="modal-title">新增图标</div>
+            <div class="modal-sub" id="emojiModalSub">输入 Emoji 或简短文字</div>
+            <div class="modal-preview" id="emojiModalPreview">✨</div>
+            <div class="modal-input-row">
+                <label>图标内容</label>
+                <input type="text" class="modal-input" id="emojiModalInput" placeholder="例如：🏛️ · 🕯️ · 🐟" maxlength="4" oninput="document.getElementById('emojiModalPreview').textContent = this.value || '✨'">
+            </div>
+            <div class="modal-input-row">
+                <label>图标名称（可选）</label>
+                <input type="text" class="modal-input" id="emojiModalName" placeholder="例如：祈福大殿" maxlength="12">
+            </div>
+            <div class="bottom-action-bar">
+                <button class="big-btn save" onclick="confirmEmojiUpload()">✦ 添加</button>
+                <button class="big-btn" onclick="closeEmojiModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏文件输入 -->
+    <input type="file" id="imageFileInput" accept="image/*" style="display:none">
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /* ==========================================================
+         * 图标管理（简化版）
+         * 存储 key: iconSettings
+         *   - categories.{pray,rem,game}: [{id,type:'emoji'|'image',content,name}]
+         *   - systemIcons: { key: {type, content, label} }
+         * ========================================================== */
+
+        const STORAGE_KEY = 'iconSettings';
+
+        // ========== 系统图标默认配置 ==========
+        const NAV_ICONS = [
+            { key: 'nav_pray',     label: '祈福导航',   default: '🏛️' },
+            { key: 'nav_remember', label: '追思导航',   default: '🕯️' },
+            { key: 'nav_release',  label: '放生导航',   default: '🐟' },
+            { key: 'nav_profile',  label: '我的导航',   default: '👤' },
+            { key: 'user_avatar',  label: '用户头像',   default: '🙏' },
+            { key: 'ask_buddha',   label: '问佛按钮',   default: '🧘' }
+        ];
+
+        const BTN_ICONS = [
+            { key: 'btn_home',    label: '首页按钮', default: '🏛️' },
+            { key: 'btn_candle',  label: '蜡烛按钮', default: '🕯️' },
+            { key: 'btn_fish',    label: '放生按钮', default: '🐟' },
+            { key: 'btn_bell',    label: '音效按钮', default: '🔔' },
+            { key: 'btn_sound_off', label: '静音按钮', default: '🔕' },
+            { key: 'btn_gift',    label: '礼物按钮', default: '🎁' }
+        ];
+
+        // 默认库图标（首次打开时展示一些示例）
+        const DEFAULT_LIBRARY = {
+            pray: [
+                { id: 'dp1', type: 'emoji', content: '🏛️', name: '大殿' },
+                { id: 'dp2', type: 'emoji', content: '🕉️', name: '咒轮' },
+                { id: 'dp3', type: 'emoji', content: '🪔', name: '祈福灯' },
+                { id: 'dp4', type: 'emoji', content: '🙏', name: '合十' },
+                { id: 'dp5', type: 'emoji', content: '🌸', name: '鲜花' }
+            ],
+            rem: [
+                { id: 'dr1', type: 'emoji', content: '🕯️', name: '烛火' },
+                { id: 'dr2', type: 'emoji', content: '🏺', name: '花瓶' },
+                { id: 'dr3', type: 'emoji', content: '🪬', name: '香炉' },
+                { id: 'dr4', type: 'emoji', content: '🕊️', name: '思念' }
+            ],
+            game: [
+                { id: 'dg1', type: 'emoji', content: '🎋', name: '竹摇' },
+                { id: 'dg2', type: 'emoji', content: '🎲', name: '骰子' },
+                { id: 'dg3', type: 'emoji', content: '🐟', name: '锦鲤' },
+                { id: 'dg4', type: 'emoji', content: '💎', name: '宝石' }
+            ]
+        };
+
+        // ========== 运行时状态 ==========
+        let state = {
+            categories: { pray: [], rem: [], game: [] },
+            systemIcons: {}  // key -> {type, content, label}
+        };
+
+        // 上传上下文：记录当前是往哪个库上传，或是编辑哪个系统图标
+        let uploadCtx = null;
+
+        /* ==========================================================
+         * 初始化 & 数据读写
+         * ========================================================== */
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const data = JSON.parse(raw) || {};
+                    state.categories = data.categories || { pray: [], rem: [], game: [] };
+                    state.systemIcons = data.systemIcons || {};
+                } else {
+                    // 首次：填充默认库
+                    state.categories = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
+                }
+            } catch (e) {
+                console.error('加载 iconSettings 失败', e);
+                state.categories = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
+                state.systemIcons = {};
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                return true;
+            } catch (e) {
+                console.error('保存失败', e);
+                showToast('✦ 保存失败：存储空间不足');
+                return false;
+            }
+        }
+
+        /* ==========================================================
+         * 渲染：图标库网格
+         * ========================================================== */
+
+        function renderLibraryGrid(catKey, containerId) {
+            const container = document.getElementById(containerId);
+            const items = state.categories[catKey] || [];
+
+            let html = items.map((it) => `
+                <div class="icon-tile" data-cat="${catKey}" data-id="${it.id}" title="${it.name || ''}" onclick="onTileClick(event, '${catKey}', '${it.id}')">
+                    ${it.type === 'image'
+                        ? '<img src="' + it.content + '" alt="图标">'
+                        : '<span>' + escapeHtml(it.content) + '</span>'}
+                    <span class="del-x" onclick="deleteLibraryIcon(event, '${catKey}', '${it.id}')">×</span>
+                </div>
+            `).join('');
+
+            // 末尾 + 添加按钮
+            html += `
+                <div class="icon-tile add-tile" onclick="openUploadModal(null, 'library-${catKey}')">＋</div>
+            `;
+
+            container.innerHTML = html;
+
+            // 更新计数
+            const countId = catKey === 'pray' ? 'cnt-pray' : catKey === 'rem' ? 'cnt-rem' : 'cnt-game';
+            document.getElementById(countId).textContent = '共 ' + items.length + ' 项';
+        }
+
+        function onTileClick(event, catKey, id) {
+            // 点击删除按钮以外的区域 → 编辑
+            if (event.target.classList && event.target.classList.contains('del-x')) return;
+            const item = (state.categories[catKey] || []).find(x => x.id === id);
+            if (!item) return;
+            openEditLibraryIcon(catKey, id, item);
+        }
+
+        function renderAllLibraries() {
+            renderLibraryGrid('pray', 'grid-pray');
+            renderLibraryGrid('rem', 'grid-rem');
+            renderLibraryGrid('game', 'grid-game');
+        }
+
+        /* ==========================================================
+         * 渲染：系统图标行（导航 + 按钮）
+         * ========================================================== */
+
+        function systemRowHtml(item) {
+            const saved = state.systemIcons[item.key] || {};
+            const type = saved.type || 'emoji';
+            const content = saved.content || item.default;
+            const previewHtml = type === 'image'
+                ? '<img src="' + content + '" alt="">'
+                : '<span>' + escapeHtml(content) + '</span>';
+            return `
+                <div class="item-row" data-key="${item.key}">
+                    <div class="item-preview" id="preview-${item.key}">${previewHtml}</div>
+                    <div class="item-info">
+                        <div class="item-label">${item.label}</div>
+                        <div class="item-inputs">
+                            <input type="text" class="text-input" id="${item.key}"
+                                value="${type === 'emoji' ? escapeHtml(content) : ''}"
+                                placeholder="${type === 'image' ? '(已上传图片)' : '输入图标'}"
+                                oninput="updateSystemIconText('${item.key}', this.value)">
+                            <button class="mini-btn gold-text" onclick="openUploadModal('${item.key}', 'system')">📷 图片</button>
+                            <button class="mini-btn danger" onclick="resetSystemIcon('${item.key}', '${item.default}')">↺</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSystemIcons() {
+            document.getElementById('nav-list').innerHTML = NAV_ICONS.map(systemRowHtml).join('');
+            document.getElementById('btn-list').innerHTML = BTN_ICONS.map(systemRowHtml).join('');
+            document.getElementById('cnt-nav').textContent = '共 ' + NAV_ICONS.length + ' 项';
+            document.getElementById('cnt-btn').textContent = '共 ' + BTN_ICONS.length + ' 项';
+        }
+
+        // 实时更新系统图标文字（并同步预览）
+        function updateSystemIconText(key, value) {
+            const preview = document.getElementById('preview-' + key);
+            if (!preview) return;
+            // 若当前是图片类型，修改文本时切换为 emoji 类型
+            const cur = state.systemIcons[key];
+            if (cur && cur.type === 'image' && value) {
+                state.systemIcons[key] = { type: 'emoji', content: value, label: cur.label };
+            } else {
+                state.systemIcons[key] = { type: 'emoji', content: value || (cur ? cur.content : ''), label: cur ? cur.label : '' };
+            }
+            preview.innerHTML = '<span>' + escapeHtml(value || '·') + '</span>';
+        }
+
+        function resetSystemIcon(key, defaultEmoji) {
+            delete state.systemIcons[key];
+            const preview = document.getElementById('preview-' + key);
+            const input = document.getElementById(key);
+            if (preview) preview.innerHTML = '<span>' + escapeHtml(defaultEmoji) + '</span>';
+            if (input) { input.value = defaultEmoji; input.placeholder = '输入图标'; }
+            showToast('✦ 已恢复默认');
+        }
+
+        /* ==========================================================
+         * 图标库操作
+         * ========================================================== */
+
+        function deleteLibraryIcon(event, catKey, id) {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (!confirm('确定删除该图标吗？')) return;
+            const list = state.categories[catKey] || [];
+            const idx = list.findIndex(x => x.id === id);
+            if (idx >= 0) list.splice(idx, 1);
+            renderLibraryGrid(catKey, 'grid-' + catKey);
+            saveState();
+            showToast('✦ 已删除');
+        }
+
+        function openEditLibraryIcon(catKey, id, item) {
+            // 简单实现：弹窗让用户重新输入
+            uploadCtx = { mode: 'edit-library', catKey: catKey, id: id, prev: item };
+            // 如果是 emoji 类型，直接打开 emoji 编辑；否则打开上传类型选择
+            if (item.type === 'emoji') {
+                document.getElementById('emojiModalInput').value = item.content || '';
+                document.getElementById('emojiModalName').value = item.name || '';
+                document.getElementById('emojiModalPreview').textContent = item.content || '✨';
+                document.getElementById('emojiModalSub').textContent = '编辑现有图标';
+                document.getElementById('emojiModal').classList.add('show');
+            } else {
+                document.getElementById('uploadTypeSub').textContent = '编辑现有图标';
+                document.getElementById('uploadTypeModal').classList.add('show');
+            }
+        }
+
+        function addLibraryIcon(catKey, iconData) {
+            state.categories[catKey] = state.categories[catKey] || [];
+            state.categories[catKey].push(iconData);
+            renderLibraryGrid(catKey, 'grid-' + catKey);
+        }
+
+        function updateLibraryIcon(catKey, id, iconData) {
+            const list = state.categories[catKey] || [];
+            const idx = list.findIndex(x => x.id === id);
+            if (idx >= 0) list[idx] = Object.assign({}, list[idx], iconData);
+            renderLibraryGrid(catKey, 'grid-' + catKey);
+        }
+
+        /* ==========================================================
+         * 上传弹窗流程
+         * ========================================================== */
+
+        // target:  { kind: 'library'|'system', catKey?, sysKey? }
+        function openUploadModal(sysKey, targetStr) {
+            // 解析 targetStr:  'library-pray' / 'library-rem' / 'library-game' / 'system'
+            if (targetStr && targetStr.startsWith('library-')) {
+                const catKey = targetStr.substring('library-'.length);
+                uploadCtx = { mode: 'new-library', catKey: catKey };
+            } else if (targetStr === 'system' && sysKey) {
+                uploadCtx = { mode: 'system', sysKey: sysKey };
+            } else if (sysKey) {
+                // 直接指定 sysKey
+                uploadCtx = { mode: 'system', sysKey: sysKey };
+            } else {
+                uploadCtx = { mode: 'new-library', catKey: 'pray' };
+            }
+
+            document.getElementById('uploadTypeSub').textContent =
+                uploadCtx.mode === 'system'
+                    ? '为系统图标上传资源'
+                    : '为图标库上传新资源';
+
+            document.getElementById('uploadTypeModal').classList.add('show');
+        }
+
+        function closeUploadTypeModal() {
+            document.getElementById('uploadTypeModal').classList.remove('show');
+        }
+
+        function pickUploadType(type) {
+            closeUploadTypeModal();
+            if (!uploadCtx) return;
+
+            if (type === 'emoji') {
+                // 如果是编辑模式，用现有内容初始化
+                if (uploadCtx.mode === 'edit-library' && uploadCtx.prev && uploadCtx.prev.type === 'emoji') {
+                    document.getElementById('emojiModalInput').value = uploadCtx.prev.content || '';
+                    document.getElementById('emojiModalName').value = uploadCtx.prev.name || '';
+                    document.getElementById('emojiModalPreview').textContent = uploadCtx.prev.content || '✨';
+                } else {
+                    document.getElementById('emojiModalInput').value = '';
+                    document.getElementById('emojiModalName').value = '';
+                    document.getElementById('emojiModalPreview').textContent = '✨';
+                }
+                document.getElementById('emojiModalSub').textContent =
+                    (uploadCtx.mode === 'system') ? '输入 Emoji 或简短文字作为图标' :
+                    (uploadCtx.mode === 'edit-library') ? '编辑图标' : '输入新图标内容';
+                document.getElementById('emojiModal').classList.add('show');
+            } else if (type === 'image') {
+                // 打开文件选择
+                const input = document.getElementById('imageFileInput');
+                input.value = '';
+                input.onchange = function (e) {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        applyImageUpload(evt.target.result, file.name);
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            }
+        }
+
+        function closeEmojiModal() {
+            document.getElementById('emojiModal').classList.remove('show');
+        }
+
+        function confirmEmojiUpload() {
+            const content = document.getElementById('emojiModalInput').value.trim();
+            const name = document.getElementById('emojiModalName').value.trim();
+            if (!content) {
+                showToast('✦ 请输入图标内容');
+                return;
+            }
+
+            if (!uploadCtx) {
+                closeEmojiModal();
+                return;
+            }
+
+            if (uploadCtx.mode === 'new-library') {
+                addLibraryIcon(uploadCtx.catKey, {
+                    id: 'ic_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                    type: 'emoji',
+                    content: content,
+                    name: name
+                });
+                saveState();
+                showToast('✦ 已添加到图标库');
+            } else if (uploadCtx.mode === 'edit-library') {
+                updateLibraryIcon(uploadCtx.catKey, uploadCtx.id, {
+                    type: 'emoji',
+                    content: content,
+                    name: name
+                });
+                saveState();
+                showToast('✦ 已更新');
+            } else if (uploadCtx.mode === 'system') {
+                applySystemIcon(uploadCtx.sysKey, { type: 'emoji', content: content }, name);
+                saveState();
+                showToast('✦ 已更新');
+            }
+
+            closeEmojiModal();
+        }
+
+        function applyImageUpload(dataUrl, fileName) {
+            if (!uploadCtx) return;
+
+            if (uploadCtx.mode === 'new-library') {
+                addLibraryIcon(uploadCtx.catKey, {
+                    id: 'ic_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                    type: 'image',
+                    content: dataUrl,
+                    name: fileName || ''
+                });
+                saveState();
+                showToast('✦ 图片已添加');
+            } else if (uploadCtx.mode === 'edit-library') {
+                updateLibraryIcon(uploadCtx.catKey, uploadCtx.id, {
+                    type: 'image',
+                    content: dataUrl,
+                    name: fileName || (uploadCtx.prev ? uploadCtx.prev.name : '')
+                });
+                saveState();
+                showToast('✦ 已更新为图片');
+            } else if (uploadCtx.mode === 'system') {
+                applySystemIcon(uploadCtx.sysKey, { type: 'image', content: dataUrl }, fileName);
+                saveState();
+                showToast('✦ 图片已应用');
+            }
+        }
+
+        function applySystemIcon(key, iconData, label) {
+            state.systemIcons[key] = {
+                type: iconData.type,
+                content: iconData.content,
+                label: label || (state.systemIcons[key] && state.systemIcons[key].label) || ''
+            };
+
+            // 更新预览 + 输入框
+            const preview = document.getElementById('preview-' + key);
+            const input = document.getElementById(key);
+            if (preview) {
+                preview.innerHTML = iconData.type === 'image'
+                    ? '<img src="' + iconData.content + '" alt="">'
+                    : '<span>' + escapeHtml(iconData.content) + '</span>';
+            }
+            if (input) {
+                if (iconData.type === 'image') {
+                    input.value = '';
+                    input.placeholder = '(已上传图片)';
+                } else {
+                    input.value = iconData.content || '';
+                    input.placeholder = '输入图标';
+                }
+            }
+        }
+
+        /* ==========================================================
+         * 保存 / 重置
+         * ========================================================== */
+
+        function saveAll() {
+            // 先同步所有系统图标输入框的值（避免用户只输入但未失焦）
+            NAV_ICONS.concat(BTN_ICONS).forEach(function (item) {
+                const input = document.getElementById(item.key);
+                const cur = state.systemIcons[item.key];
+                if (input && input.value) {
+                    if (!cur || cur.type !== 'image') {
+                        state.systemIcons[item.key] = {
+                            type: 'emoji',
+                            content: input.value,
+                            label: cur ? cur.label : ''
+                        };
+                    }
+                }
+            });
+
+            if (saveState()) {
+                showToast('✦ 已保存所有设置');
+            }
+        }
+
+        function resetAll() {
+            if (!confirm('确定恢复所有默认图标吗？此操作将清空自定义设置。')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            state = {
+                categories: JSON.parse(JSON.stringify(DEFAULT_LIBRARY)),
+                systemIcons: {}
+            };
+            renderAllLibraries();
+            renderSystemIcons();
+            showToast('✦ 已恢复默认');
+        }
+
+        /* ==========================================================
+         * 工具函数
+         * ========================================================== */
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(function () { t.classList.remove('show'); }, 1800);
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /* ==========================================================
+         * 启动
+         * ========================================================== */
+
+        (function init() {
+            loadState();
+            renderAllLibraries();
+            renderSystemIcons();
+        })();
+    </script>
+</body>
+</html>

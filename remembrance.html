@@ -1,0 +1,3313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>祈个福 - 追思超度</title>
+  <style>
+    /* ============ 追思超度页特定样式 ============ */
+
+    /* 页面容器 */
+    .pray-page {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: #1a0f06;
+    }
+
+    /* ============ 背景层 ============ */
+    .bg-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* 追思页：深棕金渐变背景（保留 bg-layer 结构，仅修改 bg-day 的颜色） */
+    .bg-day {
+      background: linear-gradient(180deg,
+        #2C1810 0%,
+        #4A3728 30%,
+        #6B4423 60%,
+        #8B6914 100%);
+    }
+
+    .bg-day::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255, 215, 0, 0.3) 0%, transparent 30%),
+        radial-gradient(circle at 70% 30%, rgba(255, 215, 0, 0.2) 0%, transparent 25%),
+        radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.25) 0%, transparent 35%);
+    }
+
+    .bg-day::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(255,215,0,0.25) 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 60%, rgba(255,200,100,0.15) 0%, transparent 30%),
+        radial-gradient(ellipse at 70% 60%, rgba(255,200,100,0.15) 0%, transparent 30%);
+    }
+
+    /* 夜晚星空背景（保留切换逻辑） */
+    .bg-night {
+      background: linear-gradient(180deg,
+        #0a0a1a 0%,
+        #1a1a2e 50%,
+        #16213e 100%);
+    }
+
+    .bg-night::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 160px 120px, #fff, transparent),
+        radial-gradient(1px 1px at 200px 50px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(2px 2px at 250px 100px, #fff, transparent),
+        radial-gradient(1px 1px at 300px 60px, rgba(255,255,255,0.5), transparent);
+      background-size: 350px 150px;
+      animation: starTwinkle 4s ease-in-out infinite;
+    }
+
+    /* 流星效果 */
+    .meteor {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: linear-gradient(45deg, #fff, transparent);
+      animation: meteorFall 3s linear infinite;
+      opacity: 0;
+    }
+
+    .meteor:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+    .meteor:nth-child(2) { top: 25%; left: 60%; animation-delay: 1.2s; }
+    .meteor:nth-child(3) { top: 10%; left: 80%; animation-delay: 2.4s; }
+
+    @keyframes meteorFall {
+      0% { transform: translateX(0) translateY(0); opacity: 1; }
+      100% { transform: translateX(-200px) translateY(200px); opacity: 0; }
+    }
+
+    @keyframes starTwinkle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* ============ 顶部导航 ============ */
+    .top-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding-top: calc(8px + env(safe-area-inset-top, 0px));
+      padding-left: 12px;
+      padding-right: 12px;
+      height: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent);
+    }
+
+    /* 左上角用户信息 */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      margin-top: 24px;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 2px solid #FFF;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      color: #FFF;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .user-level {
+      font-size: 10px;
+      color: #FFD700;
+    }
+
+    /* 右上角按钮组 */
+    .top-right-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      margin-top: 24px;
+    }
+
+    /* 问佛按钮（在追思页变为「对话先人」，但样式位置保持不变） */
+    .ask-buddha-btn {
+      position: relative;
+      z-index: 500;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(139,69,19,0.9), rgba(93,64,55,0.95));
+      border: 2px solid #D4AF37;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #FFD700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    }
+
+    /* 无框图标按钮（用于天使、喇叭等） */
+    .icon-btn-no-frame {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 6px;
+      line-height: 1;
+      transition: transform 0.2s;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .icon-btn-no-frame:active {
+      transform: scale(0.9);
+    }
+
+    .icon-btn-no-frame .btn-icon {
+      font-size: 20px;
+    }
+
+    .ask-buddha-btn {
+      transition: transform 0.2s;
+      gap: 0;
+      padding: 0;
+      color: #FFD700;
+    }
+
+    .ask-buddha-btn .btn-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .ask-buddha-btn .btn-label {
+      font-size: 9px;
+      margin-top: 1px;
+      line-height: 1;
+    }
+
+    .ask-buddha-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 声音按钮：无框 */
+    .sound-toggle-btn {
+      width: auto !important;
+      height: auto !important;
+      background: transparent !important;
+      border: none !important;
+      margin-top: 0 !important;
+      color: inherit !important;
+    }
+
+    .sound-toggle-btn .btn-icon {
+      font-size: 20px !important;
+    }
+
+    /* ============ 佛光欢喜状态条 ============ */
+    .status-bar-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(90deg, rgba(255,215,0,0.15), rgba(218,165,32,0.15));
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(218,165,32,0.4);
+      font-size: 10px;
+      color: #FFD700;
+    }
+
+    /* ============ 顶部弹屏滚动 ============ */
+    .scrolling-banner {
+      position: absolute;
+      top: calc(72px + env(safe-area-inset-top, 0px));
+      left: 8px;
+      right: 8px;
+      height: 24px;
+      overflow: hidden;
+      z-index: 90;
+      pointer-events: none;
+    }
+
+    .banner-content {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      animation: bannerScroll 20s linear infinite;
+      white-space: nowrap;
+    }
+
+    .banner-item {
+      padding: 0 16px;
+      line-height: 24px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #FFFFFF;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .banner-item.mine {
+      color: #8B5CF6;
+      font-weight: 700;
+      text-shadow: none;
+    }
+
+    .banner-item .banner-avatar {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      border: 1px solid #FFF;
+      flex-shrink: 0;
+    }
+
+    .banner-item .banner-nick {
+      color: #FFFFFF;
+      font-weight: bold;
+    }
+
+    @keyframes bannerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ============ 用户自己的许愿语大字滚动 ============ */
+    .user-wish-banner {
+      position: absolute;
+      top: calc(88px + env(safe-area-inset-top, 0px));
+      left: 8px;
+      right: 8px;
+      height: 40px;
+      overflow: hidden;
+      z-index: 95;
+      pointer-events: none;
+    }
+
+    .user-wish-content {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      animation: userWishScroll 18s linear infinite;
+      white-space: nowrap;
+    }
+
+    .user-wish-item {
+      padding: 0 40px;
+      line-height: 40px;
+      font-size: 18px;
+      color: #7C3AED;
+      font-weight: 800;
+      letter-spacing: 3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    @keyframes userWishScroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* 先人照片/佛像容器（光环和照片往上移一点） */
+    .buddha-container {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      text-align: center;
+    }
+
+    /* 光环（缩小） */
+    .buddha-halo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 150px;
+      height: 150px;
+      z-index: -1;
+    }
+
+    .halo-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 215, 0, 0.45);
+      animation: haloRotate 20s linear infinite;
+    }
+
+    .halo-ring.r1 {
+      width: 120px;
+      height: 120px;
+      top: 15px;
+      left: 15px;
+      animation-direction: normal;
+    }
+
+    .halo-ring.r2 {
+      width: 140px;
+      height: 140px;
+      top: 5px;
+      left: 5px;
+      border-color: rgba(255, 165, 0, 0.35);
+      animation-direction: reverse;
+      animation-duration: 25s;
+    }
+
+    .halo-ring.r3 {
+      width: 90px;
+      height: 90px;
+      top: 30px;
+      left: 30px;
+      border-color: rgba(255, 200, 100, 0.5);
+      animation-duration: 15s;
+    }
+
+    .halo-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+      animation: haloPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes haloRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes haloPulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+
+    /* 先人照片卡片（尺寸缩小一半，宽100px / 高130px） */
+    .buddha-statue {
+      width: 100px;
+      height: 130px;
+      background: linear-gradient(180deg, #3d2416 0%, #2C1810 100%);
+      border: 3px solid #D4AF37;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.45), inset 0 0 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: filter 0.3s, transform 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      animation: buddhaFloat 3s ease-in-out infinite;
+    }
+
+    .buddha-statue:active {
+      filter: brightness(1.2);
+      transform: scale(0.98);
+    }
+
+    .deceased-photo-icon {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .deceased-photo-title {
+      font-size: 9px;
+      color: #FFD700;
+      letter-spacing: 2px;
+      margin-top: 4px;
+      font-weight: bold;
+    }
+
+    .deceased-photo-sub {
+      font-size: 7px;
+      color: #D4AF37;
+      letter-spacing: 1px;
+      margin-top: 2px;
+      opacity: 0.85;
+    }
+
+    @keyframes buddhaFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* 浴佛闪烁效果（这里变为"祭拜"闪烁） */
+    .buddha-statue.bathing {
+      animation: buddhaBathing 0.5s ease-out;
+    }
+
+    @keyframes buddhaBathing {
+      0% { filter: drop-shadow(0 0 30px rgba(255,215,0,0.6)); }
+      50% { filter: drop-shadow(0 0 80px rgba(255,215,0,1)) brightness(1.5); }
+      100% { filter: drop-shadow(0 0 30px rgba(255,215,0,0.6)); }
+    }
+
+    /* ============ 供桌（铺满屏幕左右两边，高度刚好摆下两排贡品） ============ */
+    .offerings-table {
+      position: absolute;
+      bottom: 150px;
+      left: 0;
+      right: 0;
+      z-index: 90;
+      width: 100%;
+    }
+
+    .table-surface {
+      background: linear-gradient(180deg, #5D4037 0%, #4E342E 50%, #3E2723 100%);
+      border-top: 3px solid #8D6E63;
+      border-bottom: 2px solid #2E1B0F;
+      padding: 1px 6px;
+      box-shadow:
+        0 -2px 10px rgba(0,0,0,0.3),
+        inset 0 2px 6px rgba(255,255,255,0.1);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* 供桌第1排（花瓶在最左最右；图标放大） */
+    .offering-row.row-1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 4px;
+      min-height: 95px;
+    }
+
+    /* 供桌第1排：上移靠近供桌上面边缘 */
+    .offering-row.row-1 {
+      margin-bottom: 6px;
+      margin-top: -8px;
+    }
+
+    /* 供桌第2排：烤全羊居中放大 */
+    .offering-row.row-2 {
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      gap: 2px;
+    }
+
+    .offering-row.row-1 .offering-icon {
+      font-size: 48px;
+    }
+
+    .offering-row.row-2 .offering-icon {
+      font-size: 38px;
+    }
+
+    /* 烤全羊居中放大 */
+    .offering-item.roast-center {
+      transform: scale(1.2);
+      z-index: 2;
+    }
+
+    .offering-item.roast-center .offering-icon {
+      font-size: 52px;
+    }
+
+    /* 供品项 */
+    .offering-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      cursor: pointer;
+      transition: transform 0.2s;
+      position: relative;
+      min-width: 0;
+      flex-shrink: 1;
+      flex: 1;
+      padding-bottom: 2px;
+    }
+
+    .offering-item:active {
+      transform: scale(0.95);
+    }
+
+    .offering-icon {
+      font-size: 24px;
+      margin-bottom: 0;
+      transition: transform 0.2s;
+      line-height: 1;
+      position: relative;
+    }
+
+    .offering-item:hover .offering-icon {
+      transform: scale(1.1);
+    }
+
+    .offering-label {
+      font-size: 10px;
+      color: #DEB887;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      white-space: nowrap;
+      margin-top: 4px;
+      line-height: 1;
+    }
+
+    .offering-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #FFD700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 50;
+    }
+
+    .offering-item:hover .offering-tooltip {
+      opacity: 1;
+    }
+
+    /* 莲花灯 */
+    .lotus-lamp {
+      width: 30px;
+      height: 38px;
+      position: relative;
+    }
+
+    .lamp-flame {
+      display: none;
+      position: absolute;
+      top: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      animation: flameFlicker 0.5s ease-in-out infinite alternate;
+    }
+
+    .offering-item.lit .offering-icon {
+      filter: drop-shadow(0 0 8px #FFD700) drop-shadow(0 0 15px rgba(255,215,0,0.6));
+      animation: lampGlow 2s ease-in-out infinite;
+    }
+
+    .lamp-glow-effect {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, transparent 70%);
+      display: none;
+    }
+
+    .offering-item.lit .offering-icon::before {
+      content: '';
+      position: absolute;
+      inset: -15px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,215,0,0.5), transparent 70%);
+      animation: lampGlow 1s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes flameFlicker {
+      0% { transform: translateX(-50%) scale(1); }
+      100% { transform: translateX(-50%) scale(1.15); }
+    }
+
+    @keyframes lampGlow {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* 香炉 */
+    .incense-burner {
+      width: 42px;
+      height: 38px;
+      position: relative;
+    }
+
+    .incense-smoke {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+    }
+
+    .offering-item.burning .offering-icon::before {
+      content: '💨';
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      animation: smokeRise 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .smoke-particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, rgba(200,200,200,0.7), transparent);
+      border-radius: 50%;
+      animation: smokeRise 2s ease-out infinite;
+    }
+
+    .smoke-particle:nth-child(1) { left: -4px; animation-delay: 0s; }
+    .smoke-particle:nth-child(2) { left: 0px; animation-delay: 0.5s; }
+    .smoke-particle:nth-child(3) { left: 4px; animation-delay: 1s; }
+
+    @keyframes smokeRise {
+      0% { transform: translateY(0) scale(0.5); opacity: 0; }
+      30% { opacity: 0.7; }
+      100% { transform: translateY(-22px) scale(1.3); opacity: 0; }
+    }
+
+    /* 花瓶 */
+    .vase {
+      width: 28px;
+      height: 34px;
+      position: relative;
+    }
+
+    .vase-flowers {
+      display: none;
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+    }
+
+    .offering-item.has-flowers .offering-icon::after {
+      content: '🌸';
+      position: absolute;
+      top: -12px;
+      right: -10px;
+      font-size: 22px;
+      animation: flowersBloom 0.5s ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes flowersBloom {
+      0% { transform: translateX(-50%) scale(0); }
+      50% { transform: translateX(-50%) scale(1.2); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+
+    /* 果盘、点心、茶杯 */
+    .fruit-plate, .dessert-plate, .teacup {
+      width: 72px;
+      height: 62px;
+      position: relative;
+    }
+
+    .plate-content {
+      display: none;
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 42px;
+    }
+
+    .fruit-plate.has-content .plate-content,
+    .dessert-plate.has-content .plate-content,
+    .teacup.has-content .plate-content {
+      display: block;
+      animation: contentAppear 0.3s ease-out;
+    }
+
+    @keyframes contentAppear {
+      0% { transform: translateX(-50%) scale(0); opacity: 0; }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+
+    /* 跪拜垫 */
+    .prayer-mat {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #8B4513 0%, #654321 100%);
+      padding: 8px 40px;
+      border-radius: 8px;
+      border: 2px solid #D4AF37;
+      color: #FFD700;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 20;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+
+    .prayer-mat:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+
+    .prayer-mat.kneeling {
+      animation: kneelAnimation 1s ease-in-out;
+    }
+
+    @keyframes kneelAnimation {
+      0%, 100% { transform: translateX(-50%) scaleY(1); }
+      50% { transform: translateX(-50%) scaleY(0.8); }
+    }
+
+    /* ============ 右侧中部按钮（放生在上，祈福在下，屏幕中间最靠右） ============ */
+    .memorial-btn-left {
+      position: absolute;
+      right: 0px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 180;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 50px;
+      height: auto;
+      background: none;
+      border: none;
+      padding: 0;
+      left: auto;
+    }
+
+    .memorial-btn-left .circle-btn {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, rgba(139,69,19,0.9), rgba(93,64,55,0.95));
+      border: 2px solid #D4AF37;
+      border-radius: 50%;
+      color: #FFD700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 2px;
+    }
+
+    .memorial-btn-left .circle-btn .btn-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .memorial-btn-left .circle-btn .btn-label {
+      font-size: 9px;
+      margin-top: 2px;
+      line-height: 1;
+    }
+
+    .memorial-btn-left .circle-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ============ 供桌背景铺满屏幕 ============ */
+    .pray-page {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #1a0f0a 0%, #2d1810 30%, #3d2416 50%, #2d1810 70%, #1a0f0a 100%);
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    /* ============ 左下角先人按钮（心愿输入框左上方，无框） ============ */
+    .bottom-left-ancestor {
+      position: absolute;
+      left: 4px;
+      top: -55px;
+      z-index: 210;
+    }
+
+    .ancestor-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 3px 6px;
+      color: #FFD700;
+      transition: transform 0.2s;
+    }
+
+    .ancestor-btn .ancestor-icon {
+      font-size: 24px;
+      line-height: 1;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+
+    .ancestor-btn .ancestor-label {
+      font-size: 10px;
+      margin-top: 1px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .ancestor-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ============ 底部功能区（输入框 + 按钮） ============ */
+    .bottom-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      background: linear-gradient(180deg, transparent, rgba(62, 39, 35, 0.95));
+      padding: 6px 12px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 订单滚动模块 */
+    .order-buttons {
+      position: absolute;
+      left: 8px;
+      bottom: 60px;
+      width: 210px;
+      height: 82px;
+      z-index: 180;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .order-btn {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 2px 2px;
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 500;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 18px;
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 0;
+      text-shadow: none;
+      animation: orderFloatUp 18s linear infinite;
+    }
+
+    .order-btn:nth-child(1) { animation-delay: 0s; }
+    .order-btn:nth-child(2) { animation-delay: -3s; }
+    .order-btn:nth-child(3) { animation-delay: -6s; }
+    .order-btn:nth-child(4) { animation-delay: -9s; }
+    .order-btn:nth-child(5) { animation-delay: -12s; }
+    .order-btn:nth-child(6) { animation-delay: -15s; }
+
+    .order-btn .icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      flex-shrink: 0;
+      border: 1px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    .order-btn .order-text {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: #FFF5D6;
+    }
+
+    .order-btn .order-nick {
+      color: #FFD700;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    @keyframes orderFloatUp {
+      0%   { transform: translateY(40px);   opacity: 0; }
+      10%  { transform: translateY(0);     opacity: 1; }
+      85%  { transform: translateY(-75px); opacity: 1; }
+      100% { transform: translateY(-85px);  opacity: 0; }
+    }
+
+    /* 求签按钮 */
+    .wish-bucket-bar {
+      position: absolute;
+      top: -60px;
+      right: 0px;
+      z-index: 210;
+    }
+
+    .wish-bucket-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(139,69,19,0.9), rgba(93,64,55,0.95));
+      border: 2px solid #D4AF37;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+      text-decoration: none;
+      color: #FFD700;
+      gap: 0;
+      padding: 0;
+    }
+
+    .wish-bucket-btn .btn-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .wish-bucket-btn .btn-label {
+      font-size: 9px;
+      margin-top: 1px;
+      line-height: 1;
+    }
+
+    .wish-bucket-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 许愿输入区 */
+    .wish-input-area {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin: 0 2px;
+    }
+
+    .wish-input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      height: 42px;
+    }
+
+    .wish-icon-left {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      z-index: 2;
+      line-height: 1;
+    }
+
+    .wish-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 48px 0 44px;
+      border: 2px solid #D4AF37;
+      background: rgba(255, 248, 220, 0.95);
+      color: #4A3728;
+      font-size: 14px;
+      outline: none;
+      border-radius: 22px;
+      font-family: inherit;
+    }
+
+    .wish-input::placeholder {
+      color: #8B7355;
+    }
+
+    .wish-send-btn {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D4AF37, #8B4513);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(139,69,19,0.4);
+      z-index: 2;
+    }
+
+    .wish-send-btn:active {
+      transform: translateY(-50%) scale(0.92);
+    }
+
+    /* ============ 文字语音对话弹窗 ============ */
+    .dialog-modal-mask {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1500;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .dialog-modal-mask.show { display: flex; }
+
+    .dialog-modal-card {
+      width: 100%;
+      max-width: 500px;
+      background: linear-gradient(180deg, #fff 0%, #FFF8EC 100%);
+      border-radius: 24px 24px 0 0;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 50px rgba(0,0,0,0.3);
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 2px solid rgba(184,134,11,0.3);
+      background: linear-gradient(135deg, #FFF8EC 0%, #FFEFC1 100%);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .dialog-header-left { display: flex; align-items: center; gap: 10px; }
+    .dialog-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D4AF37, #8B5A2B);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(139,90,43,0.3);
+    }
+    .dialog-title-group { display: flex; flex-direction: column; }
+    .dialog-title { font-family: 'Ma Shan Zheng', cursive; font-size: 15px; color: #4A3728; letter-spacing: 2px; font-weight: bold; }
+    .dialog-subtitle { font-size: 11px; color: #8B7355; margin-top: 2px; letter-spacing: 1px; }
+
+    .dialog-close-btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(139,90,43,0.1);
+      color: #8B5A2B;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .dialog-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 200px;
+    }
+
+    .dialog-msg {
+      display: flex;
+      gap: 8px;
+      max-width: 85%;
+      align-items: flex-start;
+    }
+    .dialog-msg.ai { align-self: flex-start; }
+    .dialog-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+    .dialog-msg-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .dialog-msg.ai .dialog-msg-avatar { background: linear-gradient(135deg, #D4AF37, #8B5A2B); box-shadow: 0 2px 6px rgba(139,90,43,0.3); }
+    .dialog-msg.user .dialog-msg-avatar { background: linear-gradient(135deg, #FFD700, #FFA500); }
+
+    .dialog-bubble {
+      background: rgba(139,90,43,0.08);
+      padding: 8px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      color: #4A3728;
+      line-height: 1.5;
+      letter-spacing: 1px;
+    }
+    .dialog-msg.ai .dialog-bubble { border-bottom-left-radius: 4px; }
+    .dialog-msg.user .dialog-bubble {
+      background: linear-gradient(135deg, #FFEFC1 0%, #FFDB85 100%);
+      border-bottom-right-radius: 4px;
+    }
+
+    .dialog-typing { display: inline-flex; gap: 4px; align-items: center; }
+    .dialog-typing span {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #8B7355;
+    }
+
+    .dialog-input-area {
+      padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      border-top: 2px solid rgba(184,134,11,0.2);
+      background: rgba(255,248,220,0.6);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dialog-voice-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 2px solid #D4AF37;
+      background: linear-gradient(135deg, #FFEFC1, #D4AF37);
+      color: #4A3728;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(184,134,11,0.3);
+      flex-shrink: 0;
+    }
+    .dialog-voice-btn.recording { background: linear-gradient(135deg, #FF6347, #FF4500); color: #fff; }
+    .dialog-text-input {
+      flex: 1;
+      border: 2px solid rgba(184,134,11,0.3);
+      background: #fff;
+      border-radius: 22px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #4A3728;
+      outline: none;
+      font-family: inherit;
+    }
+    .dialog-send-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D4AF37, #8B5A2B);
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(139,90,43,0.4);
+      flex-shrink: 0;
+    }
+
+    /* ============ 飘字效果 ============ */
+    .floating-text {
+      position: fixed;
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 20px;
+      text-shadow: 0 0 10px #FF8C00, 0 2px 4px rgba(0,0,0,0.5);
+      pointer-events: none;
+      animation: floatUp 2s ease-out forwards;
+      z-index: 500;
+      white-space: nowrap;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-100px) scale(1); opacity: 0; }
+    }
+
+    /* ============ 弹窗 ============ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 480px;
+      max-height: 80vh;
+      background: linear-gradient(180deg, #FFFEF5 0%, #FFF8DC 100%);
+      border-radius: 24px;
+      overflow-y: auto;
+      animation: fadeInScale 0.3s ease-out;
+    }
+
+    .modal-overlay.show .modal-card {
+      /* transform handled by fadeInScale animation */
+    }
+
+    @keyframes fadeInScale {
+      0% { opacity: 0; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      color: #8B4513;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .modal-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(139,69,19,0.3);
+      border: none;
+      color: #FFF;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-content {
+      padding: 20px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 15px 20px;
+      padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-cancel, .btn-confirm {
+      flex: 1;
+      padding: 12px;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-cancel {
+      background: #EEE;
+      color: #8B4513;
+    }
+
+    .btn-confirm {
+      background: linear-gradient(135deg, #FF6347, #FF4500);
+      color: #FFF;
+    }
+
+    /* 上香选项 */
+    .incense-option {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 14px;
+      background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .incense-option.selected {
+      border-color: #FF6347;
+      background: linear-gradient(135deg, #FFE4B5, #FFD700);
+    }
+
+    .incense-option:active {
+      transform: scale(0.98);
+    }
+
+    .incense-emoji {
+      font-size: 36px;
+    }
+
+    .incense-info {
+      flex: 1;
+    }
+
+    .incense-name {
+      color: #8B4513;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .incense-desc {
+      color: #A0522D;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .incense-cost {
+      color: #FF6347;
+      font-weight: bold;
+    }
+
+    /* 点灯选项 */
+    .lamp-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .lamp-option.selected {
+      border-color: #FF6347;
+      transform: scale(1.02);
+    }
+
+    .lamp-option:active {
+      transform: scale(0.98);
+    }
+
+    .lamp-emoji {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .lamp-name {
+      font-weight: bold;
+      font-size: 14px;
+      color: #FFF;
+    }
+
+    .lamp-info {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    /* 供奉选项 */
+    .offering-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #FFF8DC;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .offering-option.selected {
+      border-color: #FF6347;
+    }
+
+    .offering-option-emoji {
+      font-size: 32px;
+    }
+
+    .offering-option-info {
+      flex: 1;
+    }
+
+    /* ============ 飘字容器 ============ */
+    #floatingTextContainer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 300;
+    }
+
+    /* 付费气泡 */
+    .recharge-bubble {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #FF6347, #FF4500);
+      color: #FFF;
+      border: 2px solid #FFD700;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      animation: bubblePulse 1.5s ease-in-out infinite;
+      z-index: 50;
+    }
+
+    @keyframes bubblePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    /* 计数显示 */
+    .countdown {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #FFD700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <!-- 主页面容器 -->
+  <div class="pray-page">
+    <!-- 背景层（保留 bg-layer 结构，只修改 bg-day 的颜色为深棕金渐变） -->
+    <div class="bg-layer bg-day" id="bgLayer">
+      <div class="meteor"></div>
+      <div class="meteor"></div>
+      <div class="meteor"></div>
+    </div>
+
+    <!-- 用户自己的追思语大字滚动 -->
+    <div class="user-wish-banner">
+      <div class="user-wish-content" id="userWishContent">
+        <span class="user-wish-item">🕊️ 愿先人离苦得乐</span>
+        <span class="user-wish-item">🕊️ 愿先人往生极乐</span>
+        <span class="user-wish-item">🕊️ 愿先人莲品高登</span>
+        <span class="user-wish-item">🕊️ 愿先人安息自在</span>
+        <span class="user-wish-item">🕊️ 愿先人离苦得乐</span>
+        <span class="user-wish-item">🕊️ 愿先人往生极乐</span>
+        <span class="user-wish-item">🕊️ 愿先人莲品高登</span>
+        <span class="user-wish-item">🕊️ 愿先人安息自在</span>
+      </div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <div class="top-nav">
+      <!-- 左上角：用户信息 + 佛光欢喜状态 -->
+      <div class="user-info" id="userInfoBtn" onclick="goToProfile()">
+        <div class="user-avatar">🙏</div>
+        <div class="user-details">
+          <span class="user-name" id="userName">游客</span>
+          <div class="status-bar-inline">
+              <span>🔥 <b id="buddhaLight">0</b></span>
+              <span>💰 <b id="joyCount">100</b></span>
+            </div>
+          <span class="user-level" id="userLevel">Lv.1 信众</span>
+        </div>
+      </div>
+
+      <!-- 右上角：天使按钮（无框） + 喇叭按钮（无框） -->
+      <div class="top-right-group">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+          <button class="icon-btn-no-frame" onclick="alert('天使守护中...')" title="天使守护">👼</button>
+          <span style="font-size:9px;color:#FFD700;text-shadow:0 1px 2px rgba(0,0,0,0.5);">天使</span>
+        </div>
+        <button class="icon-btn-no-frame sound-toggle-btn" id="soundToggle" onclick="toggleSound()" title="声音"><span class="btn-icon">🔔</span></button>
+      </div>
+    </div>
+
+    <!-- 先人照片区（光环和照片下移到屏幕居中位置） -->
+    <div class="buddha-container" id="buddhaContainer">
+      <!-- 佛光光环（缩小） -->
+      <div class="buddha-halo">
+        <div class="halo-ring r1"></div>
+        <div class="halo-ring r2"></div>
+        <div class="halo-ring r3"></div>
+        <div class="halo-glow"></div>
+      </div>
+
+      <!-- 先人照片卡片（缩小到原来的一半左右） -->
+      <div class="buddha-statue" id="deceasedPhoto" onclick="bathingBuddha()">
+        <div class="deceased-photo-icon">🕊️</div>
+        <div class="deceased-photo-title">先人遗像</div>
+        <div class="deceased-photo-sub">供奉 · 追思</div>
+      </div>
+    </div>
+
+    <!-- 左侧中部：祈福按钮（上） + 放生按钮（下） -->
+    <div class="memorial-btn-left">
+      <a href="animal-release.html" class="circle-btn">
+        <span class="btn-icon">🐟</span>
+        <span class="btn-label">放生</span>
+      </a>
+      <a href="index.html" class="circle-btn">
+        <span class="btn-icon">🏛️</span>
+        <span class="btn-label">祈福</span>
+      </a>
+    </div>
+
+    <!-- 右侧中部：（已移除放生按钮，合并到左侧） -->
+    <div></div>
+
+    <!-- 供桌 -->
+    <div class="offerings-table">
+      <div class="table-surface">
+        <!-- 第1排：花瓶 + 莲花灯 + 香炉 + 莲花灯 + 花瓶 -->
+        <div class="offering-row row-1">
+          <div class="offering-item" id="leftVase" onclick="showSimpleOfferingModal('花瓶', '🌸', '确认插一束鲜花供奉先人？', '+100 佛光', 'flower-left')">
+            <span class="offering-icon" id="leftVaseFlowers">🏺</span>
+            <span class="offering-label">花瓶</span>
+          </div>
+          <div class="offering-item" id="leftLamp" onclick="showSimpleOfferingModal('莲花灯', '🪷', '确认点亮一盏莲花灯？', '+10 佛光', 'lamp-left')">
+            <span class="offering-icon">🪷</span>
+            <span class="offering-label">莲花灯</span>
+          </div>
+          <div class="offering-item" id="incenseBurner" onclick="showSimpleOfferingModal('香炉', '🪬', '确认供奉三支清香？', '+10 佛光', 'incense')">
+            <span class="offering-icon">🪬</span>
+            <span class="offering-label">香炉</span>
+          </div>
+          <div class="offering-item" id="rightLamp" onclick="showSimpleOfferingModal('莲花灯', '🪷', '确认点亮一盏莲花灯？', '+10 佛光', 'lamp-right')">
+            <span class="offering-icon">🪷</span>
+            <span class="offering-label">莲花灯</span>
+          </div>
+          <div class="offering-item" id="rightVase" onclick="showSimpleOfferingModal('花瓶', '🌸', '确认插一束鲜花供奉先人？', '+100 佛光', 'flower-right')">
+            <span class="offering-icon" id="rightVaseFlowers">🏺</span>
+            <span class="offering-label">花瓶</span>
+          </div>
+        </div>
+        <!-- 第2排：茅台酒、果盘、烤全羊、点心、热茶 -->
+        <div class="offering-row row-2">
+          <div class="offering-item" id="moutaiWine" onclick="showSimpleOfferingModal('茅台酒', '🍾', '确认供奉茅台酒？', '+150 佛光', 'moutai')">
+            <span class="offering-icon" id="moutaiContent">🍾</span>
+            <span class="offering-label">茅台酒</span>
+          </div>
+          <div class="offering-item" id="fruitPlate" onclick="showSimpleOfferingModal('果盘', '🍇', '确认供奉鲜果？', '+100 佛光', 'fruit')">
+            <span class="offering-icon" id="fruitContent">🍇</span>
+            <span class="offering-label">果盘</span>
+          </div>
+          <div class="offering-item roast-center" id="roastAnimal" onclick="showSimpleOfferingModal('烤全羊', '🐑', '确认供奉整只烤全羊？', '+200 佛光', 'roast')">
+            <span class="offering-icon" id="roastContent">🐑</span>
+            <span class="offering-label">烤全羊</span>
+          </div>
+          <div class="offering-item" id="dessertPlate" onclick="showSimpleOfferingModal('点心', '🥮', '确认供奉点心？', '+100 佛光', 'dessert')">
+            <span class="offering-icon" id="dessertContent">🥮</span>
+            <span class="offering-label">点心</span>
+          </div>
+          <div class="offering-item" id="hotTea" onclick="showSimpleOfferingModal('热茶', '🍵', '确认供奉热茶？', '+50 佛光', 'tea')">
+            <span class="offering-icon" id="teaContent">🍵</span>
+            <span class="offering-label">热茶</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 跪拜垫 -->
+    <div class="prayer-mat" id="prayerMat" onclick="doPrayer()">跪拜</div>
+
+    <!-- 底部功能区 -->
+    <div class="bottom-area">
+      <!-- 左下角先人按钮（心愿输入框左上方） -->
+      <div class="bottom-left-ancestor">
+        <button class="ancestor-btn" onclick="showAncestorSceneModal()" title="添加先人">
+          <span class="ancestor-icon">🕯️</span>
+          <span class="ancestor-label">+先人</span>
+        </button>
+      </div>
+
+      <!-- 许愿输入区 -->
+      <div class="wish-input-area">
+        <div class="wish-input-wrapper">
+          <button class="wish-icon-left" onclick="makeWish()" title="合十许愿">🙏</button>
+          <input type="text" class="wish-input" id="wishInput" placeholder="在此输入您的追思回向心愿..." maxlength="50">
+          <button class="wish-send-btn" onclick="sendWish()" title="发送心愿">➤</button>
+        </div>
+        <!-- 对话先人按钮（仅AI对话场景时显示） -->
+        <div class="wish-bucket-bar" id="chatBtnContainer" style="display:none;">
+          <button class="wish-bucket-btn" onclick="openChat()" title="对话">
+            <span class="btn-icon">🕊️</span>
+            <span class="btn-label">对话</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 飘字容器 -->
+    <div id="floatingTextContainer"></div>
+
+    <!-- 文字语音对话弹窗（对话先人） -->
+    <div class="dialog-modal-mask" id="dialogModal">
+      <div class="dialog-modal-card">
+        <div class="dialog-header">
+          <div class="dialog-header-left">
+            <div class="dialog-avatar" id="dialogAvatar">🕊️</div>
+            <div class="dialog-title-group">
+              <div class="dialog-title" id="dialogTitle">对话先人</div>
+              <div class="dialog-subtitle" id="dialogSubtitle">寄托思念，聆听回响</div>
+            </div>
+          </div>
+          <button class="dialog-close-btn" onclick="closeDialog()">✕</button>
+        </div>
+        <div class="dialog-messages" id="dialogMessages">
+          <div class="dialog-msg ai">
+            <div class="dialog-msg-avatar">🕊️</div>
+            <div class="dialog-bubble">阿弥陀佛。善哉。施主有何思念，尽管道来。愿先人离苦得乐，往生极乐。</div>
+          </div>
+        </div>
+        <div class="dialog-input-area">
+          <button class="dialog-voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+          <input type="text" class="dialog-text-input" id="dialogTextInput" placeholder="输入您的思念或回向..." maxlength="200">
+          <button class="dialog-send-btn" onclick="sendDialogMessage()">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 订单弹窗（通用） -->
+    <div class="modal-overlay" id="orderModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title" id="orderModalTitle">📋 订单记录</h3>
+          <button class="modal-close" onclick="closeModal('orderModal')">×</button>
+        </div>
+        <div class="modal-content">
+          <div style="padding:10px 0; border-bottom:1px dashed rgba(184,134,11,0.3); display:flex; justify-content:space-between; align-items:center;">
+            <div><strong>订单 #20260619001</strong></div>
+            <div style="color:#228B22;">已完成</div>
+          </div>
+          <div style="font-size:12px; color:#8B7355; margin-top:8px;">📅 2026-06-19 上午 10:23 · 💰 ¥ 60 元</div>
+          <div style="padding:12px 0; border-bottom:1px dashed rgba(184,134,11,0.3); display:flex; justify-content:space-between; align-items:center;">
+            <div><strong>订单 #20260619002</strong></div>
+            <div style="color:#228B22;">已完成</div>
+          </div>
+          <div style="font-size:12px; color:#8B7355; margin-top:8px;">📅 2026-06-19 下午 03:45 · 💰 ¥ 128 元</div>
+          <div style="padding:12px 0; display:flex; justify-content:space-between; align-items:center;">
+            <div><strong>订单 #20260618001</strong></div>
+            <div style="color:#D4AF37;">进行中</div>
+          </div>
+          <div style="font-size:12px; color:#8B7355; margin-top:8px;">📅 2026-06-18 下午 08:12 · 💰 ¥ 328 元</div>
+        </div>
+        <div style="margin-top:20px; text-align:center;">
+          <button class="incense-confirm-btn" onclick="closeModal('orderModal')" style="width:100%; padding:12px 0;">查看全部订单</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 上香弹窗 -->
+  <div class="modal-overlay" id="incenseModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🪬 请选择香烛</h3>
+        <button class="modal-close" onclick="closeModal('incenseModal')">×</button>
+      </div>
+      <div class="modal-content">
+        <div class="incense-option" data-type="3" onclick="selectIncense(this)">
+          <span class="incense-emoji">🕯️×3</span>
+          <div class="incense-info">
+            <div class="incense-name">三支清香</div>
+            <div class="incense-desc">2欢喜 · +1佛光</div>
+          </div>
+        </div>
+        <div class="incense-option" data-type="6" onclick="selectIncense(this)">
+          <span class="incense-emoji">🕯️×6</span>
+          <div class="incense-info">
+            <div class="incense-name">六支祈福</div>
+            <div class="incense-desc">5欢喜 · +2佛光</div>
+          </div>
+        </div>
+        <div class="incense-option" data-type="9" onclick="selectIncense(this)">
+          <span class="incense-emoji">🕯️×9</span>
+          <div class="incense-info">
+            <div class="incense-name">九支圆满</div>
+            <div class="incense-desc">8欢喜 · +3佛光</div>
+          </div>
+        </div>
+        <div class="incense-option" data-type="premium" onclick="selectIncense(this)">
+          <span class="incense-emoji">🏵️</span>
+          <div class="incense-info">
+            <div class="incense-name">每日头香</div>
+            <div class="incense-desc">50欢喜 · +10佛光</div>
+          </div>
+          <span class="incense-cost">热门</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('incenseModal')">取消</button>
+        <button class="btn-confirm" onclick="confirmIncense()">确认上香</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 点灯弹窗 -->
+  <div class="modal-overlay" id="lampModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🪔 请选择祈福灯</h3>
+        <button class="modal-close" onclick="closeModal('lampModal')">×</button>
+      </div>
+      <div class="modal-content">
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
+          <div class="lamp-option" style="background:linear-gradient(180deg,#FFD700,#FFA500);" data-type="wealth" onclick="selectLamp(this)">
+            <span class="lamp-emoji">💰</span>
+            <span class="lamp-name">财福灯</span>
+            <span class="lamp-info">8欢喜 · 持续1天 · +3佛光</span>
+          </div>
+          <div class="lamp-option" style="background:linear-gradient(180deg,#9370DB,#6A0DAD);" data-type="career" onclick="selectLamp(this)">
+            <span class="lamp-emoji">💼</span>
+            <span class="lamp-name">事业灯</span>
+            <span class="lamp-info">8欢喜 · 持续1天 · +3佛光</span>
+          </div>
+          <div class="lamp-option" style="background:linear-gradient(180deg,#FF69B4,#C71585);" data-type="love" onclick="selectLamp(this)">
+            <span class="lamp-emoji">💕</span>
+            <span class="lamp-name">姻缘灯</span>
+            <span class="lamp-info">8欢喜 · 持续1天 · +3佛光</span>
+          </div>
+          <div class="lamp-option" style="background:linear-gradient(180deg,#98FB98,#228B22);" data-type="health" onclick="selectLamp(this)">
+            <span class="lamp-emoji">🏥</span>
+            <span class="lamp-name">安康灯</span>
+            <span class="lamp-info">10欢喜 · 持续2天 · +4佛光</span>
+          </div>
+          <div class="lamp-option" style="background:linear-gradient(180deg,#87CEEB,#4169E1);" data-type="study" onclick="selectLamp(this)">
+            <span class="lamp-emoji">📚</span>
+            <span class="lamp-name">学业灯</span>
+            <span class="lamp-info">10欢喜 · 持续2天 · +4佛光</span>
+          </div>
+          <div class="lamp-option" style="background:linear-gradient(180deg,#FFD700,#FFEC8B);" data-type="safety" onclick="selectLamp(this)">
+            <span class="lamp-emoji">🛡️</span>
+            <span class="lamp-name">平安灯</span>
+            <span class="lamp-info">8欢喜 · 持续1天 · +3佛光</span>
+          </div>
+        </div>
+        <div class="lamp-option" style="background:linear-gradient(135deg,#FFD700,#FF8C00); margin-top:15px; text-align:center;" data-type="eternal" onclick="selectLamp(this)">
+          <span class="lamp-emoji">🏆</span>
+          <span class="lamp-name">长明灯</span>
+          <span class="lamp-info">100欢喜 · 持续7天 · +15佛光</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('lampModal')">取消</button>
+        <button class="btn-confirm" onclick="confirmLamp()">确认点灯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 供奉确认弹窗 -->
+  <div class="modal-overlay" id="offeringModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="offeringTitle">🙏 供奉先人</h3>
+        <button class="modal-close" onclick="closeModal('offeringModal')">×</button>
+      </div>
+      <div class="modal-content" id="offeringContent"></div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('offeringModal')">取消</button>
+        <button class="btn-confirm" onclick="confirmOffering()">确认供奉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 简单供奉确认弹窗 -->
+  <div class="modal-overlay" id="simpleOfferingModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="simpleOfferingTitle">🙏 供奉确认</h3>
+        <button class="modal-close" onclick="closeModal('simpleOfferingModal')">×</button>
+      </div>
+      <div class="modal-content" style="text-align:center; padding:30px 20px;">
+        <div style="font-size:70px; margin-bottom:15px;" id="simpleOfferingIcon">🪬</div>
+        <div style="font-size:16px; color:#8B4513; font-weight:bold; margin-bottom:8px;" id="simpleOfferingText">确认供奉？</div>
+        <div style="font-size:13px; color:#A0522D; margin-bottom:20px;" id="simpleOfferingSub">虔诚供奉，功德无量</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('simpleOfferingModal')">取消</button>
+        <button class="btn-confirm" id="simpleOfferingConfirmBtn" onclick="simpleOfferingConfirm()">确认供奉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景选择弹窗（先人） -->
+  <div class="modal-overlay" id="ancestorSceneModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🕯️ 选择追思场景</h3>
+        <button class="modal-close" onclick="closeModal('ancestorSceneModal')">×</button>
+      </div>
+      <div class="modal-content" id="ancestorSceneContent" style="padding:15px 10px;">
+        <div style="display:flex; flex-direction:column; gap:10px; text-align:center;">
+          <div onclick="showSceneConfirm('万佛超度')" style="background:linear-gradient(135deg,#FFF8DC,#F5DEB3); padding:12px 10px; border-radius:12px; cursor:pointer; border:2px solid #D4AF37;">
+            <div style="font-size:36px; margin-bottom:4px;">🙏</div>
+            <div style="font-size:13px; color:#8B4513; font-weight:bold;">万佛超度</div>
+            <div style="font-size:10px; color:#A0522D; margin-top:2px;">超度先人往生极乐</div>
+          </div>
+          <div onclick="showSceneConfirm('精美别墅')" style="background:linear-gradient(135deg,#FFF8DC,#F5DEB3); padding:12px 10px; border-radius:12px; cursor:pointer; border:2px solid #D4AF37;">
+            <div style="font-size:36px; margin-bottom:4px;">🏠</div>
+            <div style="font-size:13px; color:#8B4513; font-weight:bold;">精美别墅</div>
+            <div style="font-size:10px; color:#A0522D; margin-top:2px;">为先人供奉精美住所</div>
+          </div>
+          <div onclick="showSceneConfirm('鲜花环绕')" style="background:linear-gradient(135deg,#FFF8DC,#F5DEB3); padding:12px 10px; border-radius:12px; cursor:pointer; border:2px solid #D4AF37;">
+            <div style="font-size:36px; margin-bottom:4px;">💐</div>
+            <div style="font-size:13px; color:#8B4513; font-weight:bold;">鲜花环绕</div>
+            <div style="font-size:10px; color:#A0522D; margin-top:2px;">鲜花供奉寄哀思</div>
+          </div>
+          <div onclick="showSceneConfirm('婴灵超度')" style="background:linear-gradient(135deg,#FFF8DC,#F5DEB3); padding:12px 10px; border-radius:12px; cursor:pointer; border:2px solid #D4AF37;">
+            <div style="font-size:36px; margin-bottom:4px;">👶</div>
+            <div style="font-size:13px; color:#8B4513; font-weight:bold;">婴灵超度</div>
+            <div style="font-size:10px; color:#A0522D; margin-top:2px;">超度婴灵早日投胎</div>
+          </div>
+          <div onclick="showSceneConfirm('AI对话')" style="background:linear-gradient(135deg,#FFD700,#FFA500); padding:12px 10px; border-radius:12px; cursor:pointer; border:2px solid #D4AF37;">
+            <div style="font-size:36px; margin-bottom:4px;">🤖</div>
+            <div style="font-size:13px; color:#8B4513; font-weight:bold;">AI对话先人</div>
+            <div style="font-size:10px; color:#A0522D; margin-top:2px;">语音对话，延续思念（可上传声音文件）</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景确认弹窗（普通场景：万佛超度/精美别墅/鲜花环绕） -->
+  <div class="modal-overlay" id="sceneConfirmModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="sceneConfirmTitle">🕯️ 场景确认</h3>
+        <button class="modal-close" onclick="closeModal('sceneConfirmModal')">×</button>
+      </div>
+      <div class="modal-content" id="sceneConfirmContent" style="padding:15px 10px;">
+        <!-- 动态内容 -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('sceneConfirmModal')">取消</button>
+        <button class="btn-confirm" onclick="confirmScene()">确认供奉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 婴灵超度确认弹窗 -->
+  <div class="modal-overlay" id="infantConfirmModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">👶 婴灵超度确认</h3>
+        <button class="modal-close" onclick="closeModal('infantConfirmModal')">×</button>
+      </div>
+      <div class="modal-content" style="padding:15px 10px; text-align:center;">
+        <div style="font-size:60px; margin-bottom:15px;">🕯️</div>
+        <div style="font-size:13px; color:#A0522D; margin-bottom:15px; line-height:1.6;">
+          婴灵超度默认使用小金佛头像<br/>
+          请填写相关信息
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">逝去时间 <span style="color:red;">*</span></div>
+          <input type="text" id="infantTime" placeholder="如：2024年3月" style="width:100%; padding:10px; border:2px solid #D4AF37; border-radius:10px; font-size:13px; box-sizing:border-box; margin-bottom:10px; color:#4A3728;">
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">祷文（选填）</div>
+          <textarea id="infantPrayer" placeholder="输入您的祷文（选填）..." rows="2" style="width:100%; padding:10px; border:2px solid #D4AF37; border-radius:10px; font-size:13px; resize:none; box-sizing:border-box; color:#4A3728;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('infantConfirmModal')">取消</button>
+        <button class="btn-confirm" onclick="confirmInfant()">确认超度</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI对话场景确认弹窗 -->
+  <div class="modal-overlay" id="aiDialogConfirmModal">
+    <div class="modal-card" style="max-width:360px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🤖 AI对话先人确认</h3>
+        <button class="modal-close" onclick="closeModal('aiDialogConfirmModal')">×</button>
+      </div>
+      <div class="modal-content" style="padding:15px 10px;">
+        <div style="text-align:center; margin-bottom:15px;">
+          <div style="font-size:60px; margin-bottom:10px;">🤖</div>
+          <div style="font-size:13px; color:#A0522D; line-height:1.6;">上传先人照片和声音<br/>即可与先人AI语音对话</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">先人照片 <span style="color:red;">*</span></div>
+          <div style="border:2px dashed #D4AF37; border-radius:10px; padding:15px; text-align:center; margin-bottom:10px; cursor:pointer; background:#FFF8DC;" onclick="document.getElementById('aiPhotoInput').click()">
+            <input type="file" id="aiPhotoInput" accept="image/*" style="display:none;" onchange="previewAiPhoto(this)">
+            <div id="aiPhotoPreview" style="font-size:40px;">📷</div>
+            <div style="font-size:11px; color:#A0522D; margin-top:5px;">点击上传照片</div>
+          </div>
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">先人名字 <span style="color:red;">*</span></div>
+          <input type="text" id="aiName" placeholder="先人姓名" style="width:100%; padding:10px; border:2px solid #D4AF37; border-radius:10px; font-size:13px; box-sizing:border-box; margin-bottom:10px; color:#4A3728;">
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">关系</div>
+          <input type="text" id="aiRelation" placeholder="如：父亲、母亲" style="width:100%; padding:10px; border:2px solid #D4AF37; border-radius:10px; font-size:13px; box-sizing:border-box; margin-bottom:10px; color:#4A3728;">
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">祷文（选填）</div>
+          <textarea id="aiPrayer" placeholder="输入您的祷文（选填）..." rows="2" style="width:100%; padding:10px; border:2px solid #D4AF37; border-radius:10px; font-size:13px; resize:none; box-sizing:border-box; margin-bottom:10px; color:#4A3728;"></textarea>
+          <div style="font-size:12px; color:#8B4513; margin-bottom:5px;">先人声音文件（选填）</div>
+          <div style="border:2px dashed #D4AF37; border-radius:10px; padding:10px; text-align:center; cursor:pointer; background:#FFF8DC; margin-bottom:5px;" onclick="document.getElementById('aiVoiceInput').click()">
+            <input type="file" id="aiVoiceInput" accept="audio/*" style="display:none;" onchange="previewAiVoice(this)">
+            <div style="font-size:24px;">🎤</div>
+            <div style="font-size:11px; color:#A0522D; margin-top:3px;" id="aiVoiceFileName">点击上传声音文件</div>
+          </div>
+          <div style="font-size:10px; color:#A0522D; margin-top:3px;">支持 wav/mp3/ogg 格式</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('aiDialogConfirmModal')">取消</button>
+        <button class="btn-confirm" onclick="confirmAiDialog()">确认并开始对话</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 求签弹窗 -->
+  <div class="modal-overlay" id="shakeModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🎋 摇签筒求签</h3>
+        <button class="modal-close" onclick="closeModal('shakeModal')">×</button>
+      </div>
+      <div class="modal-content" style="text-align:center; padding:30px;">
+        <div id="shakeAnimation" style="font-size:80px; margin-bottom:20px;">🎋</div>
+        <div id="shakeResult" style="display:none;">
+          <div style="color:#8B4513; font-size:14px; margin-bottom:10px;">您抽到了：</div>
+          <div id="shakeFortune" style="color:#FF6347; font-size:24px; font-weight:bold; margin-bottom:15px;"></div>
+          <div id="shakeMeaning" style="color:#666; font-size:13px; line-height:1.7;"></div>
+        </div>
+        <div style="margin-top:15px; color:#A0522D; font-size:12px;">消耗 10 欢喜，每日限 1 次</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('shakeModal')">取消</button>
+        <button class="btn-confirm" id="startShake" onclick="startShake()">开始摇签</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 对话先人弹窗（保留旧结构以兼容） -->
+  <div class="modal-overlay" id="chatModal">
+    <div class="modal-card" style="height:70vh;">
+      <div class="modal-header">
+        <h3 class="modal-title">🕊️ 对话先人</h3>
+        <button class="modal-close" onclick="closeModal('chatModal')">×</button>
+      </div>
+      <div style="height:calc(100% - 60px); display:flex; flex-direction:column;">
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:15px;">
+          <div style="text-align:center; color:#8B7355; font-size:13px; margin-bottom:15px;">🙏 默念您的思念，愿先人安息自在...</div>
+        </div>
+        <div style="padding:10px; border-top:2px solid #D4AF37; display:flex; gap:8px;">
+          <!-- 上传文件按钮 -->
+          <div style="display:flex; gap:4px;">
+            <!-- 音频上传 -->
+            <label style="cursor:pointer; padding:8px; background:rgba(255,215,0,0.1); border-radius:12px; border:1px solid #D4AF37;" title="上传音频">
+              <input type="file" accept="audio/*" style="display:none;" onchange="uploadAudioFile(this)">
+              <span>🎤</span>
+            </label>
+            <!-- 视频上传 -->
+            <label style="cursor:pointer; padding:8px; background:rgba(255,215,0,0.1); border-radius:12px; border:1px solid #D4AF37;" title="上传视频">
+              <input type="file" accept="video/*" style="display:none;" onchange="uploadVideoFile(this)">
+              <span>🎬</span>
+            </label>
+          </div>
+          <input type="text" id="chatInput" placeholder="请输入您的思念..." style="flex:1; padding:10px; border:1px solid #D4AF37; border-radius:20px; outline:none;">
+          <button onclick="sendChat()" style="padding:10px 20px; background:linear-gradient(135deg,#FFD700,#FFA500); border:none; border-radius:20px; color:#FFF; cursor:pointer;">发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ 全局状态 ============
+    let appState = {
+      buddhaLight: 0,
+      joy: 100,
+      userName: '游客',
+      userLevel: 'Lv.1 信众',
+      incense: null,
+      lamps: { left: null, right: null },
+      offerings: {
+        leftFlower: false,
+        rightFlower: false,
+        fruit: false,
+        dessert: false,
+        roast: false,
+        moutai: false,
+        incense: false
+      },
+      shakeUsed: false,
+      aiDialogEnabled: false,
+      aiDialogName: '',
+      aiDialogRelation: '',
+      aiDialogPrayer: '',
+      aiDialogVoice: null,
+      aiDialogPhoto: null,
+      soundEnabled: true
+    };
+
+    // ============ 签文库 ============
+    const fortunes = [
+      {签:'第一签',吉凶:'大吉',内容:'天地交泰万物通',释义:'婚姻成就功名全，讼事和谐病自痊，若问营谋应得意。'},
+      {签:'第二签',吉凶:'中吉',内容:'春风得意马蹄疾',释义:'求名求利正当时，贵人接引自南离，谋事一成无阻碍。'},
+      {签:'第三签',吉凶:'小吉',内容:'花开有好望来多',释义:'行人喜庆病回春，蚕丝收成五谷丰，婚姻有约宜早定。'},
+      {签:'第四签',吉凶:'平吉',内容:'心闲犹恐未闲忙',释义:'目下虽见表章程，久后应须理旧盟，若问行人归未去。'},
+      {签:'第五签',吉凶:'小凶',内容:'近来有人送物来',释义:'近来音信未绸缪，枯木生花不再秋，云中飞去空中老。'}
+    ];
+
+    // ============ 初始化 ============
+    function init() {
+      loadState();
+      checkTimeBackground();
+      updateUI();
+      initEventListeners();
+    }
+
+    // ============ 音效系统 ============
+    function toggleSound() {
+      appState.soundEnabled = !appState.soundEnabled;
+      saveState();
+      updateUI();
+      if (appState.soundEnabled) playSound('bell');
+    }
+
+    let _audioCtx = null;
+    function playSound(type) {
+      if (!appState.soundEnabled) return;
+      try {
+        if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = _audioCtx.currentTime;
+        const osc = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+
+        if (type === 'bell') {
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(400, now + 0.8);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        } else if (type === 'click') {
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        } else if (type === 'incense') {
+          osc.frequency.setValueAtTime(500, now);
+          osc.frequency.exponentialRampToValueAtTime(250, now + 0.6);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        } else {
+          osc.frequency.setValueAtTime(600, now);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        }
+
+        osc.connect(gain).connect(_audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 1);
+      } catch (e) { /* 忽略音频错误 */ }
+    }
+
+    // ============ 背景切换 ============
+    function checkTimeBackground() {
+      const hour = new Date().getHours();
+      const bgLayer = document.getElementById('bgLayer');
+      if (hour < 6 || hour >= 18) {
+        bgLayer.className = 'bg-layer bg-night';
+      } else {
+        bgLayer.className = 'bg-layer bg-day';
+      }
+    }
+
+    // ============ 状态管理 ============
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('prayPageState');
+        if (saved) {
+          appState = {...appState, ...JSON.parse(saved)};
+        }
+      } catch(e) {}
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('prayPageState', JSON.stringify(appState));
+      } catch(e) {}
+    }
+
+    // ============ UI更新 ============
+    function updateUI() {
+      document.getElementById('buddhaLight').textContent = appState.buddhaLight;
+      document.getElementById('joyCount').textContent = appState.joy;
+      document.getElementById('userName').textContent = appState.userName;
+      document.getElementById('userLevel').textContent = appState.userLevel;
+
+      const soundBtn = document.getElementById('soundToggle');
+      if (soundBtn) soundBtn.textContent = appState.soundEnabled ? '🔔' : '🔕';
+
+      if (appState.lamps.left) {
+        document.getElementById('leftLamp').classList.add('lit');
+      }
+      if (appState.lamps.right) {
+        document.getElementById('rightLamp').classList.add('lit');
+      }
+      if (appState.offerings.incense) {
+        document.getElementById('incenseBurner').classList.add('burning');
+      }
+      if (appState.offerings.leftFlower) {
+        document.getElementById('leftVase').classList.add('has-flowers');
+      }
+      if (appState.offerings.rightFlower) {
+        document.getElementById('rightVase').classList.add('has-flowers');
+      }
+      if (appState.offerings.fruit) {
+        const el = document.getElementById('fruitPlate');
+        if (el) el.classList.add('has-content');
+      }
+      if (appState.offerings.dessert) {
+        const el = document.getElementById('dessertPlate');
+        if (el) el.classList.add('has-content');
+      }
+      if (appState.offerings.roast) {
+        const el = document.getElementById('roastAnimal');
+        if (el) el.classList.add('has-content');
+      }
+      if (appState.offerings.moutai) {
+        const el = document.getElementById('moutaiWine');
+        if (el) el.classList.add('has-content');
+      }
+    }
+
+    // ============ 事件监听 ============
+    function initEventListeners() {
+      document.getElementById('wishInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendWish();
+      });
+    }
+
+    // ============ 弹窗控制 ============
+    function openModal(id) {
+      document.getElementById(id).classList.add('show');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // ============ 供奉弹窗（供奉先人） ============
+    function showOfferingModal(type) {
+      document.getElementById('offeringTitle').textContent = '🙏 供奉先人';
+      document.getElementById('offeringContent').innerHTML = `
+        <div style="text-align:center; padding:20px 10px;">
+          <div style="font-size:70px; margin-bottom:15px;">🏛️</div>
+          <div style="font-size:16px; color:#8B4513; font-weight:bold; margin-bottom:10px;">${type || '供奉先人'}</div>
+          <div style="font-size:13px; color:#A0522D; margin-bottom:20px; line-height:1.8;">
+            请选择您想要供奉的类型。<br/>
+            虔诚供奉，功德无量。
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:15px;">
+            <div onclick="confirmBuddhaOffering('鲜果', 'fruit')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🍇 供奉鲜果<br/><span style="font-size:10px; font-weight:normal;">¥ 88 元</span>
+            </div>
+            <div onclick="confirmBuddhaOffering('莲花灯', 'lamp')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🪷 供奉莲花灯<br/><span style="font-size:10px; font-weight:normal;">¥ 108 元</span>
+            </div>
+            <div onclick="confirmBuddhaOffering('点心', 'dessert')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🥮 供奉点心<br/><span style="font-size:10px; font-weight:normal;">¥ 68 元</span>
+            </div>
+            <div onclick="confirmBuddhaOffering('茅台酒', 'moutai')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🍶 供奉茅台酒<br/><span style="font-size:10px; font-weight:normal;">¥ 188 元</span>
+            </div>
+            <div onclick="selectRoastAnimal()" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513; grid-column:span 2;">
+              🍗 供奉烤全牲（烤鸡/烤猪/烤羊）<br/><span style="font-size:10px; font-weight:normal;">¥ 288 元</span>
+            </div>
+          </div>
+        </div>
+      `;
+      openModal('offeringModal');
+    }
+
+    function selectRoastAnimal() {
+      document.getElementById('offeringContent').innerHTML = `
+        <div style="text-align:center; padding:20px 10px;">
+          <div style="font-size:50px; margin-bottom:15px;">🍗</div>
+          <div style="font-size:16px; color:#8B4513; font-weight:bold; margin-bottom:15px;">选择烤全牲类型</div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:15px;">
+            <div onclick="confirmBuddhaOffering('烤鸡', 'roast-chicken')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🐔 烤鸡<br/><span style="font-size:10px; font-weight:normal;">¥ 188 元</span>
+            </div>
+            <div onclick="confirmBuddhaOffering('烤猪', 'roast-pig')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🐷 烤猪<br/><span style="font-size:10px; font-weight:normal;">¥ 288 元</span>
+            </div>
+            <div onclick="confirmBuddhaOffering('烤羊', 'roast-lamb')" style="background:linear-gradient(180deg,#FFD700,#FFA500); padding:12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:bold; color:#8B4513;">
+              🐑 烤羊<br/><span style="font-size:10px; font-weight:normal;">¥ 388 元</span>
+            </div>
+          </div>
+          <div style="font-size:12px; color:#A0522D; margin-top:10px; cursor:pointer;" onclick="showOfferingModal('供奉先人')">← 返回选择</div>
+        </div>
+      `;
+    }
+
+    function confirmBuddhaOffering(name, type) {
+      // Handle different offering types
+      if (type === 'fruit') {
+        appState.offerings.fruit = true;
+        const el = document.getElementById('fruitPlate');
+        if (el) el.classList.add('has-content');
+        appState.buddhaLight += 100;
+      } else if (type === 'lamp') {
+        appState.lamps.left = 'simple';
+        const el = document.getElementById('leftLamp');
+        if (el) el.classList.add('lit');
+        appState.buddhaLight += 100;
+      } else if (type === 'dessert') {
+        appState.offerings.dessert = true;
+        const el = document.getElementById('dessertPlate');
+        if (el) el.classList.add('has-content');
+        appState.buddhaLight += 80;
+      } else if (type === 'moutai') {
+        appState.offerings.moutai = true;
+        const el = document.getElementById('moutaiWine');
+        if (el) el.classList.add('has-content');
+        appState.buddhaLight += 150;
+      } else if (type && type.startsWith('roast-')) {
+        appState.offerings.roast = true;
+        // Update the roast animal icon based on selection
+        const roastEl = document.getElementById('roastContent');
+        if (roastEl) {
+          if (type === 'roast-chicken') roastEl.textContent = '🐔';
+          else if (type === 'roast-pig') roastEl.textContent = '🐷';
+          else if (type === 'roast-lamb') roastEl.textContent = '🐑';
+        }
+        const el = document.getElementById('roastAnimal');
+        if (el) el.classList.add('has-content');
+        appState.buddhaLight += 200;
+      }
+
+      closeModal('offeringModal');
+      saveState();
+      updateUI();
+      alert('已供奉' + name + '，功德无量！');
+    }
+
+    // 简单供奉确认入口
+    let currentSimpleOffering = null;
+
+    function showSimpleOfferingModal(title, icon, text, sub, key) {
+      document.getElementById('simpleOfferingTitle').textContent = '🙏 ' + title + ' 供奉确认';
+      document.getElementById('simpleOfferingIcon').textContent = icon;
+      document.getElementById('simpleOfferingText').textContent = text;
+      document.getElementById('simpleOfferingSub').textContent = sub;
+      currentSimpleOffering = key;
+
+      let alreadyOffered = false;
+      if (key === 'incense' && appState.offerings && appState.offerings.incense) alreadyOffered = true;
+      if (key === 'lamp-left' && appState.lamps.left) alreadyOffered = true;
+      if (key === 'lamp-right' && appState.lamps.right) alreadyOffered = true;
+      if (key === 'flower-left' && appState.offerings.leftFlower) alreadyOffered = true;
+      if (key === 'flower-right' && appState.offerings.rightFlower) alreadyOffered = true;
+      if (key === 'fruit' && appState.offerings.fruit) alreadyOffered = true;
+      if (key === 'dessert' && appState.offerings.dessert) alreadyOffered = true;
+      if (key === 'roast' && appState.offerings.roast) alreadyOffered = true;
+      if (key === 'moutai' && appState.offerings.moutai) alreadyOffered = true;
+
+      const confirmBtn = document.getElementById('simpleOfferingConfirmBtn');
+      if (alreadyOffered) {
+        document.getElementById('simpleOfferingText').textContent = '您已供奉过' + title;
+        document.getElementById('simpleOfferingSub').textContent = '感谢您的虔诚供奉';
+        confirmBtn.style.display = 'none';
+      } else {
+        confirmBtn.style.display = '';
+      }
+
+      openModal('simpleOfferingModal');
+    }
+
+    function simpleOfferingConfirm() {
+      if (!currentSimpleOffering) return;
+
+      const key = currentSimpleOffering;
+      let targetEl = null;
+      let lightGain = 0;
+      let cost = 0;
+
+      switch(key) {
+        case 'incense':
+          targetEl = document.getElementById('incenseBurner');
+          if (targetEl) {
+            targetEl.classList.add('burning');
+            appState.offerings.incense = true;
+          }
+          lightGain = 10;
+          playSound('incense');
+          break;
+          
+        case 'lamp-left':
+          targetEl = document.getElementById('leftLamp');
+          if (targetEl) {
+            targetEl.classList.add('lit');
+            appState.lamps.left = 'simple';
+          }
+          lightGain = 10;
+          playSound('click');
+          break;
+          
+        case 'lamp-right':
+          targetEl = document.getElementById('rightLamp');
+          if (targetEl) {
+            targetEl.classList.add('lit');
+            appState.lamps.right = 'simple';
+          }
+          lightGain = 10;
+          playSound('click');
+          break;
+          
+        case 'flower-left':
+          targetEl = document.getElementById('leftVase');
+          if (targetEl) {
+            targetEl.classList.add('has-flowers');
+            appState.offerings.leftFlower = true;
+          }
+          lightGain = 100;
+          cost = 1;
+          playSound('bell');
+          break;
+          
+        case 'flower-right':
+          targetEl = document.getElementById('rightVase');
+          if (targetEl) {
+            targetEl.classList.add('has-flowers');
+            appState.offerings.rightFlower = true;
+          }
+          lightGain = 100;
+          cost = 1;
+          playSound('bell');
+          break;
+
+        case 'fruit':
+          targetEl = document.getElementById('fruitPlate');
+          if (targetEl) {
+            targetEl.classList.add('has-content');
+            appState.offerings.fruit = true;
+          }
+          lightGain = 100;
+          cost = 1;
+          playSound('bell');
+          break;
+
+        case 'dessert':
+          targetEl = document.getElementById('dessertPlate');
+          if (targetEl) {
+            targetEl.classList.add('has-content');
+            appState.offerings.dessert = true;
+          }
+          lightGain = 100;
+          cost = 1;
+          playSound('bell');
+          break;
+
+        case 'roast':
+          targetEl = document.getElementById('roastAnimal');
+          if (targetEl) {
+            targetEl.classList.add('has-content');
+            appState.offerings.roast = true;
+          }
+          lightGain = 200;
+          cost = 2;
+          playSound('bell');
+          break;
+
+        case 'moutai':
+          targetEl = document.getElementById('moutaiWine');
+          if (targetEl) {
+            targetEl.classList.add('has-content');
+            appState.offerings.moutai = true;
+          }
+          lightGain = 150;
+          cost = 1;
+          playSound('bell');
+          break;
+      }
+
+      if (cost > 0 && !spendJoy(cost)) {
+        alert('欢喜余额不足！');
+        return;
+      }
+
+      appState.buddhaLight += lightGain;
+      saveState();
+      updateUI();
+
+      if (targetEl) {
+        showFloatingText('+' + lightGain + ' 佛光', targetEl);
+      }
+
+      closeModal('simpleOfferingModal');
+    }
+
+    // ============ 上香 ============
+    let selectedIncense = null;
+
+    function openIncenseModal() {
+      selectedIncense = null;
+      document.querySelectorAll('.incense-option').forEach(el => el.classList.remove('selected'));
+      openModal('incenseModal');
+    }
+
+    function selectIncense(el) {
+      document.querySelectorAll('.incense-option').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedIncense = el.dataset.type;
+    }
+
+    function confirmIncense() {
+      if (!selectedIncense) {
+        alert('请先选择香烛类型');
+        return;
+      }
+
+      playSound('incense');
+
+      document.getElementById('incenseBurner').classList.add('burning');
+
+      let light = 0;
+      switch(selectedIncense) {
+        case '3':
+          light = 1;
+          if (!spendJoy(2)) { alert('欢喜余额不足！'); return; }
+          break;
+        case '6':
+          light = 2;
+          if (!spendJoy(5)) { alert('欢喜余额不足！'); return; }
+          break;
+        case '9':
+          light = 3;
+          if (!spendJoy(8)) { alert('欢喜余额不足！'); return; }
+          break;
+        case 'premium':
+          light = 10;
+          if (!spendJoy(50)) { alert('欢喜余额不足！'); return; }
+          break;
+      }
+
+      appState.buddhaLight += light;
+      appState.offerings.incense = true;
+      saveState();
+      updateUI();
+      showFloatingText('+' + light + ' 佛光', incenseEl);
+      closeModal('incenseModal');
+    }
+
+    // ============ 点灯 ============
+    let selectedLamp = null;
+    let currentLampSide = null;
+
+    function openLampModal(side) {
+      selectedLamp = null;
+      currentLampSide = side;
+      document.querySelectorAll('.lamp-option').forEach(el => el.classList.remove('selected'));
+      openModal('lampModal');
+    }
+
+    function selectLamp(el) {
+      document.querySelectorAll('.lamp-option').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedLamp = el.dataset.type;
+    }
+
+    function confirmLamp() {
+      if (!selectedLamp) {
+        alert('请先选择祈福灯类型');
+        return;
+      }
+
+      playSound('click');
+
+      let cost = 0;
+      let light = 0;
+      switch(selectedLamp) {
+        case 'wealth':
+        case 'career':
+        case 'love':
+        case 'safety':
+          cost = 8; light = 3;
+          break;
+        case 'health':
+        case 'study':
+          cost = 10; light = 4;
+          break;
+        case 'eternal':
+          cost = 100; light = 15;
+          break;
+      }
+
+      if (cost > 0 && !spendJoy(cost)) {
+        alert('欢喜余额不足！');
+        return;
+      }
+
+      const lampEl = document.getElementById(currentLampSide + 'Lamp');
+      if (lampEl) lampEl.classList.add('lit');
+      appState.lamps[currentLampSide] = selectedLamp;
+
+      appState.buddhaLight += light;
+      saveState();
+      updateUI();
+      showFloatingText('+' + light + ' 佛光', lampEl);
+      closeModal('lampModal');
+    }
+
+    // ============ 供奉（通用） ============
+    let currentOffering = null;
+    let currentOfferingSide = null;
+
+    function openOfferingModal(type, side) {
+      currentOffering = type;
+      currentOfferingSide = side;
+
+      const titles = {
+        flower: '🌸 请选择鲜花供奉',
+        fruit: '🍇 请选择果品供奉',
+        dessert: '🥮 请选择点心供奉',
+        tea: '🍵 请选择茶水供奉'
+      };
+
+      const contents = {
+        flower: `
+          <div class="offering-option" onclick="selectOfferingOption('rose')">
+            <span class="offering-option-emoji">🌹</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">玫瑰花</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +100佛光</div>
+            </div>
+          </div>
+          <div class="offering-option" onclick="selectOfferingOption('lotus')">
+            <span class="offering-option-emoji">🪷</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">莲花</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +100佛光</div>
+            </div>
+          </div>
+        `,
+        fruit: `
+          <div class="offering-option" onclick="selectOfferingOption('apple')">
+            <span class="offering-option-emoji">🍎</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">苹果</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +100佛光</div>
+            </div>
+          </div>
+          <div class="offering-option" onclick="selectOfferingOption('peach')">
+            <span class="offering-option-emoji">🍑</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">蟠桃</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +150佛光</div>
+            </div>
+          </div>
+        `,
+        dessert: `
+          <div class="offering-option" onclick="selectOfferingOption('mooncake')">
+            <span class="offering-option-emoji">🥮</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">月饼</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +100佛光</div>
+            </div>
+          </div>
+          <div class="offering-option" onclick="selectOfferingOption('cake')">
+            <span class="offering-option-emoji">🍰</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">蛋糕</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +100佛光</div>
+            </div>
+          </div>
+        `,
+        tea: `
+          <div class="offering-option" onclick="selectOfferingOption('greentea')">
+            <span class="offering-option-emoji">🍵</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">清茶</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +100佛光</div>
+            </div>
+          </div>
+          <div class="offering-option" onclick="selectOfferingOption('longjing')">
+            <span class="offering-option-emoji">🫖</span>
+            <div class="offering-option-info">
+              <div style="font-weight:bold; color:#8B4513;">龙井</div>
+              <div style="font-size:12px; color:#A0522D;">1欢喜/7天 · +120佛光</div>
+            </div>
+          </div>
+        `
+      };
+
+      document.getElementById('offeringTitle').textContent = titles[type];
+      document.getElementById('offeringContent').innerHTML = contents[type];
+      openModal('offeringModal');
+    }
+
+    let selectedOfferingOption = null;
+
+    function selectOfferingOption(opt) {
+      document.querySelectorAll('.offering-option').forEach(e => e.classList.remove('selected'));
+      event.target.closest('.offering-option').classList.add('selected');
+      selectedOfferingOption = opt;
+    }
+
+    function confirmOffering() {
+      if (!selectedOfferingOption) {
+        alert('请先选择供奉物品');
+        return;
+      }
+
+      if (!spendJoy(1)) {
+        alert('欢喜余额不足！');
+        return;
+      }
+
+      playSound('bell');
+
+      if (currentOffering === 'flower') {
+        if (currentOfferingSide === 'left') {
+          appState.offerings.leftFlower = true;
+          document.getElementById('leftVase').classList.add('has-flowers');
+        } else {
+          appState.offerings.rightFlower = true;
+          document.getElementById('rightVase').classList.add('has-flowers');
+        }
+      } else if (currentOffering === 'fruit') {
+        appState.offerings.fruit = true;
+        const el = document.getElementById('fruitPlate');
+        if (el) el.classList.add('has-content');
+      } else if (currentOffering === 'dessert') {
+        appState.offerings.dessert = true;
+        const el = document.getElementById('dessertPlate');
+        if (el) el.classList.add('has-content');
+      } else if (currentOffering === 'roast') {
+        appState.offerings.roast = true;
+        const el = document.getElementById('roastAnimal');
+        if (el) el.classList.add('has-content');
+        appState.buddhaLight += 100;
+      } else if (currentOffering === 'moutai') {
+        appState.offerings.moutai = true;
+        const el = document.getElementById('moutaiWine');
+        if (el) el.classList.add('has-content');
+        appState.buddhaLight += 50;
+      }
+
+      saveState();
+      updateUI();
+      showFloatingText('+100 佛光', document.getElementById('buddhaContainer'));
+      closeModal('offeringModal');
+    }
+
+    // ============ 跪拜 ============
+    function doPrayer() {
+      const mat = document.getElementById('prayerMat');
+      mat.classList.add('kneeling');
+      setTimeout(() => mat.classList.remove('kneeling'), 1000);
+
+      playSound('bell');
+
+      appState.buddhaLight += 10;
+      saveState();
+      updateUI();
+      showFloatingText('+10 佛光', mat);
+    }
+
+    // ============ 浴佛（这里用作祭拜先人） ============
+    function bathingBuddha() {
+      const buddha = document.getElementById('deceasedPhoto');
+      buddha.classList.add('bathing');
+      setTimeout(() => buddha.classList.remove('bathing'), 500);
+
+      playSound('click');
+
+      appState.buddhaLight += 5;
+      saveState();
+      updateUI();
+      showFloatingText('+5 佛光', buddha);
+    }
+
+    // ============ 求签 ============
+    function openShakeModal() {
+      document.getElementById('shakeAnimation').style.display = 'block';
+      document.getElementById('shakeResult').style.display = 'none';
+      document.getElementById('startShake').style.display = 'block';
+      openModal('shakeModal');
+    }
+
+    function startShake() {
+      if (appState.shakeUsed) {
+        alert('今日已求过签，明日再来吧！');
+        return;
+      }
+
+      if (!spendJoy(10)) {
+        alert('欢喜余额不足！');
+        return;
+      }
+
+      playSound('incense');
+
+      const animEl = document.getElementById('shakeAnimation');
+      let count = 0;
+      const shakeInterval = setInterval(() => {
+        animEl.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+        count++;
+        if (count > 15) {
+          clearInterval(shakeInterval);
+          animEl.style.transform = 'rotate(0deg)';
+          showFortune();
+        }
+      }, 100);
+    }
+
+    function showFortune() {
+      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+      document.getElementById('shakeAnimation').style.display = 'none';
+      document.getElementById('shakeResult').style.display = 'block';
+      document.getElementById('startShake').style.display = 'none';
+      document.getElementById('shakeFortune').textContent = fortune.签 + ' ' + fortune.吉凶;
+      document.getElementById('shakeMeaning').textContent = fortune.内容 + '\n' + fortune.释义;
+
+      appState.shakeUsed = true;
+      appState.buddhaLight += 10;
+      saveState();
+      updateUI();
+      showFloatingText('+10 佛光', document.getElementById('shakeModal'));
+    }
+
+    // ============ 对话先人（右上对话按钮打开 dialog-modal） ============
+    function openChat() {
+      var name = appState.aiDialogName || '先人';
+      var relation = appState.aiDialogRelation || '';
+      var prayer = appState.aiDialogPrayer || '';
+      var photo = appState.aiDialogPhoto;
+      var avatarHtml = photo
+        ? '<img src="' + photo + '" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #D4AF37;">'
+        : '🕊️';
+      document.getElementById('dialogTitle').textContent = '🕊️ 对话 ' + name;
+      document.getElementById('dialogSubtitle').textContent = relation ? name + '（' + relation + '）' : name;
+      document.getElementById('dialogAvatar').innerHTML = avatarHtml;
+      var greeting = prayer ? '施主安好。"' + prayer + '"，阿弥陀佛。善哉善哉。施主有何思念，尽管道来。' : '阿弥陀佛。善哉善哉。施主有何思念，尽管道来。愿先人离苦得乐，往生极乐世界。';
+      document.getElementById('dialogMessages').innerHTML = `
+        <div class="dialog-msg ai">
+          <div class="dialog-msg-avatar">${avatarHtml}</div>
+          <div class="dialog-bubble">${greeting}</div>
+        </div>`;
+      document.getElementById('dialogModal').classList.add('show');
+    }
+
+    // ============ 场景选择弹窗 ============
+    let currentScene = null;
+
+    function showAncestorSceneModal() {
+      openModal('ancestorSceneModal');
+    }
+
+    function showSceneConfirm(scene) {
+      currentScene = scene;
+      document.getElementById('sceneConfirmTitle').textContent = '🕯️ ' + scene;
+      let icon = '🙏';
+      if (scene === '万佛超度') icon = '🙏';
+      else if (scene === '精美别墅') icon = '🏠';
+      else if (scene === '鲜花环绕') icon = '💐';
+      else if (scene === '婴灵超度') icon = '👶';
+      else if (scene === 'AI对话') icon = '🤖';
+      document.getElementById('sceneConfirmContent').innerHTML = `
+        <div style="text-align:center; padding:15px 10px;">
+          <div style="font-size:70px; margin-bottom:15px;">${icon}</div>
+          <div style="font-size:16px; color:#8B4513; font-weight:bold; margin-bottom:8px;">${scene}</div>
+          <div style="font-size:13px; color:#A0522D; margin-bottom:15px; line-height:1.6;">
+            ${scene === '万佛超度' ? '万佛慈悲，护佑先人往生极乐，脱离六道轮回之苦。' :
+              scene === '精美别墅' ? '为先人供奉精美别墅，使其在极乐世界安居乐业。' :
+              scene === '鲜花环绕' ? '以鲜花供奉，寄予哀思与祝福，愿先人安息。' : ''}
+          </div>
+          <div style="text-align:left;">
+            <div style="font-size:12px; color:#8B4513; margin-bottom:4px;">先人照片 <span style="color:red;">*</span></div>
+            <div style="border:2px dashed #D4AF37; border-radius:10px; padding:10px; text-align:center; margin-bottom:8px; cursor:pointer; background:#FFF8DC;" onclick="document.getElementById('scenePhotoInput').click()">
+              <input type="file" id="scenePhotoInput" accept="image/*" style="display:none;" onchange="previewScenePhoto(this)">
+              <div id="scenePhotoPreview" style="font-size:36px;">📷</div>
+              <div style="font-size:11px; color:#A0522D; margin-top:4px;">点击上传照片</div>
+            </div>
+            <div style="font-size:12px; color:#8B4513; margin-bottom:4px;">先人名字 <span style="color:red;">*</span></div>
+            <input type="text" id="sceneName" placeholder="先人姓名" style="width:100%; padding:8px 10px; border:2px solid #D4AF37; border-radius:8px; font-size:13px; box-sizing:border-box; margin-bottom:8px; color:#4A3728;">
+            <div style="font-size:12px; color:#8B4513; margin-bottom:4px;">关系</div>
+            <input type="text" id="sceneRelation" placeholder="如：父亲、母亲" style="width:100%; padding:8px 10px; border:2px solid #D4AF37; border-radius:8px; font-size:13px; box-sizing:border-box; margin-bottom:8px; color:#4A3728;">
+            <div style="font-size:12px; color:#8B4513; margin-bottom:4px;">祷文（选填）</div>
+            <textarea id="scenePrayer" placeholder="输入您的祷文（选填）..." rows="2" style="width:100%; padding:8px 10px; border:2px solid #D4AF37; border-radius:8px; font-size:13px; resize:none; box-sizing:border-box; margin-bottom:8px; color:#4A3728;"></textarea>
+          </div>
+        </div>
+      `;
+      closeModal('ancestorSceneModal');
+      if (scene === '婴灵超度') {
+        openModal('infantConfirmModal');
+      } else {
+        openModal('sceneConfirmModal');
+      }
+    }
+
+    function previewScenePhoto(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('scenePhotoPreview').innerHTML = '<img src="' + e.target.result + '" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function confirmScene() {
+      var name = document.getElementById('sceneName').value.trim();
+      if (!name) { alert('请填写先人姓名！'); return; }
+      
+      // 获取所有输入信息
+      var relation = document.getElementById('sceneRelation').value.trim();
+      var prayer = document.getElementById('scenePrayer').value.trim();
+      var photoInput = document.getElementById('scenePhotoInput');
+      var photoData = null;
+      
+      // 获取照片数据（如果有上传）
+      if (photoInput.files && photoInput.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          photoData = e.target.result;
+          saveAndDisplayAncestor(name, relation, prayer, photoData);
+        };
+        reader.readAsDataURL(photoInput.files[0]);
+      } else {
+        saveAndDisplayAncestor(name, relation, prayer, null);
+      }
+    }
+
+    function saveAndDisplayAncestor(name, relation, prayer, photoData) {
+      // 创建先人数据对象
+      var ancestor = {
+        id: Date.now().toString(),
+        name: name,
+        relation: relation || '亲人',
+        prayer: prayer,
+        photo: photoData,
+        scene: currentScene,
+        createdAt: new Date().toLocaleString('zh-CN')
+      };
+
+      // 保存到本地存储
+      var ancestors = JSON.parse(localStorage.getItem('ancestors') || '[]');
+      ancestors.push(ancestor);
+      localStorage.setItem('ancestors', JSON.stringify(ancestors));
+
+      // 关闭弹窗
+      closeModal('sceneConfirmModal');
+
+      // 更新佛光
+      appState.buddhaLight = (appState.buddhaLight || 0) + 50;
+      saveState();
+      updateUI();
+
+      // 即时在主页显示先人照片和信息
+      displayAncestorOnMain(ancestor);
+
+      // 显示成功消息
+      var msg = '🎉 ' + currentScene + '设置成功！\n先人：' + name;
+      if (relation) msg += '\n关系：' + relation;
+      if (prayer) msg += '\n祷文：' + prayer;
+      msg += '\n\n+50 佛光';
+      setTimeout(function() { alert(msg); }, 100);
+    }
+
+    function displayAncestorOnMain(ancestor) {
+      // 获取容器
+      var container = document.querySelector('.buddha-container');
+      if (!container) return;
+
+      // 创建新的先人卡片内容（保留光环结构）
+      var cardHTML = `
+        <!-- 佛光光环 -->
+        <div class="buddha-halo">
+          <div class="halo-ring r1"></div>
+          <div class="halo-ring r2"></div>
+          <div class="halo-ring r3"></div>
+          <div class="halo-glow"></div>
+        </div>
+        
+        <!-- 先人照片卡片 -->
+        <div class="buddha-statue" id="deceasedPhoto" onclick="bathingBuddha()" style="background:linear-gradient(180deg,#3d2416 0%,#2C1810 100%);">
+          ${ancestor.photo ? 
+            '<img src="' + ancestor.photo + '" style="width:100px; height:130px; border-radius:9px; object-fit:cover;">' : 
+            '<div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">' +
+              '<div class="deceased-photo-icon">🕊️</div>' +
+            '</div>'}
+        </div>
+        
+        <!-- 先人信息 -->
+        <div class="deceased-photo-title" style="margin-top:8px;">${ancestor.name}</div>
+        <div class="deceased-photo-sub">${ancestor.relation}</div>
+        ${ancestor.prayer ? '<div class="deceased-photo-sub" style="font-size:6px; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + ancestor.prayer + '</div>' : ''}
+      `;
+
+      // 更新容器内容
+      container.innerHTML = cardHTML;
+    }
+
+    function confirmInfant() {
+      var time = document.getElementById('infantTime').value.trim();
+      if (!time) { alert('请填写逝去时间！'); return; }
+      var prayer = document.getElementById('infantPrayer').value.trim();
+      closeModal('infantConfirmModal');
+      appState.buddhaLight = (appState.buddhaLight || 0) + 50;
+      saveState();
+      updateUI();
+      var msg = '🎉 婴灵超度设置成功！\n逝去时间：' + time;
+      if (prayer) msg += '\n祷文：' + prayer;
+      msg += '\n\n默认小金佛头像已设置\n+50 佛光';
+      setTimeout(function() { alert(msg); }, 100);
+    }
+
+    function previewAiPhoto(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('aiPhotoPreview').innerHTML = '<img src="' + e.target.result + '" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function previewAiVoice(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('aiVoiceFileName').textContent = input.files[0].name;
+      }
+    }
+
+    function confirmAiDialog() {
+      var name = document.getElementById('aiName').value.trim();
+      if (!name) { alert('请填写先人姓名！'); return; }
+      var relation = document.getElementById('aiRelation').value.trim();
+      var prayer = document.getElementById('aiPrayer').value.trim();
+      var voiceFile = document.getElementById('aiVoiceInput').files[0];
+      var photoFile = document.getElementById('aiPhotoInput').files[0];
+
+      closeModal('aiDialogConfirmModal');
+      appState.buddhaLight = (appState.buddhaLight || 0) + 50;
+      appState.aiDialogEnabled = true;
+      appState.aiDialogName = name;
+      appState.aiDialogRelation = relation;
+      appState.aiDialogPrayer = prayer;
+      if (photoFile) {
+        var reader = new FileReader();
+        reader.onload = function(e) { appState.aiDialogPhoto = e.target.result; };
+        reader.readAsDataURL(photoFile);
+      }
+      if (voiceFile) appState.aiDialogVoice = voiceFile.name;
+      saveState();
+      updateUI();
+
+      // Show chat button
+      document.getElementById('chatBtnContainer').style.display = 'block';
+
+      var msg = '🎉 AI对话先人设置成功！\n先人：' + name;
+      if (relation) msg += '（' + relation + '）';
+      if (prayer) msg += '\n祷文：' + prayer;
+      msg += '\n声音文件：' + (voiceFile ? '已上传' : '未上传');
+      msg += '\n\n+50 佛光\n\n点击「对话」按钮即可与先人对话！';
+      setTimeout(function() { alert(msg); }, 100);
+    }
+
+    // ============ 文字语音对话 ============
+    function closeDialog() {
+      document.getElementById('dialogModal').classList.remove('show');
+    }
+
+    function toggleVoice() {
+      const btn = document.getElementById('voiceBtn');
+      btn.classList.toggle('recording');
+      if (btn.classList.contains('recording')) {
+        btn.textContent = '⏹';
+        const fakeInput = document.getElementById('dialogTextInput');
+        fakeInput.value = '愿先人离苦得乐，往生极乐';
+        setTimeout(() => { btn.classList.remove('recording'); btn.textContent = '🎤'; sendDialogMessage(); }, 1600);
+      } else {
+        btn.textContent = '🎤';
+      }
+    }
+
+    function sendDialogMessage() {
+      const input = document.getElementById('dialogTextInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const messages = document.getElementById('dialogMessages');
+      const userMsg = document.createElement('div');
+      userMsg.className = 'dialog-msg user';
+      userMsg.innerHTML = `
+        <div class="dialog-msg-avatar">🙏</div>
+        <div class="dialog-bubble">${msg}</div>`;
+      messages.appendChild(userMsg);
+      input.value = '';
+      messages.scrollTop = messages.scrollHeight;
+
+      // 模拟 AI 回复（追思氛围）
+      setTimeout(() => {
+        const replies = [
+          '阿弥陀佛。施主所念，先人已知。放下执念，自有花开之时。',
+          '善哉。思念如灯，光明不灭。心安则先人安。',
+          '🙏 施主莫虑。世事无常，心安是归处。愿先人六时吉祥，万事顺遂。',
+          '阿弥陀佛。心若澄澈，先人自得度。愿您早日离苦。',
+          '佛曰：种如是因，得如是果。但行好事，莫问前程。先人必得以超度。'
+        ];
+        const reply = replies[Math.floor(Math.random() * replies.length)];
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'dialog-msg ai';
+        aiMsg.innerHTML = `
+          <div class="dialog-msg-avatar">🕊️</div>
+          <div class="dialog-bubble">${reply}</div>`;
+        messages.appendChild(aiMsg);
+        messages.scrollTop = messages.scrollHeight;
+        appState.buddhaLight += 5;
+        appState.joy = Math.min(9999, appState.joy + 2);
+        updateUI(); saveState(); playSound('bell');
+      }, 1000);
+    }
+
+    // ============ 左侧许愿按钮 ============
+    function makeWish() {
+      const input = document.getElementById('wishInput');
+      if (!input.value.trim()) {
+        input.value = '愿先人离苦得乐';
+        return;
+      }
+      sendWish();
+    }
+
+    // ============ 订单弹窗 ============
+    function showOrderModal(type) {
+      const titleMap = {
+        '供奉订单': '🪷 供奉订单记录',
+        '充值订单': '💰 充值订单记录',
+        '购买放生订单': '🐟 放生订单记录'
+      };
+      document.getElementById('orderModalTitle').textContent = titleMap[type] || '📋 订单记录';
+      openModal('orderModal');
+    }
+
+    // ============ 用户信息点击 ============
+    function goToProfile() {
+      try {
+        window.parent.goPage(7);
+      } catch(e) {
+        window.location.href = 'profile.html';
+      }
+    }
+
+    // ============ chat 简单发送（备用） ============
+    function sendChat() {
+      const input = document.getElementById('chatInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+      const container = document.getElementById('chatMessages');
+      const userMsg = document.createElement('div');
+      userMsg.style.cssText = 'text-align:right; padding:6px 10px; margin:4px 0; color:#8B4513;';
+      userMsg.textContent = '🙏 ' + msg;
+      container.appendChild(userMsg);
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+        const replies = [
+          '阿弥陀佛，愿先人离苦得乐。',
+          '善哉，思念如灯，光明不灭。',
+          '愿先人往生极乐，莲品高登。'
+        ];
+        const aiMsg = document.createElement('div');
+        aiMsg.style.cssText = 'text-align:left; padding:6px 10px; margin:4px 0; color:#A0522D; font-style:italic;';
+        aiMsg.textContent = '🕊️ ' + replies[Math.floor(Math.random() * replies.length)];
+        container.appendChild(aiMsg);
+        container.scrollTop = container.scrollHeight;
+      }, 800);
+    }
+
+    // ============ 上传音频文件 ============
+    function uploadAudioFile(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const container = document.getElementById('chatMessages');
+        
+        // 显示上传消息
+        const msg = document.createElement('div');
+        msg.style.cssText = 'text-align:right; padding:6px 10px; margin:4px 0; color:#8B4513;';
+        msg.innerHTML = '🎤 <span style="font-size:12px;">音频消息：' + file.name + '</span>';
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
+
+        // 模拟处理音频
+        setTimeout(() => {
+          const aiMsg = document.createElement('div');
+          aiMsg.style.cssText = 'text-align:left; padding:6px 10px; margin:4px 0; color:#A0522D; font-style:italic;';
+          aiMsg.textContent = '🕊️ 声声思念已传达，愿先人听闻。';
+          container.appendChild(aiMsg);
+          container.scrollTop = container.scrollHeight;
+        }, 1000);
+
+        // 重置input
+        input.value = '';
+      }
+    }
+
+    // ============ 上传视频文件 ============
+    function uploadVideoFile(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const container = document.getElementById('chatMessages');
+        
+        // 显示上传消息
+        const msg = document.createElement('div');
+        msg.style.cssText = 'text-align:right; padding:6px 10px; margin:4px 0; color:#8B4513;';
+        msg.innerHTML = '🎬 <span style="font-size:12px;">视频消息：' + file.name + '</span>';
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
+
+        // 模拟处理视频
+        setTimeout(() => {
+          const aiMsg = document.createElement('div');
+          aiMsg.style.cssText = 'text-align:left; padding:6px 10px; margin:4px 0; color:#A0522D; font-style:italic;';
+          aiMsg.textContent = '🕊️ 影像记忆已留存，愿先人感知。';
+          container.appendChild(aiMsg);
+          container.scrollTop = container.scrollHeight;
+        }, 1500);
+
+        // 重置input
+        input.value = '';
+      }
+    }
+
+    // ============ 许愿 ============
+    function sendWish() {
+      const input = document.getElementById('wishInput');
+      const wish = input.value.trim();
+      if (!wish) return;
+
+      if (!spendJoy(10)) {
+        alert('欢喜余额不足！');
+        return;
+      }
+
+      playSound('bell');
+
+      // === 顶部滚屏（追思氛围内容） ===
+      const banner = document.getElementById('bannerContent');
+      if (banner) {
+        const mineHtml = `<span class="banner-item mine"><span class="banner-avatar">🙏</span>${appState.userName}：${wish}</span>`;
+        const defaultOthers =
+          '<span class="banner-item"><span class="banner-avatar">🕊️</span>善男信女：愿先人离苦得乐</span>' +
+          '<span class="banner-item"><span class="banner-avatar">🌸</span>李某某：愿亲人往生极乐</span>' +
+          '<span class="banner-item"><span class="banner-avatar">🪷</span>张某某：愿先人安息</span>' +
+          '<span class="banner-item"><span class="banner-avatar">🕯️</span>王某某：愿先人莲品高登</span>' +
+          '<span class="banner-item"><span class="banner-avatar">🙏</span>陈某某：愿先人乘愿再来</span>' +
+          '<span class="banner-item"><span class="banner-avatar">🕊️</span>刘某某：愿先人福慧圆满</span>';
+        const half = mineHtml + defaultOthers;
+        banner.innerHTML = half + half;
+        banner.style.animation = 'none';
+        void banner.offsetWidth;
+        banner.style.animation = '';
+      }
+
+      // === 大字滚动条（追思氛围） ===
+      const userBanner = document.getElementById('userWishContent');
+      if (userBanner) {
+        const userText = `🕊️ ${wish}`;
+        let half = '';
+        for (let i = 0; i < 5; i++) {
+          half += `<span class="user-wish-item">${userText}</span>`;
+        }
+        userBanner.innerHTML = half + half;
+        userBanner.style.animation = 'none';
+        void userBanner.offsetWidth;
+        userBanner.style.animation = '';
+      }
+
+      appState.buddhaLight += 100;
+      saveState();
+      updateUI();
+      showFloatingText('+100 佛光', document.getElementById('buddhaContainer'));
+
+      input.value = '';
+    }
+
+    // ============ 辅助函数 ============
+    function spendJoy(amount) {
+      if (appState.joy < amount) return false;
+      appState.joy -= amount;
+      saveState();
+      updateUI();
+      return true;
+    }
+
+    function showFloatingText(text, element) {
+      const container = document.getElementById('floatingTextContainer');
+      const rect = element.getBoundingClientRect();
+      const floater = document.createElement('div');
+      floater.className = 'floating-text';
+      floater.textContent = text;
+      floater.style.left = rect.left + rect.width / 2 + 'px';
+      floater.style.top = rect.top + 'px';
+      container.appendChild(floater);
+      setTimeout(() => floater.remove(), 2000);
+    }
+
+    // ============ 启动 ============
+    init();
+  </script>
+</body>
+</html>

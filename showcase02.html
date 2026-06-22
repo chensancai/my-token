@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 · 全局可视化编辑器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: none; }
+        :root {
+            --bg-warm: #F5E6D3;
+            --primary: #8B5A2B;
+            --primary-light: #A67B4B;
+            --accent: #C04040;
+            --gold: #D4AF37;
+            --text-dark: #4A3728;
+            --text-light: #8B7355;
+            --card-bg: #FDF8F3;
+            --border: rgba(184, 134, 11, 0.3);
+        }
+        body { font-family: 'Noto Serif SC', serif; background: #1a1a1a; min-height: 100vh; overflow-x: hidden; }
+
+        /* 顶部工具栏 */
+        .top-toolbar { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(180deg, #2a0a0a, #1a0505); padding: 12px 20px; display: flex; align-items: center; gap: 12px; z-index: 2000; border-bottom: 2px solid var(--gold); }
+        .toolbar-title { font-family: 'Ma Shan Zheng', cursive; font-size: 18px; color: var(--gold); letter-spacing: 6px; margin-right: 16px; }
+        .toolbar-btn { padding: 8px 14px; background: rgba(212,175,55,0.15); border: 1px solid var(--gold); border-radius: 8px; color: var(--gold); font-size: 13px; cursor: pointer; transition: all .2s; font-family: inherit; }
+        .toolbar-btn:hover { background: rgba(212,175,55,0.25); transform: translateY(-1px); }
+        .toolbar-btn.active { background: var(--gold); color: #4A3728; font-weight: 600; }
+        .toolbar-btn.save { background: linear-gradient(135deg, var(--gold), #A67B4B); color: #4A3728; font-weight: 600; }
+        .toolbar-btn.save:hover { box-shadow: 0 4px 16px rgba(212,175,55,0.3); }
+
+        /* 主容器 */
+        .editor-container { padding: 80px 20px 30px; display: flex; gap: 20px; max-width: 1500px; margin: 0 auto; align-items: flex-start; min-height: 100vh; }
+
+        /* 页面选择器 */
+        .page-selector { width: 130px; flex-shrink: 0; position: sticky; top: 80px; }
+        .page-selector-title { font-size: 13px; color: #ccc; margin-bottom: 10px; padding: 8px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
+        .page-thumb-list { display: flex; flex-direction: column; gap: 10px; }
+        .page-thumb-item { width: 100%; aspect-ratio: 9/16; background: #fff; border: 2px solid #333; border-radius: 12px; cursor: pointer; position: relative; overflow: hidden; transition: all .2s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .page-thumb-item:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.2); }
+        .page-thumb-item.active { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,0.2); }
+        .page-thumb-icon { font-size: 26px; margin-bottom: 4px; }
+        .page-thumb-name { font-size: 11px; color: #4A3728; font-weight: 600; }
+
+        /* 编辑区域 */
+        .edit-area { flex: 1; display: flex; justify-content: center; align-items: flex-start; }
+
+        /* 电脑全屏预览窗口（代替手机框） */
+        .browser-preview {
+            width: 100%;
+            max-width: 900px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 0 0 2px var(--gold), 0 0 60px rgba(212,175,55,0.3), 0 30px 60px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        /* 电脑浏览器顶部地址栏 */
+        .browser-toolbar {
+            background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #555;
+        }
+        .browser-dots { display: flex; gap: 5px; }
+        .browser-dot { width: 11px; height: 11px; border-radius: 50%; }
+        .browser-dot.red { background: #ff5f57; }
+        .browser-dot.yellow { background: #febc2e; }
+        .browser-dot.green { background: #28c840; }
+        .browser-address {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 11px;
+            color: #aaa;
+            letter-spacing: 1px;
+        }
+        /* 预览内容区 */
+        .preview-content {
+            width: 100%;
+            min-height: 600px;
+            background: var(--card-bg);
+            position: relative;
+            overflow-y: auto;
+        }
+        .preview-content::-webkit-scrollbar { width: 6px; }
+        .preview-content::-webkit-scrollbar-thumb { background: rgba(139,90,43,0.3); border-radius: 3px; }
+
+        /* 可编辑元素 */
+        .editable { position: relative; cursor: pointer; transition: box-shadow .2s, border-color .2s; padding: 8px; margin: 8px -8px; border-radius: 8px; border: 1px dashed transparent; }
+        body.edit-mode .editable:hover { box-shadow: 0 0 0 2px rgba(212,175,55,0.5); border-color: rgba(212,175,55,0.4); background: rgba(212,175,55,0.05); }
+        body.edit-mode .editable.selected { box-shadow: 0 0 0 2px var(--gold); border-color: var(--gold); background: rgba(212,175,55,0.08); }
+
+        /* 控制点 */
+        .resize-handle { position: absolute; width: 22px; height: 22px; background: #D4AF37; border: 3px solid #fff; border-radius: 8px; color: #4A3728; font-size: 14px; font-weight: 700; z-index: 60; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.35); user-select: none; }
+        body.edit-mode .editable.selected .resize-handle { display: flex; }
+        .resize-handle.br { right: -11px; bottom: -11px; cursor: nwse-resize; }
+
+        .move-handle { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); width: 36px; height: 26px; background: linear-gradient(135deg,#4A90E2,#357ABD); border: 2px solid #fff; border-radius: 13px; color: #fff; font-size: 13px; font-weight: 700; cursor: grab; z-index: 60; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.35); user-select: none; letter-spacing: 2px; }
+        body.edit-mode .editable.selected .move-handle { display: flex; }
+        body.edit-mode .editable.selected .move-handle:active, .move-handle:active { cursor: grabbing; }
+        .editable.dragging { opacity: 0.88; outline: 2px dashed var(--gold); outline-offset: 0; transition: none !important; }
+        .editable.dragging .move-handle { background: linear-gradient(135deg,#FFD700,#FF8C00); }
+
+        // 删除按钮 */
+        .delete-btn { position: absolute; top: -12px; right: -12px; width: 28px; height: 28px; background: var(--accent); border: 2px solid #fff; border-radius: 50%; color: #fff; font-size: 14px; cursor: pointer; z-index: 60; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform .2s; }
+        .delete-btn:hover { transform: scale(1.1); }
+        body.edit-mode .editable.selected .delete-btn { display: flex; }
+
+        /* 右侧属性面板 */
+        .property-panel { width: 300px; flex-shrink: 0; background: #2a2a2a; border-radius: 16px; padding: 20px; border: 1px solid #333; position: sticky; top: 80px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-height: calc(100vh - 100px); overflow-y: auto; }
+        .property-panel::-webkit-scrollbar { width: 6px; }
+        .property-panel::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 3px; }
+        .panel-title { font-size: 14px; color: var(--gold); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #333; font-weight: 600; letter-spacing: 2px; }
+        .property-group { margin-bottom: 16px; }
+        .property-label { font-size: 12px; color: #ccc; margin-bottom: 6px; display: block; }
+        .property-input { width: 100%; height: 38px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 0 12px; font-size: 13px; color: #fff; outline: none; font-family: inherit; transition: border-color .2s; }
+        .property-input:focus { border-color: var(--gold); }
+        .property-row { display: flex; gap: 8px; align-items: center; }
+        .property-row .property-input { flex: 1; }
+        .property-color-row { display: flex; gap: 8px; }
+        .property-color-row .property-input { flex: 1; }
+        .color-picker { width: 44px; height: 38px; border: 1px solid #333; border-radius: 6px; background: #1a1a1a; cursor: pointer; padding: 2px; }
+        .text-edit-btn { width: 100%; padding: 12px; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; color: var(--gold); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
+        .text-edit-btn:hover { background: rgba(212,175,55,0.25); transform: translateY(-1px); }
+        .empty-hint { color: #888; font-size: 13px; text-align: center; padding: 40px 20px; line-height: 1.8; }
+        .empty-hint .mini { margin-top: 16px; padding: 12px; background: rgba(212,175,55,0.1); border-radius: 8px; font-size: 12px; color: #ccc; line-height: 1.8; text-align: left; }
+        .type-badge { display: inline-block; padding: 4px 10px; background: rgba(212,175,55,0.2); border: 1px solid rgba(212,175,55,0.4); color: var(--gold); border-radius: 10px; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+
+        /* 添加模块面板 */
+        .add-panel { position: fixed; right: 340px; top: 80px; background: #2a2a2a; border: 1px solid var(--gold); border-radius: 16px; padding: 20px; z-index: 1500; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.5); width: 200px; }
+        .add-panel.active { display: block; animation: slideIn .2s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        .add-panel-title { font-size: 14px; color: var(--gold); margin-bottom: 12px; font-weight: 600; }
+        .add-item { padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #fff; transition: background .2s; }
+        .add-item:hover { background: rgba(212,175,55,0.15); transform: translateX(-2px); }
+        .add-item-icon { font-size: 22px; }
+
+        /* 保存状态 */
+        .save-status { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(42,42,42,0.98); border: 1px solid var(--gold); border-radius: 16px; padding: 24px; z-index: 2500; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.6); max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .save-status.active { display: block; animation: slideUp .3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        .save-status-icon { font-size: 28px; margin-bottom: 8px; text-align: center; }
+        .save-status-text { font-size: 15px; color: var(--gold); text-align: center; margin-bottom: 16px; font-weight: 600; }
+        .save-status-code { background: #1a1a1a; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 11px; max-height: 400px; overflow-y: auto; color: #e0e0e0; border: 1px solid #333; white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+        .copy-btn { display: block; margin-top: 16px; padding: 12px 24px; background: var(--gold); border: none; border-radius: 8px; color: #4A3728; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; transition: all .2s; font-family: inherit; }
+        .copy-btn:hover { background: #E8C994; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
+        .page-code-section { margin-bottom: 16px; border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; overflow: hidden; }
+        .page-code-header { background: rgba(212,175,55,0.15); padding: 8px 12px; font-size: 12px; color: var(--gold); font-weight: 600; letter-spacing: 2px; }
+
+        /* 文本编辑弹窗 */
+        .text-edit-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2a2a2a; border: 1px solid var(--gold); border-radius: 16px; padding: 24px; z-index: 3000; display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.6); width: 480px; max-width: 90%; }
+        .text-edit-modal.active { display: block; }
+        .text-edit-title { font-size: 18px; color: var(--gold); margin-bottom: 16px; font-weight: 600; }
+        .text-edit-input { width: 100%; min-height: 150px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; outline: none; resize: vertical; margin-bottom: 12px; font-family: inherit; }
+        .text-edit-input:focus { border-color: var(--gold); }
+        .text-edit-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+        .text-edit-btn-ok, .text-edit-btn-cancel { padding: 10px 20px; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; color: var(--gold); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
+        .text-edit-btn-ok { background: var(--gold); color: #4A3728; border: none; }
+        .text-edit-btn-ok:hover, .text-edit-btn-cancel:hover { transform: translateY(-1px); }
+
+        /* 帮助弹窗 */
+        .guide-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2a2a2a; border: 1px solid var(--gold); border-radius: 16px; padding: 28px; z-index: 3500; display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.6); width: 520px; max-width: 90%; max-height: 85vh; overflow-y: auto; }
+        .guide-modal.active { display: block; }
+        .guide-title { font-size: 20px; color: var(--gold); margin-bottom: 20px; font-weight: 600; }
+        .guide-list { font-size: 14px; color: #e0e0e0; line-height: 2; }
+        .guide-list strong { color: var(--gold); font-size: 15px; display: block; margin-top: 8px; }
+        .guide-close { display: block; margin-top: 20px; padding: 12px 24px; background: var(--gold); border: none; border-radius: 8px; color: #4A3728; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; font-family: inherit; transition: all .2s; }
+        .guide-close:hover { background: #E8C994; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
+
+        /* Toast */
+        .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(42,42,42,0.95); border: 1px solid var(--gold); padding: 12px 24px; border-radius: 8px; color: var(--gold); font-size: 13px; z-index: 4000; display: none; animation: fadeInDown .3s ease; }
+        .toast.active { display: block; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    </style>
+</head>
+<body class="edit-mode">
+    <!-- 顶部工具栏 -->
+    <div class="top-toolbar">
+        <div class="toolbar-title">🎨 全局可视化编辑器</div>
+        <button class="toolbar-btn active" onclick="toggleEditMode()" id="editModeBtn">✏️ 编辑模式</button>
+        <button class="toolbar-btn" onclick="toggleAddPanel()" id="addModuleBtn">➕ 添加模块</button>
+        <button class="toolbar-btn" onclick="showGuide()">❓ 使用帮助</button>
+        <button class="toolbar-btn" onclick="resetLayout()">↺ 重置布局</button>
+        <div style="flex: 1;"></div>
+        <button class="toolbar-btn save" onclick="saveGlobal()">💾 保存全局 &amp; 生成代码</button>
+    </div>
+
+    <!-- 主编辑容器 -->
+    <div class="editor-container">
+        <!-- 左侧页面选择 -->
+        <div class="page-selector">
+            <div class="page-selector-title">✦ 页面选择</div>
+            <div class="page-thumb-list" id="pageThumbList"></div>
+        </div>
+
+        <!-- 中间编辑区（电脑全屏预览） -->
+        <div class="edit-area">
+            <div class="browser-preview">
+                <!-- 浏览器顶部工具栏 -->
+                <div class="browser-toolbar">
+                    <div class="browser-dots">
+                        <div class="browser-dot red"></div>
+                        <div class="browser-dot yellow"></div>
+                        <div class="browser-dot green"></div>
+                    </div>
+                    <div class="browser-address">祈个福 · 页面预览</div>
+                </div>
+                <!-- 预览内容区 -->
+                <div class="preview-content" id="phoneContent"></div>
+            </div>
+        </div>
+
+        <!-- 右侧属性面板 -->
+        <div class="property-panel" id="propertyPanel">
+            <div class="panel-title">📋 元素属性</div>
+            <div id="propertyContent">
+                <div class="empty-hint">
+                    💡 点击页面中的元素<br>即可选中并编辑
+                    <div class="mini">
+                        • 点击选中元素（金色边框）<br>
+                        • 双击元素修改文字/HTML<br>
+                        • 拖拽顶部 ☰ 手柄上下移动排序<br>
+                        • 拖拽右下角 ↘ 调整元素大小<br>
+                        • Delete 键 / 红色 ✕ 删除<br>
+                        • 顶部 ✏️ 可切换编辑/预览
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加模块面板 -->
+    <div class="add-panel" id="addPanel">
+        <div class="add-panel-title">➕ 添加模块</div>
+        <div class="add-item" onclick="addElement('title')"><div class="add-item-icon">📝</div><div>标题</div></div>
+        <div class="add-item" onclick="addElement('text')"><div class="add-item-icon">📄</div><div>文本段落</div></div>
+        <div class="add-item" onclick="addElement('icon')"><div class="add-item-icon">🎯</div><div>图标/Emoji</div></div>
+        <div class="add-item" onclick="addElement('button')"><div class="add-item-icon">🔘</div><div>按钮</div></div>
+        <div class="add-item" onclick="addElement('box')"><div class="add-item-icon">📦</div><div>内容框</div></div>
+        <div class="add-item" onclick="addElement('card')"><div class="add-item-icon">🗃️</div><div>卡片</div></div>
+        <div class="add-item" onclick="addElement('image')"><div class="add-item-icon">🖼️</div><div>图片占位</div></div>
+        <div class="add-item" onclick="addElement('divider')"><div class="add-item-icon">➖</div><div>分隔线</div></div>
+        <div class="add-item" onclick="addElement('menuitem')"><div class="add-item-icon">📋</div><div>菜单项</div></div>
+    </div>
+
+    <!-- 保存状态 -->
+    <div class="save-status" id="saveStatus">
+        <div class="save-status-icon">✅</div>
+        <div class="save-status-text" id="saveStatusText">设计已保存！以下是生成的代码</div>
+        <div id="saveCodeContainer"></div>
+        <button class="copy-btn" onclick="copyCode()">📋 复制全部代码</button>
+    </div>
+
+    <!-- 文本编辑弹窗 -->
+    <div class="text-edit-modal" id="textEditModal">
+        <div class="text-edit-title">✏️ 修改文字内容（支持 HTML）</div>
+        <textarea class="text-edit-input" id="textEditInput" placeholder="在此输入文字或HTML代码..."></textarea>
+        <div class="text-edit-buttons">
+            <button class="text-edit-btn-cancel" onclick="closeTextEdit()">取消</button>
+            <button class="text-edit-btn-ok" onclick="confirmTextEdit()">确认修改</button>
+        </div>
+    </div>
+
+    <!-- 帮助弹窗 -->
+    <div class="guide-modal" id="guideModal">
+        <div class="guide-title">🎨 编辑器使用指南</div>
+        <div class="guide-list">
+            <strong>✏️ 编辑模式</strong>默认开启；点击顶部"编辑模式"可切换为预览模式
+            <strong>🖱️ 选择元素</strong>点击页面中任意元素；选中后出现金色边框 + 顶部蓝色 ☰ 移动手柄 + 右下角金色 ↘ 缩放手柄 + 红色删除按钮
+            <strong>✏️ 编辑文字</strong>双击元素可直接修改内容（支持 HTML 标签）
+            <strong>⬆⬇ 上下移动</strong>拖拽顶部蓝色 ☰ 手柄，每滑动 40 像素就与相邻元素交换位置（支持连续拖动多次移动）
+            <strong>📏 调整大小</strong>拖拽右下角金色 ↘ 手柄，通过调整内边距缩放元素尺寸
+            <strong>🎨 修改样式</strong>在右侧属性面板调整字体大小、颜色、背景、对齐、内边距等；也可直接编辑完整 HTML 和 CSS
+            <strong>➕ 添加模块</strong>点击顶部"添加模块"按钮，选择类型后自动插入到当前页面底部
+            <strong>🗑️ 删除元素</strong>选中后按 Delete 键，或点击右上角红色 ✕ 按钮
+            <strong>🔄 切换页面</strong>在左侧选择不同页面分别编辑；各页面独立保存状态
+            <strong>💾 保存设计</strong>点击"保存全局 &amp; 生成代码"获取每个页面的独立 HTML 代码
+        </div>
+        <button class="guide-close" onclick="closeGuide()">我知道了</button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ 页面模板 ============
+        // 每个页面模板是一组 editable 元素
+        const pageTemplates = {
+            login: {
+                title: '登录页',
+                icon: '🔐',
+                elements: [
+                    { type: 'icon', content: '<span style="font-size:60px;">🙏</span>', style: 'text-align:center;margin:20px 0;' },
+                    { type: 'title', content: '祈个福', style: "font-family:'Ma Shan Zheng',cursive;font-size:28px;text-align:center;color:#8B5A2B;letter-spacing:6px;margin-bottom:8px;" },
+                    { type: 'text', content: '愿力所及 · 皆为净土', style: 'text-align:center;font-size:12px;color:#8B7355;letter-spacing:4px;margin-bottom:30px;' },
+                    { type: 'input', content: '<input type="tel" placeholder="请输入手机号" style="width:100%;height:48px;background:#fff;border:1.5px solid rgba(184,134,11,0.35);border-radius:12px;padding:0 20px;font-size:14px;color:#4A3728;outline:none;font-family:inherit;">', style: 'margin-bottom:16px;' },
+                    { type: 'input', content: '<div style="display:flex;gap:10px;"><input type="text" placeholder="验证码" style="flex:1;height:48px;background:#fff;border:1.5px solid rgba(184,134,11,0.35);border-radius:12px;padding:0 16px;font-size:14px;outline:none;font-family:inherit;"><button style="width:100px;background:linear-gradient(135deg,#A67B4B,#6B4423);border:1.5px solid rgba(184,134,11,0.5);border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">获取验证码</button></div>', style: 'margin-bottom:20px;' },
+                    { type: 'button', content: '<button style="width:100%;height:52px;background:linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);border:1.5px solid rgba(184,134,11,0.5);border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:4px;font-family:inherit;">登 录</button>', style: 'margin-bottom:16px;' },
+                    { type: 'button', content: '<button style="width:100%;height:52px;background:#07c160;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">💚 微信一键登录</button>', style: 'margin-bottom:30px;' },
+                    { type: 'text', content: '<span style="cursor:pointer;color:#8B5A2B;">注册账号</span><span style="margin:0 16px;color:#8B7355;">|</span><span style="cursor:pointer;color:#8B5A2B;">忘记密码</span>', style: 'text-align:center;font-size:13px;' }
+                ]
+            },
+            register: {
+                title: '注册页',
+                icon: '📝',
+                elements: [
+                    { type: 'title', content: '📝 基本信息', style: 'font-size:16px;color:#4A3728;font-weight:600;margin-bottom:12px;padding:8px 0;' },
+                    { type: 'input', content: '<div style="display:block;font-size:13px;color:#8B7355;margin-bottom:6px;">手机号码</div><input type="tel" placeholder="请输入手机号" style="width:100%;height:48px;background:#fff;border:1.5px solid rgba(184,134,11,0.35);border-radius:12px;padding:0 20px;font-size:14px;color:#4A3728;outline:none;font-family:inherit;">', style: 'margin-bottom:16px;' },
+                    { type: 'input', content: '<div style="display:block;font-size:13px;color:#8B7355;margin-bottom:6px;">验证码</div><div style="display:flex;gap:10px;"><input type="text" placeholder="请输入验证码" style="flex:1;height:48px;background:#fff;border:1.5px solid rgba(184,134,11,0.35);border-radius:12px;padding:0 16px;font-size:14px;outline:none;font-family:inherit;"><button style="width:100px;background:linear-gradient(135deg,#A67B4B,#6B4423);border:1.5px solid rgba(184,134,11,0.5);border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">获取验证码</button></div>', style: 'margin-bottom:24px;' },
+                    { type: 'title', content: '🔐 设置密码', style: 'font-size:16px;color:#4A3728;font-weight:600;margin-bottom:12px;padding:8px 0;' },
+                    { type: 'input', content: '<div style="display:block;font-size:13px;color:#8B7355;margin-bottom:6px;">登录密码</div><input type="password" placeholder="请设置登录密码（6-20位）" style="width:100%;height:48px;background:#fff;border:1.5px solid rgba(184,134,11,0.35);border-radius:12px;padding:0 20px;font-size:14px;outline:none;font-family:inherit;">', style: 'margin-bottom:16px;' },
+                    { type: 'input', content: '<div style="display:block;font-size:13px;color:#8B7355;margin-bottom:6px;">确认密码</div><input type="password" placeholder="请再次输入密码" style="width:100%;height:48px;background:#fff;border:1.5px solid rgba(184,134,11,0.35);border-radius:12px;padding:0 20px;font-size:14px;outline:none;font-family:inherit;">', style: 'margin-bottom:20px;' },
+                    { type: 'checkbox', content: '<div style="width:20px;height:20px;border:1.5px solid #8B5A2B;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#8B5A2B;color:#fff;font-size:14px;">✓</div><span style="font-size:13px;color:#8B7355;margin-left:10px;">我已阅读并同意</span><span style="color:#8B5A2B;cursor:pointer;font-size:13px;margin-left:6px;">《用户协议》</span>', style: 'display:flex;align-items:center;margin-bottom:20px;' },
+                    { type: 'button', content: '<button style="width:100%;height:52px;background:linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);border:1.5px solid rgba(184,134,11,0.5);border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:4px;font-family:inherit;">注 册</button>', style: '' }
+                ]
+            },
+            profile: {
+                title: '我的',
+                icon: '👤',
+                elements: [
+                    { type: 'card', content: '<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;"><div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle,#FFFBF0 0%,#FDF8F3 100%);display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid rgba(184,134,11,0.5);">🙏</div><div style="flex:1;"><div style="font-size:18px;font-weight:700;color:#4A3728;margin-bottom:4px;">一心向善</div><div style="display:inline-block;background:linear-gradient(135deg,#8B5A2B,#A67B4B);color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;">Lv.15 善信</div></div><div style="font-size:18px;color:#8B5A2B;">⚙️</div></div><div style="display:flex;justify-content:space-around;text-align:center;"><div><div style="font-size:22px;font-weight:700;color:#8B5A2B;">2,888</div><div style="font-size:11px;color:#8B7355;">佛光</div></div><div style="width:1px;height:30px;background:rgba(139,90,43,0.2);"></div><div><div style="font-size:22px;font-weight:700;color:#8B5A2B;">1,520</div><div style="font-size:11px;color:#8B7355;">欢喜</div></div><div style="width:1px;height:30px;background:rgba(139,90,43,0.2);"></div><div><div style="font-size:22px;font-weight:700;color:#8B5A2B;">365</div><div style="font-size:11px;color:#8B7355;">功德</div></div></div>', style: 'background:linear-gradient(180deg,#D4A574 0%,#E8C99A 50%,#F5E6D3 100%);padding:30px 20px;margin:-10px -10px 20px;border-radius:0 0 24px 24px;' },
+                    { type: 'grid', content: '<div style="text-align:center;"><div style="font-size:30px;margin-bottom:6px;">💰</div><div style="font-size:11px;color:#4A3728;">钱包</div></div><div style="text-align:center;"><div style="font-size:30px;margin-bottom:6px;">📿</div><div style="font-size:11px;color:#4A3728;">佛珠</div></div><div style="text-align:center;"><div style="font-size:30px;margin-bottom:6px;">🏆</div><div style="font-size:11px;color:#4A3728;">成就</div></div><div style="text-align:center;"><div style="font-size:30px;margin-bottom:6px;">📜</div><div style="font-size:11px;color:#4A3728;">记录</div></div>', style: 'display:flex;justify-content:space-around;background:#fff;border-radius:16px;padding:20px 10px;margin-bottom:16px;box-shadow:0 2px 12px rgba(139,90,43,0.08);' },
+                    { type: 'menuitem', content: '<span style="font-size:24px;margin-right:12px;">🙏</span><span style="flex:1;font-size:14px;color:#4A3728;">我的许愿</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="font-size:24px;margin-right:12px;">🕯️</span><span style="flex:1;font-size:14px;color:#4A3728;">我的点灯</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="font-size:24px;margin-right:12px;">👑</span><span style="flex:1;font-size:14px;color:#4A3728;">会员中心</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' }
+                ]
+            },
+            wallet: {
+                title: '钱包',
+                icon: '💰',
+                elements: [
+                    { type: 'card', content: '<div style="font-size:13px;opacity:0.9;color:#fff;margin-bottom:8px;">账户余额</div><div style="font-size:42px;font-weight:700;color:#fff;margin-bottom:20px;">¥288.88</div><div style="display:flex;gap:12px;"><button style="flex:1;height:44px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:22px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">提现</button><button style="flex:1;height:44px;background:#fff;border:none;border-radius:22px;color:#8B5A2B;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">充值</button></div>', style: 'background:linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#8B6914 100%);border-radius:20px;padding:28px 24px;margin-bottom:20px;' },
+                    { type: 'title', content: '选择充值金额', style: 'font-size:14px;font-weight:600;color:#4A3728;margin-bottom:12px;padding-left:4px;' },
+                    { type: 'card', content: '<div style="font-size:24px;font-weight:700;color:#8B5A2B;margin-bottom:4px;">60<span style="font-size:14px;">+6</span></div><div style="font-size:12px;color:#C04040;margin-bottom:6px;">赠送60欢喜</div><div style="font-size:16px;color:#4A3728;font-weight:600;">¥6</div>', style: 'background:#fff;border:2px solid #D4AF37;border-radius:16px;padding:20px 16px;text-align:center;margin-bottom:12px;box-shadow:0 2px 12px rgba(212,175,55,0.15);' },
+                    { type: 'title', content: '支付方式', style: 'font-size:14px;font-weight:600;color:#4A3728;margin:24px 0 12px;padding-left:4px;' },
+                    { type: 'menuitem', content: '<span style="width:36px;height:36px;border-radius:8px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:20px;margin-right:12px;">💚</span><span style="flex:1;font-size:14px;color:#4A3728;">微信支付</span><span style="width:20px;height:20px;background:#8B5A2B;border-radius:50%;display:inline-block;"></span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;' }
+                ]
+            },
+            settings: {
+                title: '设置',
+                icon: '⚙️',
+                elements: [
+                    { type: 'menuitem', content: '<span style="width:32px;height:32px;border-radius:8px;background:#FFF3E0;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">👤</span><span style="flex:1;font-size:14px;color:#4A3728;">个人信息</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="width:32px;height:32px;border-radius:8px;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">🔐</span><span style="flex:1;font-size:14px;color:#4A3728;">修改密码</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="width:32px;height:32px;border-radius:8px;background:#F3E5F5;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">🔔</span><span style="flex:1;font-size:14px;color:#4A3728;">消息通知</span><span style="width:44px;height:24px;background:#4CAF50;border-radius:12px;display:inline-block;"></span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="width:32px;height:32px;border-radius:8px;background:#FFEBEE;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">🗑️</span><span style="flex:1;font-size:14px;color:#4A3728;">清理缓存</span><span style="color:#8B7355;font-size:13px;margin-right:8px;">23.5 MB</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="width:32px;height:32px;border-radius:8px;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">📥</span><span style="flex:1;font-size:14px;color:#4A3728;">检查更新</span><span style="color:#4CAF50;font-size:13px;margin-right:8px;">已是最新</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' }
+                ]
+            },
+            member: {
+                title: '会员',
+                icon: '👑',
+                elements: [
+                    { type: 'card', content: '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.3);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;color:#4A3728;margin-bottom:12px;">👑 黄金会员</div><div style="font-size:24px;font-weight:700;color:#4A3728;margin-bottom:8px;">一心向善</div><div style="font-size:13px;opacity:0.8;color:#4A3728;margin-bottom:16px;">有效期至 2025.12.31</div><div style="background:rgba(255,255,255,0.3);height:8px;border-radius:4px;overflow:hidden;"><div style="width:65%;height:100%;background:#fff;border-radius:4px;"></div></div><div style="font-size:11px;opacity:0.8;color:#4A3728;margin-top:8px;">再充值 ¥328 即可升级为钻石会员</div>', style: 'background:linear-gradient(135deg,#8B6914 0%,#D4AF37 30%,#FFE8A8 60%,#D4AF37 100%);border-radius:20px;padding:24px;margin-bottom:20px;' },
+                    { type: 'title', content: '会员特权', style: 'font-size:14px;font-weight:600;color:#4A3728;margin-bottom:12px;padding-left:4px;' },
+                    { type: 'grid', content: '<div style="text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🙏</div><div style="font-size:12px;color:#4A3728;">专属佛像</div></div><div style="text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🎵</div><div style="font-size:12px;color:#4A3728;">专属音乐</div></div><div style="text-align:center;"><div style="font-size:28px;margin-bottom:6px;">💫</div><div style="font-size:12px;color:#4A3728;">特效加成</div></div>', style: 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;' },
+                    { type: 'title', content: '开通会员', style: 'font-size:14px;font-weight:600;color:#4A3728;margin-bottom:12px;padding-left:4px;' },
+                    { type: 'card', content: '<div style="font-size:20px;font-weight:700;color:#8B5A2B;margin-bottom:4px;">年卡</div><div style="font-size:24px;color:#C04040;font-weight:600;margin-bottom:8px;">¥198</div><div style="font-size:12px;color:#8B7355;">每天 +200 欢喜</div>', style: 'background:#fff;border:2px solid #D4AF37;border-radius:16px;padding:20px 16px;text-align:center;margin-bottom:20px;box-shadow:0 2px 12px rgba(212,175,55,0.15);' },
+                    { type: 'button', content: '<button style="width:100%;height:52px;background:linear-gradient(135deg,#D4AF37,#A67B4B);border:none;border-radius:12px;color:#4A3728;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:2px;font-family:inherit;">立即开通</button>', style: '' }
+                ]
+            },
+            permission: {
+                title: '权限',
+                icon: '🔐',
+                elements: [
+                    { type: 'card', content: '<span style="font-size:32px;">👑</span><div style="flex:1;margin-left:12px;"><div style="font-size:14px;font-weight:600;color:#C04040;margin-bottom:4px;">超级管理员权限</div><div style="font-size:12px;color:#8B7355;">您拥有所有模块的管理权限，可授权其他管理员</div></div>', style: 'background:linear-gradient(135deg,rgba(139,0,0,0.1),rgba(139,0,0,0.05));border:1px solid rgba(139,0,0,0.2);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;align-items:center;' },
+                    { type: 'title', content: '管理员列表', style: 'font-size:14px;font-weight:600;color:#4A3728;margin-bottom:12px;padding-left:4px;' },
+                    { type: 'menuitem', content: '<span style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FFF8E1,#FFE8A8);display:flex;align-items:center;justify-content:center;font-size:22px;margin-right:12px;">🙏</span><div style="flex:1;"><div style="font-size:14px;color:#4A3728;font-weight:600;">一心向善</div><div style="font-size:11px;color:#8B7355;">189****6788</div></div><span style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#4A3728;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;">超级</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'menuitem', content: '<span style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FFF8E1,#FFE8A8);display:flex;align-items:center;justify-content:center;font-size:22px;margin-right:12px;">🧘</span><div style="flex:1;"><div style="font-size:14px;color:#4A3728;font-weight:600;">静心修行</div><div style="font-size:11px;color:#8B7355;">138****1234</div></div><span style="background:rgba(139,90,43,0.1);color:#8B5A2B;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;">普通</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(139,90,43,0.05);' },
+                    { type: 'title', content: '权限配置', style: 'font-size:14px;font-weight:600;color:#4A3728;margin:24px 0 12px;padding-left:4px;' },
+                    { type: 'menuitem', content: '<span style="width:36px;height:36px;border-radius:8px;background:#FFF3E0;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">💰</span><span style="flex:1;font-size:14px;color:#4A3728;">参数管理</span><span style="width:44px;height:24px;background:#4CAF50;border-radius:12px;display:inline-block;"></span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;' },
+                    { type: 'menuitem', content: '<span style="width:36px;height:36px;border-radius:8px;background:#FFEBEE;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">🔔</span><span style="flex:1;font-size:14px;color:#4A3728;">场景开关</span><span style="width:44px;height:24px;background:#4CAF50;border-radius:12px;display:inline-block;"></span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;' },
+                    { type: 'menuitem', content: '<span style="width:36px;height:36px;border-radius:8px;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:12px;">🗿</span><span style="flex:1;font-size:14px;color:#4A3728;">佛像道具</span><span style="width:44px;height:24px;background:#4CAF50;border-radius:12px;display:inline-block;"></span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;' }
+                ]
+            },
+            'icon-manage': {
+                title: '图标',
+                icon: '🎯',
+                elements: [
+                    { type: 'title', content: '🎯 导航图标库', style: 'font-size:14px;font-weight:600;color:#4A3728;margin-bottom:12px;padding-left:4px;' },
+                    { type: 'grid', content: '<div style="text-align:center;background:#fff;border:2px solid #D4AF37;border-radius:12px;padding:14px 8px;box-shadow:0 2px 12px rgba(212,175,55,0.15);"><div style="font-size:32px;margin-bottom:6px;">🙏</div><div style="font-size:11px;color:#4A3728;font-weight:600;">佛手</div></div><div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">🪷</div><div style="font-size:11px;color:#4A3728;">莲花</div></div><div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">☸️</div><div style="font-size:11px;color:#4A3728;">法轮</div></div><div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">🪬</div><div style="font-size:11px;color:#4A3728;">佛塔</div></div>', style: 'display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;' },
+                    { type: 'title', content: '🕉️ 法器图标', style: 'font-size:14px;font-weight:600;color:#4A3728;margin:20px 0 12px;padding-left:4px;' },
+                    { type: 'grid', content: '<div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">🔔</div><div style="font-size:11px;color:#4A3728;">法铃</div></div><div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">📿</div><div style="font-size:11px;color:#4A3728;">念珠</div></div><div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">🕯️</div><div style="font-size:11px;color:#4A3728;">油灯</div></div><div style="text-align:center;background:#fff;border:2px solid transparent;border-radius:12px;padding:14px 8px;"><div style="font-size:32px;margin-bottom:6px;">⛩️</div><div style="font-size:11px;color:#4A3728;">佛塔</div></div>', style: 'display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;' },
+                    { type: 'button', content: '<button style="width:100%;height:52px;background:linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);border:1.5px solid rgba(184,134,11,0.5);border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:4px;font-family:inherit;">📤 上传自定义图标</button>', style: 'margin-top:20px;' }
+                ]
+            },
+            dice: {
+                title: '心跳骰子',
+                icon: '🎲',
+                elements: [
+                    { type: 'box', content: '<span style="font-size:14px;">💰 欢喜: 100</span><span style="margin-left:12px;">🎲 剩余: ∞</span>', style: 'display:flex;justify-content:space-between;padding:8px 16px;background:rgba(139,90,43,0.7);border-radius:20px;border:1px solid rgba(212,175,55,0.4);font-size:12px;color:#ffe066;margin-bottom:8px;' },
+                    { type: 'title', content: '心 跳 骰 子', style: "font-family:'Ma Shan Zheng',cursive;font-size:24px;color:#ffe066;text-align:center;letter-spacing:8px;text-shadow:0 0 15px rgba(255,215,0,0.6);margin-bottom:4px;" },
+                    { type: 'text', content: '摇一摇 · 求好运', style: 'text-align:center;font-size:11px;color:rgba(245,230,200,0.7);letter-spacing:4px;margin-bottom:16px;' },
+                    { type: 'box', content: '<div style="width:120px;height:120px;background:radial-gradient(ellipse,#fff 0%,#e0d8c8 100%);border-radius:18px;border:2px solid rgba(210,195,175,0.9);display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px;box-shadow:0 8px 25px rgba(0,0,0,0.4),inset 0 0 20px rgba(255,255,255,0.5);margin:0 auto;"><div style="grid-column:2;grid-row:2;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#3a3a3a 0%,#1a1a1a 100%);justify-self:center;align-self:center;box-shadow:inset 1px 1px 2px rgba(0,0,0,0.8),inset -1px -1px 2px rgba(80,80,80,0.6);"></div></div>', style: 'text-align:center;margin-bottom:16px;' },
+                    { type: 'text', content: '+10 欢喜', style: 'text-align:center;font-size:18px;color:#ffe066;letter-spacing:4px;margin-bottom:12px;' },
+                    { type: 'box', content: '<div style="text-align:center;font-size:12px;color:rgba(245,230,200,0.6);">每次消耗 2 欢喜</div><button style="display:block;width:100px;height:100px;border-radius:50%;border:3px solid #d4af37;background:radial-gradient(circle,#d4a877,#a67c52 40%,#6b4423 80%);color:#ffe066;font-size:14px;font-weight:bold;letter-spacing:2px;cursor:pointer;margin:12px auto 0;box-shadow:0 0 30px rgba(255,215,0,0.4),inset 0 0 20px rgba(139,90,43,0.5);font-family:inherit;">摇一摇</button>', style: 'text-align:center;padding:8px;' }
+                ]
+            },
+            shakeSticks: {
+                title: '求签筒',
+                icon: '🎋',
+                elements: [
+                    { type: 'box', content: '<span style="font-size:13px;color:#7ee8fa;letter-spacing:2px;text-shadow:0 0 10px #7ee8fa;">✨ 电子求签 ✨</span>', style: 'text-align:center;padding:12px 0;margin-bottom:4px;' },
+                    { type: 'text', content: '每日免费求签 · 不消耗欢喜', style: 'text-align:center;font-size:11px;color:rgba(232,246,255,0.6);letter-spacing:3px;margin-bottom:16px;' },
+                    { type: 'box', content: '<div style="width:160px;height:220px;background:linear-gradient(180deg,#3d2818 0%,#1a0f08 100%);border-left:4px solid #c9a055;border-right:4px solid #c9a055;border-bottom:5px solid #a87d44;border-top:2px solid #d4a574;border-radius:8px;margin:0 auto;box-shadow:0 0 35px rgba(212,165,116,0.5),inset -20px 0 30px rgba(0,0,0,0.5);position:relative;"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,1),0 0 40px rgba(255,215,0,0.8);pointer-events:none;">佛</div></div><div style="position:relative;width:140px;margin:-10px auto 0;display:flex;justify-content:center;gap:2px;height:120px;align-items:flex-end;"><div style="width:12px;height:110px;background:linear-gradient(180deg,#f5e6c8,#c9a574);border-radius:4px;transform:rotate(-8deg);"></div><div style="width:12px;height:120px;background:linear-gradient(180deg,#f5e6c8,#c9a574);border-radius:4px;transform:rotate(-4deg);"></div><div style="width:12px;height:105px;background:linear-gradient(180deg,#f5e6c8,#c9a574);border-radius:4px;transform:rotate(2deg);"></div><div style="width:12px;height:115px;background:linear-gradient(180deg,#f5e6c8,#c9a574);border-radius:4px;transform:rotate(5deg);"></div></div>', style: 'text-align:center;margin-bottom:16px;' },
+                    { type: 'box', content: '<div style="text-align:center;"><div style="font-size:28px;margin-bottom:4px;">📲</div><div style="font-size:15px;color:#7ee8fa;text-shadow:0 0 8px #7ee8fa;letter-spacing:3px;">摇一摇</div></div>', style: 'width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#4a2f8a,#1a0f3a);border:3px solid rgba(100,200,255,0.7);margin:0 auto;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;box-shadow:0 0 15px rgba(126,232,250,0.4);' }
+                ]
+            },
+            pinball: {
+                title: '星际弹珠',
+                icon: '🎯',
+                elements: [
+                    { type: 'box', content: '<span style="font-size:28px;color:#ffe08a;text-shadow:0 0 6px #ff9a3c,0 0 18px #ff9a3c,2px 3px 0 #5a2e0a;letter-spacing:10px;">星 际 弹 珠</span>', style: 'text-align:center;padding:8px 0 4px;' },
+                    { type: 'text', content: '长按蓄力 · 松手弹射', style: 'text-align:center;font-size:11px;color:#ffecc1;letter-spacing:4px;margin-bottom:4px;' },
+                    { type: 'box', content: '<span style="font-size:11px;background:rgba(90,45,10,0.55);padding:4px 12px;border-radius:20px;border:1px solid rgba(255,200,120,0.5);color:#ffd98a;">每次消耗 <b style="color:#ffb23c">12</b> 欢喜</span>', style: 'text-align:center;margin-bottom:6px;' },
+                    { type: 'box', content: '<div style="background:#0a0a0a;border:3px solid #3a0a0a;border-radius:8px;padding:10px;text-align:center;margin-bottom:6px;box-shadow:inset 0 2px 8px rgba(255,60,60,0.2);"><span style="font-family:Courier New,monospace;font-size:20px;color:#ff3a3a;text-shadow:0 0 10px #ff2a2a;letter-spacing:4px;">🎯 星际弹珠</span></div>', style: '' },
+                    { type: 'box', content: '<div style="background:linear-gradient(135deg,#e9c892 0%,#d6a96a 45%,#b9884e 100%);border-radius:16px;padding:10px 8px 8px;box-shadow:inset 0 0 0 5px #6b3a14,inset 0 0 0 8px #3a1c05;position:relative;min-height:280px;overflow:hidden;"><!-- 弹射槽（底部右侧） --><div style="position:absolute;right:0;bottom:0;width:36px;top:0;background:linear-gradient(to right,rgba(90,45,20,0.18),rgba(60,30,10,0.35),rgba(90,45,20,0.18));border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;z-index:5;"><!-- 60度挡板（朝左倾斜，右端在上左端在下） --><div style="position:absolute;top:4px;right:0;width:50px;height:12px;background:linear-gradient(to bottom,#8a5020,#3a1c05);border-radius:4px;transform:rotate(-60deg);transform-origin:right center;border:2px solid #c87c2a;box-shadow:inset 0 -2px 4px rgba(0,0,0,0.5),inset 0 2px 4px rgba(255,220,150,0.4);"></div></div><!-- 钉子（第一排） --><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#ffd5d5,#ff4d4d);left:8%;top:8%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#ffe9bf,#ff9a3c);left:25%;top:4%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#fff8c8,#ffd93c);left:42%;top:8%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#d8ffcc,#49c14e);left:59%;top:3%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#c8e3ff,#3c8dff);left:76%;top:9%;"></div><!-- 钉子（第二排） --><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#e3caff,#a75aff);left:16%;top:22%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#ffd5d5,#ff4d4d);left:33%;top:18%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#ffe9bf,#ff9a3c);left:50%;top:23%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#fff8c8,#ffd93c);left:67%;top:19%;"></div><!-- 钉子（第三排） --><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#d8ffcc,#49c14e);left:10%;top:36%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#c8e3ff,#3c8dff);left:27%;top:32%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#e3caff,#a75aff);left:44%;top:37%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#ffd5d5,#ff4d4d);left:61%;top:33%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#ffe9bf,#ff9a3c);left:78%;top:38%;"></div><!-- 钉子（第四排） --><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#fff8c8,#ffd93c);left:18%;top:50%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#d8ffcc,#49c14e);left:35%;top:47%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#c8e3ff,#3c8dff);left:52%;top:52%;"></div><div style="position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#e3caff,#a75aff);left:69%;top:48%;"></div><!-- 弹珠（弹射槽内） --><div style="position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#fff,#a0a0a0);right:11px;bottom:36%;box-shadow:0 0 8px rgba(255,255,255,0.7);"></div><!-- 奖品槽（底部7个） --><div style="display:flex;justify-content:space-between;margin-top:auto;padding:0 2px 2px;gap:2px;"><div style="flex:1;height:56px;background:linear-gradient(to bottom,#a9d8ff,#4b98d4);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div><div style="flex:1;height:56px;background:linear-gradient(to bottom,#ffd4a8,#e08a4a);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div><div style="flex:1;height:56px;background:linear-gradient(to bottom,#c8e9ff,#6ab8e0);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div><div style="flex:1;height:56px;background:linear-gradient(to bottom,#b8f0c0,#49b868);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div><div style="flex:1;height:56px;background:linear-gradient(to bottom,#ffd4e8,#e278a6);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div><div style="flex:1;height:56px;background:linear-gradient(to bottom,#e7d7ff,#b894e0);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div><div style="flex:1;height:56px;background:linear-gradient(to bottom,#ffb890,#d86428);border-radius:0 0 8px 8px;border-left:2px solid #5a2e0a;border-right:2px solid #5a2e0a;border-bottom:3px solid #5a2e0a;"></div></div></div>', style: 'margin-bottom:8px;' },
+                    { type: 'box', content: '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:8px;"><div style="width:40px;height:90px;background:linear-gradient(to bottom,#3a1c05,#6b3a14);border-radius:20px;padding:5px;border:3px solid #3a1c05;position:relative;"><div style="position:absolute;bottom:5px;left:5px;right:5px;height:0%;background:linear-gradient(to top,#49c14e,#ffd93c,#ff4d4d);border-radius:0 0 8px 8px;"></div></div><div style="position:relative;width:110px;height:110px;border-radius:50%;border:5px solid #3a1c05;background:radial-gradient(circle,#ffb770,#c46a1e 55%,#6b3414);color:#fff6d8;font-size:14px;font-weight:900;letter-spacing:2px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:0 10px 18px rgba(0,0,0,0.55),inset 0 4px 8px rgba(255,220,150,0.5);cursor:pointer;">蓄力<br/>发射</div></div>', style: 'padding:4px 0;' }
+                ]
+            }
+        };
+
+        // ============ 状态管理 ============
+        let currentPage = 'login';
+        let selectedElement = null;
+        let editingElement = null;
+        // 保存各页面实时状态（深拷贝初始模板）
+        let pageStates = {};
+        Object.keys(pageTemplates).forEach(key => {
+            pageStates[key] = {
+                elements: pageTemplates[key].elements.map(el => ({
+                    type: el.type,
+                    content: el.content,
+                    style: el.style
+                }))
+            };
+        });
+
+        // ============ 初始化页面缩略图 ============
+        function initThumbList() {
+            const list = document.getElementById('pageThumbList');
+            list.innerHTML = '';
+            Object.keys(pageTemplates).forEach(key => {
+                const tpl = pageTemplates[key];
+                const item = document.createElement('div');
+                item.className = 'page-thumb-item' + (key === currentPage ? ' active' : '');
+                item.onclick = () => switchPage(key);
+                item.innerHTML = `<div class="page-thumb-icon">${tpl.icon}</div><div class="page-thumb-name">${tpl.title}</div>`;
+                list.appendChild(item);
+            });
+        }
+
+        // ============ 切换页面 ============
+        function switchPage(pageKey) {
+            currentPage = pageKey;
+            selectedElement = null;
+            initThumbList();
+            renderPage();
+            renderPropertyPanel();
+        }
+
+        // ============ 渲染当前页面 ============
+        function renderPage() {
+            const content = document.getElementById('phoneContent');
+            content.innerHTML = '';
+            const state = pageStates[currentPage];
+            if (!state) return;
+            state.elements.forEach((el, idx) => {
+                const div = document.createElement('div');
+                div.className = 'editable';
+                div.dataset.type = el.type;
+                div.dataset.idx = idx;
+                div.setAttribute('style', el.style);
+                div.innerHTML = el.content;
+                div.innerHTML += `
+                    <div class="move-handle" title="拖拽上下移动元素">☰</div>
+                    <div class="resize-handle br" title="拖拽调整大小">↘</div>
+                    <div class="delete-btn" title="删除元素">✕</div>
+                `;
+                content.appendChild(div);
+            });
+            // 高亮选中
+            if (selectedElement !== null) {
+                const el = content.querySelector(`.editable[data-idx="${selectedElement}"]`);
+                if (el) el.classList.add('selected');
+            }
+        }
+
+        // ============ 统一委托事件处理（点击 / 双击 / 拖拽 / 调整大小 / 删除） ============
+        (function bindGlobalEvents() {
+            const content = document.getElementById('phoneContent');
+            let dragState = null;    // { type:'move'|'resize', startY, startX, startIdx, lastSwapY, startPadT, startPadR, startPadB, startPadL, dir }
+
+            // 点击选中
+            content.addEventListener('click', function(e) {
+                const editable = e.target.closest('.editable');
+                if (!editable) return;
+                if (e.target.classList.contains('resize-handle') || e.target.classList.contains('move-handle') || e.target.classList.contains('delete-btn')) return;
+                const idx = parseInt(editable.dataset.idx, 10);
+                selectElement(idx);
+            });
+
+            // 双击修改文字
+            content.addEventListener('dblclick', function(e) {
+                const editable = e.target.closest('.editable');
+                if (!editable) return;
+                if (e.target.classList.contains('resize-handle') || e.target.classList.contains('move-handle')) return;
+                const idx = parseInt(editable.dataset.idx, 10);
+                selectElement(idx);
+                openTextEdit(idx);
+            });
+
+            // 删除按钮
+            content.addEventListener('click', function(e) {
+                if (e.target.classList.contains('delete-btn')) {
+                    e.stopPropagation();
+                    const editable = e.target.closest('.editable');
+                    const idx = parseInt(editable.dataset.idx, 10);
+                    deleteElement(idx);
+                }
+            });
+
+            // 拖拽：移动 + 大小调整
+            function onMouseDown(e) {
+                const handle = e.target;
+                const editable = handle.closest('.editable');
+                if (!editable) return;
+                const idx = parseInt(editable.dataset.idx, 10);
+                const isMove = handle.classList.contains('move-handle');
+                const isResize = handle.classList.contains('resize-handle');
+                if (!isMove && !isResize) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+                selectElement(idx);
+
+                if (isMove) {
+                    // === 移动（上下交换） ===
+                    dragState = { type: 'move', startIdx: idx, startY: e.clientY, lastSwapY: e.clientY };
+                    document.body.style.cursor = 'ns-resize';
+                    editable.classList.add('dragging');
+                } else {
+                    // === 调整大小（通过padding缩放） ===
+                    const cs = getComputedStyle(editable);
+                    dragState = {
+                        type: 'resize',
+                        startIdx: idx,
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        startPadT: parseFloat(cs.paddingTop) || 8,
+                        startPadR: parseFloat(cs.paddingRight) || 8,
+                        startPadB: parseFloat(cs.paddingBottom) || 8,
+                        startPadL: parseFloat(cs.paddingLeft) || 8,
+                        dir: 'br'
+                    };
+                    document.body.style.cursor = 'nwse-resize';
+                    editable.classList.add('dragging');
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            }
+
+            function onMouseMove(e) {
+                if (!dragState) return;
+                const editable = document.querySelector('.editable.selected') || document.querySelector('.editable.dragging');
+
+                if (dragState.type === 'move') {
+                    // 每跨过 40px 就交换一次位置
+                    const dy = e.clientY - dragState.lastSwapY;
+                    if (Math.abs(dy) > 40) {
+                        const arr = pageStates[currentPage].elements;
+                        const currentIdx = getElementCurrentIndex(dragState.startIdx);
+                        let newIdx;
+                        if (dy > 0) {
+                            newIdx = Math.min(arr.length - 1, currentIdx + 1);
+                        } else {
+                            newIdx = Math.max(0, currentIdx - 1);
+                        }
+                        if (newIdx !== currentIdx) {
+                            [arr[currentIdx], arr[newIdx]] = [arr[newIdx], arr[currentIdx]];
+                            dragState.startIdx = newIdx;
+                            dragState.lastSwapY = e.clientY;
+                            selectedElement = newIdx;
+                            renderPage();
+                            const newEl = document.querySelector(`.editable[data-idx="${newIdx}"]`);
+                            if (newEl) newEl.classList.add('dragging');
+                            showToast((dy > 0 ? '⬇ 下移' : '⬆ 上移') + ' · 位置#' + (newIdx + 1));
+                        }
+                    }
+                } else if (dragState.type === 'resize') {
+                    // 调整padding来动态缩放
+                    const dx = e.clientX - dragState.startX;
+                    const dy = e.clientY - dragState.startY;
+                    const padL = Math.max(4, dragState.startPadL);
+                    const padT = Math.max(4, dragState.startPadT);
+                    const padR = Math.max(4, dragState.startPadR + dx);
+                    const padB = Math.max(4, dragState.startPadB + dy);
+                    const elObj = pageStates[currentPage].elements[dragState.startIdx];
+                    let s = (elObj.style || '').replace(/padding(-top|-right|-bottom|-left)?:\s*[^;]+;?/gi, '');
+                    if (s && !s.endsWith(';')) s += ';';
+                    elObj.style = `padding:${padT}px ${padR}px ${padB}px ${padL}px;${s}`;
+                    if (editable) editable.setAttribute('style', elObj.style);
+                }
+            }
+
+            function onMouseUp() {
+                if (!dragState) return;
+                const wasMove = dragState.type === 'move';
+                const idx = dragState.startIdx;
+                document.body.style.cursor = '';
+                document.querySelectorAll('.editable').forEach(el => el.classList.remove('dragging'));
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                dragState = null;
+                renderPage();
+                renderPropertyPanel();
+                if (wasMove) {
+                    showToast('✅ 已保存元素位置');
+                } else {
+                    showToast('✅ 已调整大小');
+                }
+            }
+
+            // 查找元素在数组中的当前索引（以类型+内容匹配，防止多次交换后错位）
+            function getElementCurrentIndex(origIdx) {
+                // 重新根据 DOM data-idx 查找
+                const selected = document.querySelector('.editable.dragging');
+                if (selected) {
+                    const v = parseInt(selected.dataset.idx, 10);
+                    if (!isNaN(v)) return v;
+                }
+                return origIdx;
+            }
+
+            content.addEventListener('mousedown', onMouseDown);
+        })();
+
+        // ============ 触摸支持（移动端编辑） ============
+        (function bindTouchEvents() {
+            const content = document.getElementById('phoneContent');
+            let touchState = null;
+
+            content.addEventListener('touchstart', function(e) {
+                const handle = e.target;
+                const editable = handle.closest('.editable');
+                if (!editable) return;
+                if (!handle.classList.contains('move-handle') && !handle.classList.contains('resize-handle') && !handle.classList.contains('delete-btn')) return;
+                e.preventDefault();
+
+                const idx = parseInt(editable.dataset.idx, 10);
+                selectElement(idx);
+                const touch = e.touches[0];
+
+                if (handle.classList.contains('move-handle')) {
+                    touchState = { type: 'move', startIdx: idx, startY: touch.clientY, lastSwapY: touch.clientY };
+                    editable.classList.add('dragging');
+                } else if (handle.classList.contains('resize-handle')) {
+                    const cs = getComputedStyle(editable);
+                    touchState = {
+                        type: 'resize', startIdx: idx, startX: touch.clientX, startY: touch.clientY,
+                        startPadT: parseFloat(cs.paddingTop) || 8, startPadR: parseFloat(cs.paddingRight) || 8,
+                        startPadB: parseFloat(cs.paddingBottom) || 8, startPadL: parseFloat(cs.paddingLeft) || 8,
+                        dir: 'br'
+                    };
+                    editable.classList.add('dragging');
+                }
+            }, { passive: false });
+
+            content.addEventListener('touchmove', function(e) {
+                if (!touchState) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const editable = document.querySelector('.editable.dragging');
+                if (touchState.type === 'move') {
+                    const dy = touch.clientY - touchState.lastSwapY;
+                    if (Math.abs(dy) > 40) {
+                        const arr = pageStates[currentPage].elements;
+                        const currentIdx = editable ? parseInt(editable.dataset.idx, 10) : touchState.startIdx;
+                        let newIdx;
+                        if (dy > 0) newIdx = Math.min(arr.length - 1, currentIdx + 1);
+                        else newIdx = Math.max(0, currentIdx - 1);
+                        if (newIdx !== currentIdx) {
+                            [arr[currentIdx], arr[newIdx]] = [arr[newIdx], arr[currentIdx]];
+                            touchState.startIdx = newIdx;
+                            touchState.lastSwapY = touch.clientY;
+                            selectedElement = newIdx;
+                            renderPage();
+                            const newEl = document.querySelector(`.editable[data-idx="${newIdx}"]`);
+                            if (newEl) newEl.classList.add('dragging');
+                        }
+                    }
+                } else if (touchState.type === 'resize') {
+                    const dx = touch.clientX - touchState.startX;
+                    const dy = touch.clientY - touchState.startY;
+                    const padL = Math.max(4, touchState.startPadL);
+                    const padT = Math.max(4, touchState.startPadT);
+                    const padR = Math.max(4, touchState.startPadR + dx);
+                    const padB = Math.max(4, touchState.startPadB + dy);
+                    const elObj = pageStates[currentPage].elements[touchState.startIdx];
+                    let s = (elObj.style || '').replace(/padding(-top|-right|-bottom|-left)?:\s*[^;]+;?/gi, '');
+                    if (s && !s.endsWith(';')) s += ';';
+                    elObj.style = `padding:${padT}px ${padR}px ${padB}px ${padL}px;${s}`;
+                    if (editable) editable.setAttribute('style', elObj.style);
+                }
+            }, { passive: false });
+
+            content.addEventListener('touchend', function() {
+                if (!touchState) return;
+                document.querySelectorAll('.editable').forEach(el => el.classList.remove('dragging'));
+                touchState = null;
+                renderPage();
+                renderPropertyPanel();
+                showToast('✅ 已保存');
+            });
+        })();
+
+        // ============ 选中元素 ============
+        function selectElement(idx) {
+            selectedElement = idx;
+            document.querySelectorAll('.editable').forEach(el => el.classList.remove('selected'));
+            const el = document.querySelector(`.editable[data-idx="${idx}"]`);
+            if (el) el.classList.add('selected');
+            renderPropertyPanel();
+        }
+
+        // ============ 右侧属性面板渲染 ============
+        function renderPropertyPanel() {
+            const panel = document.getElementById('propertyContent');
+            if (selectedElement === null) {
+                panel.innerHTML = `
+                    <div class="empty-hint">
+                        💡 点击页面中的元素<br>即可选中并编辑
+                        <div class="mini">
+                            • 点击选中元素（金色边框）<br>
+                            • 双击元素修改文字/HTML<br>
+                            • 拖拽顶部 ☰ 手柄上下移动排序<br>
+                            • 拖拽右下角 ↘ 调整元素大小<br>
+                            • Delete 键 / 红色 ✕ 删除<br>
+                            • 顶部 ✏️ 可切换编辑/预览
+                        </div>
+                    </div>`;
+                return;
+            }
+            const el = pageStates[currentPage].elements[selectedElement];
+            const typeNames = { title:'标题', text:'文本', icon:'图标', button:'按钮', box:'内容框', card:'卡片', divider:'分隔线', input:'输入区', grid:'网格', menuitem:'菜单项', image:'图片', checkbox:'勾选项' };
+            panel.innerHTML = `
+                <div class="property-group">
+                    <span class="type-badge">${typeNames[el.type] || el.type}</span>
+                    <span style="color:#888;font-size:12px;margin-left:8px;">索引 #${selectedElement}</span>
+                </div>
+                <div class="property-group">
+                    <label class="property-label">文字/内容 (可编辑 HTML)</label>
+                    <textarea class="property-input" id="propContent" style="height:120px;line-height:1.6;padding:10px;">${escapeHtml(el.content)}</textarea>
+                    <button class="text-edit-btn" style="margin-top:8px;" onclick="openTextEdit(${selectedElement})">✏️ 打开文本编辑器</button>
+                </div>
+                <div class="property-group">
+                    <label class="property-label">自定义 style (CSS 内联样式)</label>
+                    <textarea class="property-input" id="propStyle" style="height:120px;line-height:1.6;padding:10px;font-family:monospace;font-size:12px;">${escapeHtml(el.style)}</textarea>
+                </div>
+                <div class="property-group">
+                    <label class="property-label">快速样式</label>
+                    <div class="property-row" style="margin-bottom:8px;">
+                        <span style="color:#aaa;font-size:12px;width:50px;">字体</span>
+                        <input type="text" class="property-input" id="propFontSize" placeholder="例如 14px" value="${extractProp(el.style, 'font-size')}">
+                    </div>
+                    <div class="property-row" style="margin-bottom:8px;">
+                        <span style="color:#aaa;font-size:12px;width:50px;">颜色</span>
+                        <input type="text" class="property-input" id="propColor" placeholder="例如 #8B5A2B" value="${extractProp(el.style, 'color')}">
+                    </div>
+                    <div class="property-row" style="margin-bottom:8px;">
+                        <span style="color:#aaa;font-size:12px;width:50px;">背景</span>
+                        <input type="text" class="property-input" id="propBg" placeholder="例如 #fff" value="${extractProp(el.style, 'background')}">
+                    </div>
+                    <div class="property-row" style="margin-bottom:8px;">
+                        <span style="color:#aaa;font-size:12px;width:50px;">对齐</span>
+                        <input type="text" class="property-input" id="propAlign" placeholder="left/center/right" value="${extractProp(el.style, 'text-align')}">
+                    </div>
+                    <div class="property-row" style="margin-bottom:8px;">
+                        <span style="color:#aaa;font-size:12px;width:50px;">内边距</span>
+                        <input type="text" class="property-input" id="propPad" placeholder="例如 10px" value="${extractProp(el.style, 'padding')}">
+                    </div>
+                </div>
+                <div class="property-group" style="display:flex;gap:8px;">
+                    <button class="text-edit-btn" onclick="applyQuickStyles()">🎨 应用快速样式</button>
+                    <button class="text-edit-btn" onclick="applyRawStyles()">✅ 应用完整样式</button>
+                </div>
+                <div class="property-group" style="display:flex;gap:8px;">
+                    <button class="text-edit-btn" style="background:rgba(192,64,64,0.15);border:1px solid rgba(192,64,64,0.4);color:#E88383;" onclick="deleteElement(${selectedElement})">🗑️ 删除此元素</button>
+                </div>
+            `;
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function extractProp(style, prop) {
+            const re = new RegExp(prop + '\\s*:\\s*([^;]+)', 'i');
+            const m = (style || '').match(re);
+            return m ? m[1].trim() : '';
+        }
+
+        function setProp(style, prop, value) {
+            if (!value) return style;
+            const re = new RegExp(prop + '\\s*:\\s*[^;]+;?', 'gi');
+            let s = (style || '').replace(re, '');
+            if (s && !s.endsWith(';')) s += ';';
+            return s + `${prop}:${value};`;
+        }
+
+        function applyQuickStyles() {
+            const size = document.getElementById('propFontSize').value.trim();
+            const color = document.getElementById('propColor').value.trim();
+            const bg = document.getElementById('propBg').value.trim();
+            const align = document.getElementById('propAlign').value.trim();
+            const pad = document.getElementById('propPad').value.trim();
+            let s = pageStates[currentPage].elements[selectedElement].style || '';
+            if (size) s = setProp(s, 'font-size', size);
+            if (color) s = setProp(s, 'color', color);
+            if (bg) s = setProp(s, 'background', bg);
+            if (align) s = setProp(s, 'text-align', align);
+            if (pad) s = setProp(s, 'padding', pad);
+            pageStates[currentPage].elements[selectedElement].style = s;
+            renderPage();
+            renderPropertyPanel();
+            showToast('✅ 样式已应用');
+        }
+
+        function applyRawStyles() {
+            const content = document.getElementById('propContent').value;
+            const style = document.getElementById('propStyle').value;
+            pageStates[currentPage].elements[selectedElement].content = content;
+            pageStates[currentPage].elements[selectedElement].style = style;
+            renderPage();
+            renderPropertyPanel();
+            showToast('✅ 已保存修改');
+        }
+
+        // ============ 文本编辑弹窗 ============
+        function openTextEdit(idx) {
+            editingElement = idx;
+            const el = pageStates[currentPage].elements[idx];
+            document.getElementById('textEditInput').value = el.content || '';
+            document.getElementById('textEditModal').classList.add('active');
+        }
+        function closeTextEdit() { document.getElementById('textEditModal').classList.remove('active'); editingElement = null; }
+        function confirmTextEdit() {
+            if (editingElement === null) return;
+            const v = document.getElementById('textEditInput').value;
+            pageStates[currentPage].elements[editingElement].content = v;
+            closeTextEdit();
+            renderPage();
+            renderPropertyPanel();
+            showToast('✅ 文字已更新');
+        }
+
+        // ============ 添加模块 ============
+        function toggleAddPanel() { document.getElementById('addPanel').classList.toggle('active'); }
+
+        function addElement(type) {
+            const defaults = {
+                title: { content: '新标题', style: 'font-size:18px;color:#4A3728;font-weight:600;margin:10px 0;' },
+                text: { content: '在这里输入文本内容……', style: 'font-size:13px;color:#4A3728;line-height:1.8;' },
+                icon: { content: '<span style="font-size:40px;">🙏</span>', style: 'text-align:center;margin:15px 0;' },
+                button: { content: '<button style="width:100%;height:48px;background:linear-gradient(135deg,#A67B4B,#6B4423);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">按钮文字</button>', style: 'margin:10px 0;' },
+                box: { content: '<div style="padding:12px;font-size:13px;color:#4A3728;">内容区域</div>', style: 'background:#fff;border-radius:12px;margin:10px 0;' },
+                card: { content: '<div style="padding:16px;font-size:13px;color:#4A3728;">卡片内容</div>', style: 'background:linear-gradient(135deg,#FDF8F3,#F5E6D3);border-radius:16px;margin:10px 0;box-shadow:0 2px 12px rgba(139,90,43,0.08);' },
+                image: { content: '<div style="height:160px;background:linear-gradient(135deg,#F5E6D3,#E8C99A);display:flex;align-items:center;justify-content:center;color:#8B5A2B;font-size:14px;border-radius:12px;">🖼️ 图片占位</div>', style: 'margin:10px 0;' },
+                divider: { content: '', style: 'height:1px;background:rgba(139,90,43,0.2);margin:15px 0;' },
+                menuitem: { content: '<span style="font-size:20px;margin-right:12px;">📋</span><span style="flex:1;font-size:14px;color:#4A3728;">菜单项</span><span style="color:#ccc;font-size:14px;">›</span>', style: 'display:flex;align-items:center;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;' }
+            };
+            const def = defaults[type] || defaults.text;
+            pageStates[currentPage].elements.push({ type, content: def.content, style: def.style });
+            selectedElement = pageStates[currentPage].elements.length - 1;
+            renderPage();
+            renderPropertyPanel();
+            document.getElementById('addPanel').classList.remove('active');
+            showToast('✅ 已添加模块');
+        }
+
+        // ============ 删除元素 ============
+        function deleteElement(idx) {
+            pageStates[currentPage].elements.splice(idx, 1);
+            selectedElement = null;
+            renderPage();
+            renderPropertyPanel();
+            showToast('🗑️ 已删除元素');
+        }
+
+        // ============ 重置布局 ============
+        function resetLayout() {
+            pageStates[currentPage].elements = pageTemplates[currentPage].elements.map(el => ({ type: el.type, content: el.content, style: el.style }));
+            selectedElement = null;
+            renderPage();
+            renderPropertyPanel();
+            showToast('↺ 已重置为初始模板');
+        }
+
+        // ============ 编辑模式切换 ============
+        function toggleEditMode() {
+            document.body.classList.toggle('edit-mode');
+            const btn = document.getElementById('editModeBtn');
+            if (document.body.classList.contains('edit-mode')) {
+                btn.textContent = '✏️ 编辑模式';
+                btn.classList.add('active');
+                showToast('✏️ 已进入编辑模式');
+            } else {
+                btn.textContent = '👁️ 预览模式';
+                btn.classList.remove('active');
+                showToast('👁️ 已切换到预览模式');
+            }
+        }
+
+        // ============ Toast ============
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('active');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('active'), 1800);
+        }
+
+        // ============ 帮助弹窗 ============
+        function closeGuide() { document.getElementById('guideModal').classList.remove('active'); }
+
+        // ============ 保存/生成代码 ============
+        function saveGlobal() {
+            const container = document.getElementById('saveCodeContainer');
+            container.innerHTML = '';
+            Object.keys(pageStates).forEach(key => {
+                const tpl = pageTemplates[key];
+                const state = pageStates[key];
+                let html = '';
+                state.elements.forEach(el => {
+                    html += `  <div class="editable" data-type="${el.type}" style="${el.style}">${el.content}</div>\n`;
+                });
+                // 完整页面HTML（含基础容器）
+                const fullHtml = `<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">\n  <title>${tpl.title} - 祈个福</title>\n  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">\n  <style>\n    :root{--bg-warm:#F5E6D3;--primary:#8B5A2B;--gold:#D4AF37;--text-dark:#4A3728;--text-light:#8B7355;}\n    body{margin:0;font-family:'Noto Serif SC',serif;background:var(--bg-warm);color:var(--text-dark);min-height:100vh;padding:16px;}\n    .editable{margin:8px 0;}\n  </style>\n</head>\n<body>\n${html}</body>\n</html>`;
+                const block = document.createElement('div');
+                block.className = 'page-code-section';
+                block.innerHTML = `<div class="page-code-header">📱 ${tpl.icon} ${tpl.title} (${state.elements.length} 个元素)</div>\n<textarea class="property-input" style="background:#1a1a1a;border:1px solid #333;border-radius:0 0 8px 8px;height:260px;padding:12px;font-family:monospace;font-size:11px;color:#e0e0e0;line-height:1.6;white-space:pre;" readonly>${escapeHtml(fullHtml)}</textarea>`;
+                container.appendChild(block);
+            });
+            document.getElementById('saveStatus').classList.add('active');
+            document.getElementById('saveStatusText').textContent = `✅ 设计已保存！共 ${Object.keys(pageStates).length} 个页面`;
+        }
+
+        function copyCode() {
+            const blocks = document.querySelectorAll('#saveCodeContainer textarea');
+            let combined = '';
+            blocks.forEach((b, i) => {
+                combined += `<!-- ================ 页面 ${i + 1} ================ -->\n${b.value}\n\n`;
+            });
+            const ta = document.createElement('textarea');
+            ta.value = combined;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); showToast('📋 代码已复制到剪贴板'); }
+            catch (e) { showToast('⚠️ 自动复制失败，请手动选择复制'); }
+            document.body.removeChild(ta);
+        }
+
+        // ============ 键盘事件：Delete 删除 ============
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement !== null) {
+                const tag = (e.target && e.target.tagName) || '';
+                if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                deleteElement(selectedElement);
+            }
+        });
+
+        // ============ 点击空白取消选中 ============
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.editable') || e.target.closest('.property-panel') || e.target.closest('.toolbar-btn') || e.target.closest('.add-panel') || e.target.closest('.text-edit-modal') || e.target.closest('.save-status') || e.target.closest('.guide-modal')) return;
+            if (selectedElement !== null) {
+                selectedElement = null;
+                document.querySelectorAll('.editable').forEach(el => el.classList.remove('selected'));
+                renderPropertyPanel();
+            }
+        });
+
+        // ============ 初始化 ============
+        initThumbList();
+        renderPage();
+        renderPropertyPanel();
+    </script>
+</body>
+</html>

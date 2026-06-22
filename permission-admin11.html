@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限管理 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FFFBEE;
+            min-height: 100vh;
+            color: #4A3728;
+            max-width: 430px;
+            margin: 0 auto;
+            position: relative;
+            padding-bottom: 40px;
+        }
+        .status-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            padding: 10px 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 10;
+            color: #4A3728;
+        }
+        .back-btn {
+            position: absolute;
+            top: 8px; left: 12px;
+            width: 32px; height: 32px;
+            background: rgba(139,90,43,0.18);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            color: #8B5A2B;
+            border: none;
+            font-weight: 700;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .page-header {
+            padding: 64px 20px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .page-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 22px;
+            color: #8B5A2B;
+            letter-spacing: 4px;
+        }
+        .page-subtitle-bar {
+            padding: 0 20px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #C2362B;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .dot-red {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #C2362B;
+            animation: pulse 1.6s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .scroll-area { padding: 0 20px 20px; }
+
+        /* 顶部操作按钮 */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 11px 8px;
+            border-radius: 12px;
+            border: 1.5px solid #D4A574;
+            background: #FFF8EC;
+            color: #8B5A2B;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            transition: all 0.2s;
+        }
+        .action-btn:active { transform: scale(0.97); }
+        .action-btn.primary {
+            background: linear-gradient(135deg,#C2362B 0%,#E85D3C 100%);
+            color: #FFFBEE;
+            border-color: #C2362B;
+            box-shadow: 0 3px 10px rgba(194,54,43,0.25);
+        }
+
+        /* 管理员卡片 */
+        .admin-card {
+            background: #fff;
+            border: 2px solid #8B5A2B;
+            border-radius: 16px;
+            padding: 18px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 12px rgba(139,90,43,0.12);
+        }
+
+        /* 超级管理员信息卡 */
+        .super-info {
+            text-align: center;
+            background: linear-gradient(135deg, #FFF8EC 0%, #FFE8C8 100%);
+            border-color: #D4AF37;
+        }
+        .super-badge {
+            display: inline-block;
+            padding: 8px 22px;
+            background: linear-gradient(135deg,#C2362B 0%,#8B3A3A 100%);
+            color: #FFFBEE;
+            border-radius: 22px;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 14px;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(194,54,43,0.3);
+        }
+        .super-phone {
+            font-size: 22px;
+            color: #8B5A2B;
+            font-weight: 700;
+            letter-spacing: 3px;
+            font-family: 'Ma Shan Zheng', cursive;
+            margin-bottom: 6px;
+        }
+        .super-note {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+        }
+
+        /* 卡片标题 */
+        .admin-card-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 16px;
+            color: #8B5A2B;
+            letter-spacing: 3px;
+            margin-bottom: 14px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .admin-card-title .count {
+            font-size: 11px;
+            color: #8B7355;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            background: #FFF8EC;
+            border-radius: 12px;
+            font-family: inherit;
+        }
+
+        /* 权限列表项 */
+        .perm-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 6px;
+            border-bottom: 1px dashed rgba(139,90,43,0.2);
+        }
+        .perm-row:last-of-type { border-bottom: none; }
+        .perm-row.locked {
+            background: linear-gradient(90deg, rgba(212,175,55,0.08) 0%, transparent 100%);
+            border-radius: 8px;
+            margin: 0 -6px;
+            padding: 14px 12px;
+        }
+        .perm-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg,#FFE8C8,#FFFBEE);
+            border: 1.5px solid #D4A574;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(139,90,43,0.12);
+        }
+        .perm-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .perm-name {
+            font-size: 14px;
+            color: #4A3728;
+            font-weight: 700;
+            margin-bottom: 3px;
+            letter-spacing: 1px;
+        }
+        .perm-actions-text {
+            font-size: 10px;
+            color: #8B7355;
+            letter-spacing: 0.5px;
+        }
+        .perm-lock-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            background: linear-gradient(135deg,#C2362B,#8B3A3A);
+            color: #FFFBEE;
+            border-radius: 6px;
+            font-size: 9px;
+            letter-spacing: 1px;
+            margin-left: 6px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        /* 权限状态下拉 */
+        .perm-select-wrap {
+            flex-shrink: 0;
+            position: relative;
+        }
+        .perm-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: #FFF8EC;
+            border: 1.5px solid #D4A574;
+            border-radius: 10px;
+            padding: 8px 26px 8px 10px;
+            font-size: 11px;
+            color: #8B5A2B;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+            outline: none;
+            min-width: 78px;
+            transition: all 0.2s;
+        }
+        .perm-select:focus {
+            border-color: #C2362B;
+            background: #fff;
+        }
+        .perm-select[value="none"] { color: #8B7355; opacity: 0.7; }
+        .perm-select[value="read"] { color: #4A7C7E; border-color: #4A7C7E; }
+        .perm-select[value="edit"] { color: #8B5A2B; border-color: #8B5A2B; background: #FFE8C8; }
+        .perm-select[value="full"] {
+            color: #FFFBEE;
+            background: linear-gradient(135deg,#C2362B,#8B3A3A);
+            border-color: #C2362B;
+        }
+        .perm-select-wrap::after {
+            content: '▾';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            color: #8B5A2B;
+            pointer-events: none;
+        }
+        .perm-select[value="full"] + ::after,
+        .perm-select-wrap.full::after { color: #FFFBEE; }
+
+        /* 权限状态点 */
+        .perm-status-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .perm-status-dot.read { background: #4A7C7E; }
+        .perm-status-dot.edit { background: #D4AF37; }
+        .perm-status-dot.full { background: #C2362B; }
+
+        /* 底部操作 */
+        .bottom-action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(139,90,43,0.2);
+        }
+        .big-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            transition: all 0.2s;
+        }
+        .big-btn:active { transform: scale(0.97); }
+        .big-btn.save {
+            background: linear-gradient(135deg,#C2362B 0%,#E85D3C 100%);
+            color: #FFFBEE;
+            box-shadow: 0 4px 14px rgba(194,54,43,0.3);
+        }
+        .big-btn.select-all {
+            background: linear-gradient(135deg,#D4AF37 0%,#8B5A2B 100%);
+            color: #FFFBEE;
+            box-shadow: 0 4px 14px rgba(212,175,55,0.3);
+        }
+        .big-btn.reset {
+            background: #FFF8EC;
+            color: #8B5A2B;
+            border: 1.5px solid #D4A574;
+        }
+
+        .admin-tip {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #8B7355;
+            opacity: 0.75;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+            line-height: 1.6;
+        }
+
+        /* 统计徽章 */
+        .perm-stats {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            padding: 6px 12px;
+            background: #FFF8EC;
+            border: 1px solid #D4A574;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #8B5A2B;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+        }
+        .stat-chip b {
+            color: #C2362B;
+            font-weight: 700;
+            margin: 0 2px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.94);
+            color: #FFFBEE;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.9);
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+    <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+
+    <div class="page-header">
+        <button class="back-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.back();}" aria-label="返回">‹</button>
+        <div class="page-title">✦ 权限管理</div>
+        <div style="width:32px"></div>
+    </div>
+
+    <div class="page-subtitle-bar">
+        <span class="dot-red"></span>
+        <span>超级管理员专属</span>
+        <span class="dot-red"></span>
+    </div>
+
+    <div class="scroll-area">
+
+        <!-- 超级管理员信息 -->
+        <div class="admin-card super-info">
+            <div class="super-badge">超 级 管 理 员</div>
+            <div class="super-phone">189 4476 1788</div>
+            <div class="super-note">Super Administrator · 拥有所有模块的完全控制权限</div>
+        </div>
+
+        <!-- 确认授权内容 -->
+        <div class="admin-card">
+            <div class="admin-card-title">
+                ✦ 确认授权内容
+                <span class="count" id="totalCount">共 10 项</span>
+            </div>
+
+            <div class="perm-stats">
+                <span class="stat-chip">完全控制 <b id="cntFull">0</b></span>
+                <span class="stat-chip">可编辑 <b id="cntEdit">0</b></span>
+                <span class="stat-chip">只读 <b id="cntRead">0</b></span>
+                <span class="stat-chip">无权限 <b id="cntNone">0</b></span>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-bar">
+                <button class="action-btn primary" onclick="savePerms()">💾 保存</button>
+                <button class="action-btn" onclick="selectAllEdit()">✎ 全选编辑</button>
+                <button class="action-btn" onclick="resetPerms()">↺ 重置</button>
+            </div>
+
+            <!-- 1. 参数管理 -->
+            <div class="perm-row">
+                <div class="perm-icon">🔥</div>
+                <div class="perm-content">
+                    <div class="perm-name">参数管理</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="params" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. 会员管理 -->
+            <div class="perm-row">
+                <div class="perm-icon">👑</div>
+                <div class="perm-content">
+                    <div class="perm-name">会员管理</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑 / 删除</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="member" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 3. 文章管理 -->
+            <div class="perm-row">
+                <div class="perm-icon">📜</div>
+                <div class="perm-content">
+                    <div class="perm-name">文章管理</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑 / 删除 / 发布</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="article" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 4. 文章编辑 -->
+            <div class="perm-row">
+                <div class="perm-icon">✍️</div>
+                <div class="perm-content">
+                    <div class="perm-name">文章编辑</div>
+                    <div class="perm-actions-text">可执行操作：创建 / 编辑 / 保存</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="editor" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 5. 游戏机管理 -->
+            <div class="perm-row">
+                <div class="perm-icon">🎰</div>
+                <div class="perm-content">
+                    <div class="perm-name">游戏机管理</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑 / 保存</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="game" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 6. 佛像管理 -->
+            <div class="perm-row">
+                <div class="perm-icon">🏛️</div>
+                <div class="perm-content">
+                    <div class="perm-name">佛像管理</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="buddha" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 7. 权限管理（锁定，只有超级管理员可编辑） -->
+            <div class="perm-row locked">
+                <div class="perm-icon">🔐</div>
+                <div class="perm-content">
+                    <div class="perm-name">权限管理<span class="perm-lock-tag">仅超管</span></div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑（仅超级管理员可编辑）</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="permission" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read" selected>只读</option>
+                        <option value="edit">编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 8. 任务列表 -->
+            <div class="perm-row">
+                <div class="perm-icon">📋</div>
+                <div class="perm-content">
+                    <div class="perm-name">任务列表</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 新建 / 编辑</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="task" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 9. 图标管理 -->
+            <div class="perm-row">
+                <div class="perm-icon">🎨</div>
+                <div class="perm-content">
+                    <div class="perm-name">图标管理</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 上传 / 删除</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="icon" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 10. 可视化编辑 -->
+            <div class="perm-row">
+                <div class="perm-icon">🛠️</div>
+                <div class="perm-content">
+                    <div class="perm-name">可视化编辑</div>
+                    <div class="perm-actions-text">可执行操作：查看 / 编辑 / 保存</div>
+                </div>
+                <div class="perm-select-wrap">
+                    <select class="perm-select" data-perm="visual" onchange="updateStats()">
+                        <option value="none">无权限</option>
+                        <option value="read">只读</option>
+                        <option value="edit" selected>编辑</option>
+                        <option value="full">完全控制</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 底部大按钮 -->
+            <div class="bottom-action-bar">
+                <button class="big-btn save" onclick="savePerms()">💾 保 存</button>
+                <button class="big-btn select-all" onclick="selectAllEdit()">✎ 全选编辑</button>
+                <button class="big-btn reset" onclick="resetPerms()">↺ 重 置</button>
+            </div>
+        </div>
+
+        <div class="admin-tip">— 仅超级管理员 18944761788 可操作 —<br>保存后权限立即生效</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        const DEFAULTS = {
+            params: 'edit',
+            member: 'edit',
+            article: 'edit',
+            editor: 'edit',
+            game: 'edit',
+            buddha: 'edit',
+            permission: 'read',
+            task: 'edit',
+            icon: 'edit',
+            visual: 'edit'
+        };
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+        }
+
+        function updateStats() {
+            const selects = document.querySelectorAll('.perm-select');
+            let full = 0, edit = 0, read = 0, none = 0;
+            selects.forEach(s => {
+                if (s.value === 'full') full++;
+                else if (s.value === 'edit') edit++;
+                else if (s.value === 'read') read++;
+                else none++;
+            });
+            document.getElementById('cntFull').textContent = full;
+            document.getElementById('cntEdit').textContent = edit;
+            document.getElementById('cntRead').textContent = read;
+            document.getElementById('cntNone').textContent = none;
+            document.getElementById('totalCount').textContent = '共 ' + selects.length + ' 项';
+        }
+
+        function savePerms() {
+            const selects = document.querySelectorAll('.perm-select');
+            const perms = {};
+            selects.forEach(s => perms[s.dataset.perm] = s.value);
+            const hasEdit = Object.values(perms).some(v => v === 'edit' || v === 'full');
+            const total = Object.values(perms).filter(v => v !== 'none').length;
+            showToast('✦ 已保存 ' + total + ' 项权限');
+        }
+
+        function selectAllEdit() {
+            const selects = document.querySelectorAll('.perm-select');
+            selects.forEach(s => {
+                if (s.dataset.perm === 'permission') {
+                    s.value = 'read';
+                } else {
+                    s.value = 'edit';
+                }
+            });
+            updateStats();
+            showToast('✦ 已全选编辑权限');
+        }
+
+        function resetPerms() {
+            const selects = document.querySelectorAll('.perm-select');
+            selects.forEach(s => { s.value = DEFAULTS[s.dataset.perm]; });
+            updateStats();
+            showToast('✦ 已重置为默认权限');
+        }
+
+        updateStats();
+    </script>
+</body>
+</html>

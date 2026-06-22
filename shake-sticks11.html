@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>✨ 电子求签 ✨</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; min-height: 100vh; overflow-x: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(ellipse at 50% 30%, #2a1a5e 0%, #0a0515 70%);
+    color: #e8f6ff;
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* 科技网格背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(100,200,255,0.04) 0px, rgba(100,200,255,0.04) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, rgba(150,100,255,0.04) 0px, rgba(150,100,255,0.04) 1px, transparent 1px, transparent 40px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 动态粒子 */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #7ee8fa;
+    box-shadow: 0 0 8px #7ee8fa, 0 0 16px rgba(150,100,255,0.8);
+    opacity: 0.4;
+    animation: float 8s ease-in-out infinite;
+  }
+  .particle.v2 { background: #eec0c6; box-shadow: 0 0 8px #eec0c6, 0 0 16px rgba(238,192,198,0.6); }
+  .particle.v3 { background: #b19cd9; box-shadow: 0 0 8px #b19cd9, 0 0 16px rgba(177,156,217,0.6); }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+    50% { transform: translate(25px, -35px); opacity: 0.8; }
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    padding: 20px 18px 10px;
+  }
+  .back-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(100,200,255,0.08);
+    border: 1px solid rgba(100,200,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7ee8fa;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .back-btn:active { transform: scale(0.92); }
+  header h1 {
+    flex: 1;
+    text-align: center;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: #7ee8fa;
+    text-shadow:
+      0 0 5px #7ee8fa,
+      0 0 10px #7ee8fa,
+      0 0 20px #7ee8fa,
+      0 0 40px #eec0c6;
+    padding-right: 42px;
+    font-weight: 500;
+  }
+
+  /* 副标题区 */
+  .subtitle-area {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 12px 20px 20px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: rgba(232,246,255,0.6);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .neon-line {
+    height: 2px;
+    width: 70%;
+    margin: 0 auto;
+    background: linear-gradient(90deg, transparent, #7ee8fa, #b19cd9, #eec0c6, transparent);
+    box-shadow: 0 0 8px #7ee8fa, 0 0 16px rgba(150,100,255,0.6);
+    filter: blur(0.5px);
+    border-radius: 2px;
+  }
+
+  /* ===== 舞台 — 直筒签桶 ===== */
+  .stage {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 10px;
+  }
+
+  /* 签桶外层 */
+  .bucket-wrap {
+    position: relative;
+    width: 200px;
+    height: 320px;
+    margin-bottom: 30px;
+    perspective: 900px;
+  }
+
+  /* 签桶主体 — 圆筒高度加大（竹签只露出约28%） */
+  .bucket {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 240px;           /* 圆筒加长，容纳更多签 */
+    background:
+      /* 左侧暗部（模拟圆柱体积） */
+      linear-gradient(to right,
+        rgba(0,0,0,0.5) 0%,
+        rgba(0,0,0,0.2) 20%,
+        rgba(255,255,255,0.05) 45%,
+        rgba(255,255,255,0.08) 50%,
+        rgba(0,0,0,0.15) 55%,
+        rgba(0,0,0,0.4) 75%,
+        rgba(0,0,0,0.6) 100%),
+      /* 纵向渐变（从上到下的木质质感） */
+      linear-gradient(180deg,
+        #6b3a14 0%,
+        #8b5a2b 8%,
+        #5a3218 25%,
+        #3d2010 50%,
+        #2a1508 75%,
+        #1a0d05 100%);
+    border-radius: 8px;
+    box-shadow:
+      0 0 30px rgba(212,165,116,0.4),
+      0 0 60px rgba(139,90,43,0.2),
+      inset 0 0 0 4px #c9a055,
+      inset 4px 0 15px rgba(0,0,0,0.6),
+      inset -4px 0 15px rgba(0,0,0,0.3);
+    overflow: visible;
+  }
+
+  /* 桶身 "佛" 字发光装饰 */
+  .bucket::before {
+    content: '佛';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "STKaiti", "KaiTi", "楷体", serif;
+    font-size: 88px;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow:
+      0 0 12px rgba(255,220,100,1),
+      0 0 24px rgba(255,215,0,1),
+      0 0 50px rgba(255,180,50,0.9),
+      0 0 80px rgba(255,150,0,0.6);
+    pointer-events: none;
+    z-index: 3;
+    letter-spacing: 0;
+    animation: buddhaGlow 2.5s ease-in-out infinite;
+  }
+  @keyframes buddhaGlow {
+    0%, 100% {
+      text-shadow:
+        0 0 12px rgba(255,220,100,1),
+        0 0 24px rgba(255,215,0,1),
+        0 0 50px rgba(255,180,50,0.9),
+        0 0 80px rgba(255,150,0,0.6);
+    }
+    50% {
+      text-shadow:
+        0 0 18px rgba(255,255,200,1),
+        0 0 36px rgba(255,235,120,1),
+        0 0 70px rgba(255,215,0,1),
+        0 0 110px rgba(255,180,60,0.8);
+    }
+  }
+
+  /* 桶口 — 立体椭圆（金色金属边缘） */
+  .bucket::after {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: -8px;
+    right: -8px;
+    height: 28px;
+    background:
+      radial-gradient(ellipse at 50% 40%,
+        #4a2a10 0%,
+        #2b1a08 50%,
+        #1a0d05 100%);
+    border: 4px solid #c9a055;
+    border-radius: 50%;
+    box-shadow:
+      0 0 15px rgba(255,200,100,0.5),
+      inset 0 -4px 12px rgba(255,200,100,0.3),
+      inset 0 8px 20px rgba(0,0,0,0.7);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* 签条容器（竹签露出约28%在桶外） */
+  .sticks-area {
+    position: absolute;
+    bottom: 0;
+    left: 15px;
+    right: 15px;
+    height: 300px; /* 露出 60px（300-240=60），约占圆筒高度的25% */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+    z-index: 2;
+  }
+
+  /* 签条 — 缩小尺寸，比例协调 */
+  .stick {
+    width: 10px;
+    height: 300px;
+    background: linear-gradient(180deg,
+      #f8edd5 0%,
+      #f0dab8 15%,
+      #ddb870 35%,
+      #c49a4a 55%,
+      #9a7030 80%,
+      #7a5520 100%);
+    border-radius: 4px 4px 2px 2px;
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.3),
+      inset 1px 0 2px rgba(255,255,200,0.5),
+      inset -1px 0 2px rgba(100,60,10,0.3);
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 10px;
+    color: #5a3518;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transform-origin: bottom center;
+    transition: transform 0.3s ease;
+    z-index: 2;
+  }
+
+  /* 签条顶部编号标签（高清质感） */
+  .stick::before {
+    content: attr(data-num);
+    background: linear-gradient(180deg, #8B5A2B, #5a3518);
+    color: #fff8dc;
+    padding: 4px 3px;
+    border-radius: 3px;
+    font-family: "STKaiti", "KaiTi", serif;
+    font-size: 10px;
+    writing-mode: vertical-rl;
+    border: 1px solid #a87d44;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 0 2px rgba(255,255,255,0.3);
+  }
+
+  /* 签条倾斜分布（初始状态） */
+  .stick:nth-child(1) { transform: rotate(-8deg) translateY(-3px); height: 430px; }
+  .stick:nth-child(2) { transform: rotate(-5deg) translateY(6px); height: 448px; }
+  .stick:nth-child(3) { transform: rotate(-2deg) translateY(-4px); height: 434px; }
+  .stick:nth-child(4) { transform: rotate(-1deg) translateY(3px); height: 444px; }
+  .stick:nth-child(5) { transform: rotate(1deg) translateY(-2px); height: 440px; }
+  .stick:nth-child(6) { transform: rotate(3deg) translateY(4px); height: 450px; }
+  .stick:nth-child(7) { transform: rotate(5deg) translateY(-5px); height: 428px; }
+  .stick:nth-child(8) { transform: rotate(7deg) translateY(2px); height: 438px; }
+  .stick:nth-child(9) { transform: rotate(9deg) translateY(-3px); height: 436px; }
+  .stick:nth-child(10) { transform: rotate(12deg) translateY(3px); height: 445px; }
+
+  /* ===== 剧烈摇晃动画 — 5秒 ===== */
+  .bucket.shake-anim {
+    animation: bucketShake 5s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+  }
+  @keyframes bucketShake {
+    0%   { transform: translateX(-50%) rotate(0deg) translateY(0); }
+    5%   { transform: translateX(-50%) rotate(-15deg) translateY(-8px); }
+    10%  { transform: translateX(-50%) rotate(14deg) translateY(-5px); }
+    15%  { transform: translateX(-50%) rotate(-18deg) translateY(-10px); }
+    20%  { transform: translateX(-50%) rotate(16deg) translateY(-3px); }
+    25%  { transform: translateX(-50%) rotate(-20deg) translateY(-12px); }
+    30%  { transform: translateX(-50%) rotate(18deg) translateY(-6px); }
+    35%  { transform: translateX(-50%) rotate(-16deg) translateY(-8px); }
+    40%  { transform: translateX(-50%) rotate(20deg) translateY(-4px); }
+    45%  { transform: translateX(-50%) rotate(-18deg) translateY(-10px); }
+    50%  { transform: translateX(-50%) rotate(15deg) translateY(-5px); }
+    55%  { transform: translateX(-50%) rotate(-12deg) translateY(-8px); }
+    60%  { transform: translateX(-50%) rotate(14deg) translateY(-3px); }
+    65%  { transform: translateX(-50%) rotate(-10deg) translateY(-6px); }
+    70%  { transform: translateX(-50%) rotate(8deg) translateY(-4px); }
+    75%  { transform: translateX(-50%) rotate(-5deg) translateY(-2px); }
+    80%  { transform: translateX(-50%) rotate(3deg) translateY(0); }
+    85%  { transform: translateX(-50%) rotate(-2deg) translateY(0); }
+    90%  { transform: translateX(-50%) rotate(1deg) translateY(0); }
+    95%  { transform: translateX(-50%) rotate(-1deg) translateY(0); }
+    100% { transform: translateX(-50%) rotate(0deg) translateY(0); }
+  }
+
+  /* 桶内签条 — 碰撞式随机摇晃 */
+  .bucket.shake-anim .stick {
+    animation-duration: 0.3s;
+    animation-iteration-count: 16;
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: forwards;
+  }
+  .bucket.shake-anim .stick:nth-child(1) { animation-name: stickShake1; }
+  .bucket.shake-anim .stick:nth-child(2) { animation-name: stickShake2; }
+  .bucket.shake-anim .stick:nth-child(3) { animation-name: stickShake3; }
+  .bucket.shake-anim .stick:nth-child(4) { animation-name: stickShake4; }
+  .bucket.shake-anim .stick:nth-child(5) { animation-name: stickShake5; }
+  .bucket.shake-anim .stick:nth-child(6) { animation-name: stickShake6; }
+  .bucket.shake-anim .stick:nth-child(7) { animation-name: stickShake7; }
+  .bucket.shake-anim .stick:nth-child(8) { animation-name: stickShake8; }
+  .bucket.shake-anim .stick:nth-child(9) { animation-name: stickShake9; }
+  .bucket.shake-anim .stick:nth-child(10) { animation-name: stickShake10; }
+
+  @keyframes stickShake1 {
+    0%   { transform: rotate(-8deg) translateY(-2px); }
+    25%  { transform: rotate(-28deg) translateY(-55px); }
+    50%  { transform: rotate(18deg) translateY(-20px); }
+    75%  { transform: rotate(-20deg) translateY(-65px); }
+    100% { transform: rotate(-8deg) translateY(-2px); }
+  }
+  @keyframes stickShake2 {
+    0%   { transform: rotate(-5deg) translateY(4px); }
+    25%  { transform: rotate(22deg) translateY(-48px); }
+    50%  { transform: rotate(-22deg) translateY(-22px); }
+    75%  { transform: rotate(25deg) translateY(-60px); }
+    100% { transform: rotate(-5deg) translateY(4px); }
+  }
+  @keyframes stickShake3 {
+    0%   { transform: rotate(-2deg) translateY(-3px); }
+    25%  { transform: rotate(-18deg) translateY(-42px); }
+    50%  { transform: rotate(25deg) translateY(-55px); }
+    75%  { transform: rotate(-12deg) translateY(-25px); }
+    100% { transform: rotate(-2deg) translateY(-3px); }
+  }
+  @keyframes stickShake4 {
+    0%   { transform: rotate(-1deg) translateY(2px); }
+    25%  { transform: rotate(26deg) translateY(-50px); }
+    50%  { transform: rotate(-25deg) translateY(-20px); }
+    75%  { transform: rotate(22deg) translateY(-58px); }
+    100% { transform: rotate(-1deg) translateY(2px); }
+  }
+  @keyframes stickShake5 {
+    0%   { transform: rotate(1deg) translateY(-1px); }
+    25%  { transform: rotate(-22deg) translateY(-45px); }
+    50%  { transform: rotate(26deg) translateY(-52px); }
+    75%  { transform: rotate(-15deg) translateY(-28px); }
+    100% { transform: rotate(1deg) translateY(-1px); }
+  }
+  @keyframes stickShake6 {
+    0%   { transform: rotate(2deg) translateY(3px); }
+    25%  { transform: rotate(24deg) translateY(-40px); }
+    50%  { transform: rotate(-18deg) translateY(-58px); }
+    75%  { transform: rotate(15deg) translateY(-22px); }
+    100% { transform: rotate(2deg) translateY(3px); }
+  }
+  @keyframes stickShake7 {
+    0%   { transform: rotate(4deg) translateY(-4px); }
+    25%  { transform: rotate(-20deg) translateY(-38px); }
+    50%  { transform: rotate(22deg) translateY(-52px); }
+    75%  { transform: rotate(-26deg) translateY(-60px); }
+    100% { transform: rotate(4deg) translateY(-4px); }
+  }
+  @keyframes stickShake8 {
+    0%   { transform: rotate(6deg) translateY(1px); }
+    25%  { transform: rotate(28deg) translateY(-48px); }
+    50%  { transform: rotate(-15deg) translateY(-24px); }
+    75%  { transform: rotate(24deg) translateY(-62px); }
+    100% { transform: rotate(6deg) translateY(1px); }
+  }
+  @keyframes stickShake9 {
+    0%   { transform: rotate(8deg) translateY(-2px); }
+    25%  { transform: rotate(-25deg) translateY(-52px); }
+    50%  { transform: rotate(26deg) translateY(-56px); }
+    75%  { transform: rotate(-18deg) translateY(-26px); }
+    100% { transform: rotate(8deg) translateY(-2px); }
+  }
+  @keyframes stickShake10 {
+    0%   { transform: rotate(10deg) translateY(3px); }
+    25%  { transform: rotate(30deg) translateY(-55px); }
+    50%  { transform: rotate(-20deg) translateY(-22px); }
+    75%  { transform: rotate(26deg) translateY(-65px); }
+    100% { transform: rotate(10deg) translateY(3px); }
+  }
+
+  /* ===== 掉出的签（点击解签 ===== */
+  .fallen-stick {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 26px;
+    height: 310px;
+    background: linear-gradient(180deg,
+      #fffbe8 0%,
+      #ffe8a8 15%,
+      #ffcf6a 40%,
+      #e6a83a 70%,
+      #9c6a1a 100%);
+    border-radius: 8px 8px 4px 4px;
+    box-shadow:
+      0 0 40px rgba(255,220,120,1),
+      0 0 80px rgba(255,180,80,0.85),
+      0 0 120px rgba(255,215,0,0.6),
+      inset 0 0 14px rgba(139,69,19,0.4),
+      inset 3px 0 8px rgba(255,255,230,0.9),
+      inset -3px 0 8px rgba(80,40,0,0.3);
+    cursor: pointer;
+    transform-origin: center;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    animation: fallAndSettle 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+    border: 2px solid rgba(120,70,20,0.6);
+  }
+
+  .fallen-stick .stick-title {
+    writing-mode: vertical-rl;
+    font-size: 16px;
+    color: #3a1d05;
+    font-weight: 900;
+    letter-spacing: 5px;
+    font-family: "STKaiti", "KaiTi", "楷体", serif;
+    text-shadow:
+      0 1px 2px rgba(255,230,150,0.9),
+      0 0 4px rgba(255,200,100,0.7);
+    margin-bottom: 10px;
+  }
+  .fallen-stick .stick-hint {
+    writing-mode: vertical-rl;
+    font-size: 12px;
+    color: #6b2a05;
+    font-weight: 700;
+    letter-spacing: 3px;
+    font-family: "STKaiti", "KaiTi", "楷体", serif;
+    animation: pulseHint 1.2s ease-in-out infinite;
+    text-shadow: 0 1px 2px rgba(255,220,150,0.8);
+  }
+  .fallen-stick .stick-num {
+    writing-mode: vertical-rl;
+    font-size: 11px;
+    color: #3a1d05;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-top: 10px;
+    padding: 6px 3px;
+    background: linear-gradient(180deg, rgba(139,69,19,0.95), rgba(80,40,10,0.95));
+    color: #fff2c8;
+    border-radius: 4px;
+    border: 1.5px solid rgba(255,220,120,0.6);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,200,0.3);
+    font-family: "STKaiti", "KaiTi", "楷体", serif;
+  }
+
+  @keyframes fallAndSettle {
+    0% {
+      transform: translate(-50%, -50%) translateY(-300px) rotate(45deg) scale(0.6);
+      opacity: 0;
+    }
+    15% { opacity: 1; }
+    40% {
+      transform: translate(-50%, -50%) translateY(0) rotate(-12deg) scale(1);
+    }
+    55% {
+      transform: translate(-50%, -50%) translateY(-18px) rotate(10deg) scale(1.02);
+    }
+    70% {
+      transform: translate(-50%, -50%) translateY(5px) rotate(-4deg) scale(1);
+    }
+    85% {
+      transform: translate(-50%, -50%) translateY(-3px) rotate(2deg) scale(1.03);
+    }
+    100% {
+      transform: translate(-50%, -50%) translateY(0) rotate(0deg) scale(1.1);
+      box-shadow:
+        0 0 50px rgba(255,230,140,1),
+        0 0 100px rgba(255,200,90,0.9),
+        0 0 150px rgba(255,215,0,0.7),
+        inset 0 0 14px rgba(139,69,19,0.4),
+        inset 3px 0 8px rgba(255,255,230,0.9),
+        inset -3px 0 8px rgba(80,40,0,0.3);
+    }
+  }
+
+  @keyframes pulseHint {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== 摇一摇按钮 ===== */
+  .shake-btn {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #4a2f8a 0%, #1a0f3a 100%);
+    border: 3px solid rgba(100,200,255,0.7);
+    color: #7ee8fa;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: all 0.2s;
+    animation: pulse 2s infinite;
+    user-select: none;
+    overflow: hidden;
+  }
+  .shake-btn::before, .shake-btn::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    border: 2px dashed rgba(150,100,255,0.5);
+  }
+  .shake-btn::before {
+    inset: 8px;
+    animation: rotateCW 20s linear infinite;
+  }
+  .shake-btn::after {
+    inset: 16px;
+    border: 1px solid rgba(126,232,250,0.3);
+    animation: rotateCCW 15s linear infinite;
+  }
+  .shake-btn:active {
+    transform: scale(0.92);
+  }
+  .shake-btn .emoji {
+    font-size: 32px;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 8px #7ee8fa);
+    position: relative;
+    z-index: 2;
+  }
+  .shake-btn .label {
+    font-size: 16px;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 8px #7ee8fa;
+  }
+  .shake-btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    animation: none;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(126,232,250,0.4), 0 0 30px rgba(126,232,250,0.2); }
+    50% { box-shadow: 0 0 25px rgba(126,232,250,0.7), 0 0 50px rgba(126,232,250,0.4); }
+  }
+  @keyframes rotateCW {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes rotateCCW {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+
+  /* ===== 签文弹窗 ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 3, 15, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .modal-overlay.active { display: flex; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal-card {
+    width: 100%;
+    max-width: 340px;
+    background: linear-gradient(180deg, rgba(50,30,100,0.6), rgba(20,10,50,0.7));
+    border: 2px solid rgba(100,200,255,0.5);
+    border-radius: 20px;
+    padding: 28px 22px 22px;
+    box-shadow: 0 0 40px rgba(100,200,255,0.3), 0 0 80px rgba(150,100,255,0.25), inset 0 0 30px rgba(150,100,255,0.15);
+  }
+  .sign-number {
+    text-align: center;
+    font-size: 18px;
+    color: #7ee8fa;
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+    text-shadow: 0 0 10px #7ee8fa;
+  }
+  .sign-sub {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(232,246,255,0.5);
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .fortune-tag {
+    display: inline-block;
+    margin: 0 auto 18px;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 16px;
+    letter-spacing: 4px;
+    font-weight: 600;
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1.5px solid;
+  }
+  .fortune-tag.daji {
+    color: #ffd97a;
+    border-color: #ffd97a;
+    background: rgba(255,217,122,0.1);
+    box-shadow: 0 0 15px rgba(255,217,122,0.5), inset 0 0 10px rgba(255,217,122,0.15);
+    text-shadow: 0 0 8px #ffd97a;
+  }
+  .fortune-tag.zhongji {
+    color: #7ee8fa;
+    border-color: #7ee8fa;
+    background: rgba(126,232,250,0.1);
+    box-shadow: 0 0 15px rgba(126,232,250,0.5), inset 0 0 10px rgba(126,232,250,0.15);
+    text-shadow: 0 0 8px #7ee8fa;
+  }
+  .fortune-tag.xiaoji {
+    color: #b19cd9;
+    border-color: #b19cd9;
+    background: rgba(177,156,217,0.1);
+    box-shadow: 0 0 15px rgba(177,156,217,0.5), inset 0 0 10px rgba(177,156,217,0.15);
+    text-shadow: 0 0 8px #b19cd9;
+  }
+  .fortune-tag.xiong {
+    color: #ff6b8b;
+    border-color: #ff6b8b;
+    background: rgba(255,107,139,0.1);
+    box-shadow: 0 0 15px rgba(255,107,139,0.5), inset 0 0 10px rgba(255,107,139,0.15);
+    text-shadow: 0 0 8px #ff6b8b;
+  }
+
+  .sign-content {
+    background: rgba(10,5,25,0.5);
+    border: 1px solid rgba(100,200,255,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    font-family: "STKaiti", "KaiTi", "楷体", serif;
+    font-size: 20px;
+    color: #ffe8a0;
+    line-height: 2;
+    letter-spacing: 3px;
+    margin-bottom: 22px;
+    box-shadow: inset 0 0 20px rgba(150,100,255,0.1);
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 12px;
+  }
+  .modal-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(100,200,255,0.5);
+    background: rgba(100,200,255,0.08);
+    color: #7ee8fa;
+    font-size: 15px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(100,200,255,0.2), inset 0 0 10px rgba(100,200,255,0.08);
+  }
+  .modal-btn:active { transform: scale(0.96); }
+  .modal-btn.primary {
+    background: linear-gradient(180deg, rgba(126,232,250,0.25), rgba(150,100,255,0.25));
+    border-color: #7ee8fa;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(126,232,250,0.5), inset 0 0 10px rgba(126,232,250,0.2);
+    text-shadow: 0 0 6px #7ee8fa;
+  }
+
+  /* 确认提示 */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: rgba(10,5,25,0.9);
+    border: 1.5px solid #7ee8fa;
+    color: #7ee8fa;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 15px;
+    letter-spacing: 3px;
+    box-shadow: 0 0 20px rgba(126,232,250,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 200;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  @media (max-width: 360px) {
+    .bucket-wrap { width: 180px; height: 290px; }
+    .bucket { width: 140px; height: 220px; }
+    .bucket::before { font-size: 78px; }
+    .stick { height: 270px; }
+    .sticks-area { height: 270px; }
+    .shake-btn { width: 100px; height: 100px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<header>
+  <div class="back-btn" onclick="try{window.parent.goPage(0);}catch(e){window.history.back();}">&#10094;</div>
+  <h1>✨ 电子求签 ✨</h1>
+</header>
+
+<div class="subtitle-area">
+  <div class="subtitle">每日免费求签 · 不消耗欢喜</div>
+  <div class="neon-line"></div>
+</div>
+
+<div class="stage">
+  <div class="bucket-wrap">
+    <div class="bucket" id="bucket">
+      <div class="sticks-area" id="sticksArea">
+        <!-- 签条由 JS 生成 -->
+      </div>
+    </div>
+  </div>
+
+  <button class="shake-btn" id="shakeBtn">
+    <span class="emoji">📲</span>
+    <span class="label">摇一摇</span>
+  </button>
+</div>
+
+<!-- 签文弹窗 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-card">
+    <div class="sign-number" id="signNumber">第 一 签</div>
+    <div class="sign-sub">— 签 文 启 示 —</div>
+    <div class="fortune-tag" id="fortuneTag">大 吉</div>
+    <div class="sign-content" id="signContent">
+      诸 事 顺 遂<br>心 愿 达 成
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn primary" id="confirmBtn">确 认 收 签</button>
+      <button class="modal-btn" id="resetBtn">再 求 一 签</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ 已 记 录</div>
+
+<script>
+  // 签文数据
+  const fortuneData = [
+    { num: '01', level: '大吉', levelClass: 'daji', text: '诸 事 顺 遂<br>心 愿 达 成' },
+    { num: '02', level: '中吉', levelClass: 'zhongji', text: '贵 人 相 助<br>稳 步 前 行' },
+    { num: '03', level: '小吉', levelClass: 'xiaoji', text: '小 心 谨 慎<br>可 保 平 安' },
+    { num: '04', level: '大吉', levelClass: 'daji', text: '天 时 地 利<br>万 事 亨 通' },
+    { num: '05', level: '中吉', levelClass: 'zhongji', text: '稳 中 求 进<br>渐 入 佳 境' },
+    { num: '06', level: '小吉', levelClass: 'xiaoji', text: '守 得 云 开<br>见 月 明' },
+    { num: '07', level: '凶',   levelClass: 'xiong', text: '暂 避 锋 芒<br>静 待 时 机' },
+    { num: '08', level: '中吉', levelClass: 'zhongji', text: '心 诚 则 灵<br>福 报 将 至' },
+    { num: '09', level: '大吉', levelClass: 'daji', text: '鸿 运 当 头<br>万 事 皆 兴' },
+    { num: '10', level: '小吉', levelClass: 'xiaoji', text: '脚 踏 实 地<br>终 有 所 成' }
+  ];
+
+  const numberCN = ['一','二','三','四','五','六','七','八','九','十'];
+
+  // 生成粒子
+  const particlesBox = document.getElementById('particles');
+  function createParticles() {
+    const count = 28;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      const variant = i % 3 === 0 ? '' : (i % 3 === 1 ? 'v2' : 'v3');
+      p.className = 'particle ' + variant;
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 100 + '%';
+      p.style.animationDelay = (Math.random() * 8) + 's';
+      p.style.animationDuration = (6 + Math.random() * 8) + 's';
+      p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+      particlesBox.appendChild(p);
+    }
+  }
+  createParticles();
+
+  // 生成 10 根签条
+  const sticksArea = document.getElementById('sticksArea');
+  function createSticks() {
+    sticksArea.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const stick = document.createElement('div');
+      stick.className = 'stick';
+      stick.setAttribute('data-num', String(i + 1).padStart(2, '0'));
+      sticksArea.appendChild(stick);
+    }
+  }
+  createSticks();
+
+  // DOM
+  const bucket = document.getElementById('bucket');
+  const shakeBtn = document.getElementById('shakeBtn');
+  const modal = document.getElementById('modal');
+  const signNumber = document.getElementById('signNumber');
+  const fortuneTag = document.getElementById('fortuneTag');
+  const signContent = document.getElementById('signContent');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const toast = document.getElementById('toast');
+
+  let isShaking = false;
+  let currentStickIdx = -1;
+
+  function showToast(msg) {
+    toast.textContent = '✓ ' + msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  function toChineseNum(n) {
+    return numberCN[n - 1] || n;
+  }
+
+  function openModal(idx) {
+    const data = fortuneData[idx];
+    const cnNum = toChineseNum(idx + 1);
+    signNumber.textContent = '第 ' + cnNum + ' 签';
+    fortuneTag.textContent = data.level;
+    fortuneTag.className = 'fortune-tag ' + data.levelClass;
+    signContent.innerHTML = data.text;
+    modal.classList.add('active');
+  }
+
+  function closeModal() {
+    modal.classList.remove('active');
+  }
+
+  function resetAll() {
+    closeModal();
+    // 移除掉落的签
+    const fallen = document.querySelector('.fallen-stick');
+    if (fallen) fallen.remove();
+    // 重新生成签条
+    createSticks();
+    isShaking = false;
+    shakeBtn.classList.remove('disabled');
+    currentStickIdx = -1;
+  }
+
+  // 掉出一根签的动画
+  function showFallenStick(idx) {
+    // 移除可能存在的掉落签
+    const oldFallen = document.querySelector('.fallen-stick');
+    if (oldFallen) oldFallen.remove();
+
+    const bucketWrap = document.querySelector('.bucket-wrap');
+    const fallenStick = document.createElement('div');
+    fallenStick.className = 'fallen-stick';
+    fallenStick.innerHTML = `
+      <div class="stick-title">点 击 解 签</div>
+      <div class="stick-hint">▼ 点此查看</div>
+      <div class="stick-num">${String(idx + 1).padStart(2, '0')}</div>
+    `;
+    fallenStick.addEventListener('click', () => {
+      openModal(idx);
+    });
+    bucketWrap.appendChild(fallenStick);
+  }
+
+  function doShake() {
+    if (isShaking) return;
+    isShaking = true;
+    shakeBtn.classList.add('disabled');
+
+    // 移除之前掉落的签
+    const oldFallen = document.querySelector('.fallen-stick');
+    if (oldFallen) oldFallen.remove();
+
+    // 桶身剧烈摇晃
+    bucket.classList.add('shake-anim');
+
+    // 5秒后（shake动画结束），掉出一根签
+    setTimeout(() => {
+      bucket.classList.remove('shake-anim');
+      const randomIdx = Math.floor(Math.random() * 10);
+      currentStickIdx = randomIdx;
+      showFallenStick(randomIdx);
+    }, 5000);
+  }
+
+  shakeBtn.addEventListener('click', doShake);
+  confirmBtn.addEventListener('click', () => {
+    closeModal();
+    showToast('已 记 录');
+    // 移除掉落的签
+    const fallen = document.querySelector('.fallen-stick');
+    if (fallen) fallen.remove();
+    // 重新生成签条，准备下一轮
+    isShaking = false;
+    shakeBtn.classList.remove('disabled');
+    createSticks();
+  });
+  resetBtn.addEventListener('click', () => {
+    resetAll();
+  });
+</script>
+
+</body>
+</html>

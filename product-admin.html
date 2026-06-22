@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品管理 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #4A3728;
+        }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .phone-wrap {
+            background: #111;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 0 2px #D4AF37, 0 0 30px rgba(212,175,55,0.15), 0 15px 40px rgba(0,0,0,0.5);
+        }
+        .phone-notch {
+            position: absolute; top: 8px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 22px;
+            background: #000; border-radius: 12px; z-index: 50;
+        }
+        .phone-screen {
+            width: 100%; min-height: 1100px;
+            border-radius: 32px; overflow: hidden;
+            background: #FFFBEE; position: relative;
+        }
+        .status-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 44px; padding: 10px 16px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; font-weight: 600; z-index: 10;
+            color: rgba(0,0,0,0.7);
+        }
+        .back-btn {
+            position: absolute; top: 8px; left: 10px;
+            width: 30px; height: 30px;
+            background: rgba(0,0,0,0.3); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer; z-index: 100;
+            color: #fff; border: none;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .scroll-area { padding: 60px 20px 30px; }
+
+        .page-header {
+            padding: 55px 20px 20px;
+            margin: -60px -20px 16px;
+            background: linear-gradient(135deg,#8B5A2B 0%,#D4A574 50%,#8B5A2B 100%);
+            color: #fff; text-align: center; position: relative; overflow: hidden;
+        }
+        .page-header .title {
+            font-family:'Ma Shan Zheng', cursive; font-size: 22px;
+            letter-spacing: 5px; margin-bottom: 4px; position: relative; z-index: 2;
+        }
+        .page-header .subtitle {
+            font-size: 11px; opacity: 0.9; letter-spacing: 2px;
+            position: relative; z-index: 2;
+        }
+
+        .new-btn {
+            width: 100%;
+            padding: 14px 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg,#A67B4B 0%,#B8860B 50%,#6B4423 100%);
+            color: #fff; border: none;
+            font-size: 14px; font-weight: 700;
+            letter-spacing: 3px; cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 16px rgba(184,134,11,0.3);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #8B5A2B;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            padding-left: 4px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .product-card {
+            background: #fff;
+            border: 2px solid #8B5A2B;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(139,90,43,0.08);
+        }
+        .product-card.draft { border-color: #B8860B; }
+        .product-card.offline { opacity: 0.75; }
+
+        .product-row {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .product-icon {
+            width: 64px; height: 64px;
+            border-radius: 10px;
+            background: linear-gradient(135deg,#8B5A2B,#D4A574);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; flex-shrink: 0;
+            color: #fff;
+        }
+        .product-icon.draft { opacity: 0.7; }
+        .product-body {
+            flex: 1; min-width: 0;
+        }
+        .product-title-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 4px;
+        }
+        .product-title {
+            font-size: 14px; font-weight: 700; color: #4A3728;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+            background: rgba(212,165,116,0.25);
+            color: #8B5A2B;
+        }
+        .status-badge.draft { background: rgba(200,85,61,0.18); color: #C8553D; }
+        .status-badge.offline { background: rgba(139,90,43,0.12); color: #8B7355; }
+
+        .product-meta {
+            font-size: 11px; color: #8B7355;
+            margin-bottom: 4px; letter-spacing: 1px;
+        }
+        .product-extra {
+            font-size: 11px; color: #8B7355; opacity: 0.8;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed rgba(184,134,11,0.2);
+        }
+        .action-btn {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 8px;
+            background: #FFF8EC;
+            color: #8B5A2B;
+            border: 1.5px solid #D4A574;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .action-btn.danger {
+            background: #fff;
+            color: #C8553D;
+            border: 1.5px solid rgba(200,85,61,0.5);
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg,#D4A574 0%,#8B5A2B 100%);
+            color: #fff;
+            border: 1.5px solid #8B5A2B;
+        }
+
+        .footer-text {
+            height: 40px; text-align: center;
+            font-size: 11px; color: #8B7355;
+            opacity: 0.6; letter-spacing: 2px; padding-top: 10px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff; padding: 12px 24px;
+            border-radius: 12px; font-size: 13px;
+            letter-spacing: 2px; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="phone-wrap">
+            <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+                <button class="back-btn" onclick="history.back()" aria-label="返回">‹</button>
+                <div class="scroll-area">
+                    <div class="page-header">
+                        <div class="title">商品管理</div>
+                        <div class="subtitle">管理账户 · 仅 18944761788 可见</div>
+                    </div>
+
+                    <button class="new-btn" onclick="showToast('✦ 进入发布新商品')">＋ 发布新商品</button>
+
+                    <!-- 待上架商品区 -->
+                    <div class="section-title">✦ 待上架 · 草稿</div>
+
+                    <!-- 草稿商品 1 -->
+                    <div class="product-card draft">
+                        <div class="product-row">
+                            <div class="product-icon draft">🌸</div>
+                            <div class="product-body">
+                                <div class="product-title-row">
+                                    <span class="product-title">莲花祈福香包</span>
+                                    <span class="status-badge draft">待上架</span>
+                                </div>
+                                <div class="product-meta">库存 0 件 · 售价 ￥128（草稿）</div>
+                                <div class="product-extra">保存于 2026-06-12 · 未填写详情</div>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button class="action-btn" onclick="showToast('✦ 继续编辑')">继续编辑</button>
+                            <button class="action-btn primary" onclick="showToast('✦ 立即上架')">立即上架</button>
+                            <button class="action-btn danger" onclick="showToast('✦ 已删除')">删除</button>
+                        </div>
+                    </div>
+
+                    <!-- 草稿商品 2 -->
+                    <div class="product-card draft">
+                        <div class="product-row">
+                            <div class="product-icon draft">🎐</div>
+                            <div class="product-body">
+                                <div class="product-title-row">
+                                    <span class="product-title">平安风铃挂饰</span>
+                                    <span class="status-badge draft">待上架</span>
+                                </div>
+                                <div class="product-meta">库存 24 件 · 售价 ￥88</div>
+                                <div class="product-extra">保存于 2026-06-13 · 信息已完成</div>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button class="action-btn" onclick="showToast('✦ 继续编辑')">继续编辑</button>
+                            <button class="action-btn primary" onclick="showToast('✦ 立即上架')">立即上架</button>
+                            <button class="action-btn danger" onclick="showToast('✦ 已删除')">删除</button>
+                        </div>
+                    </div>
+
+                    <!-- 已发布商品区 -->
+                    <div class="section-title">✦ 已发布商品</div>
+
+                    <!-- 商品 1 -->
+                    <div class="product-card">
+                        <div class="product-row">
+                            <div class="product-icon">📿</div>
+                            <div class="product-body">
+                                <div class="product-title-row">
+                                    <span class="product-title">开光紫晶转运手链</span>
+                                    <span class="status-badge">上架中</span>
+                                </div>
+                                <div class="product-meta">库存 128 件 · 售价 ￥398</div>
+                                <div class="product-extra">已助力 3,268 心愿</div>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button class="action-btn" onclick="showToast('✦ 编辑商品')">编辑</button>
+                            <button class="action-btn" onclick="showToast('✦ 已下架')">下架</button>
+                            <button class="action-btn danger" onclick="showToast('✦ 已删除')">删除</button>
+                        </div>
+                    </div>
+
+                    <!-- 商品 2 -->
+                    <div class="product-card">
+                        <div class="product-row">
+                            <div class="product-icon">🪷</div>
+                            <div class="product-body">
+                                <div class="product-title-row">
+                                    <span class="product-title">朱砂本命佛吊坠</span>
+                                    <span class="status-badge">上架中</span>
+                                </div>
+                                <div class="product-meta">库存 86 件 · 售价 ￥268</div>
+                                <div class="product-extra">已助力 1,842 心愿</div>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button class="action-btn" onclick="showToast('✦ 编辑商品')">编辑</button>
+                            <button class="action-btn" onclick="showToast('✦ 已下架')">下架</button>
+                            <button class="action-btn danger" onclick="showToast('✦ 已删除')">删除</button>
+                        </div>
+                    </div>
+
+                    <!-- 商品 3（已下架） -->
+                    <div class="product-card offline">
+                        <div class="product-row">
+                            <div class="product-icon">✨</div>
+                            <div class="product-body">
+                                <div class="product-title-row">
+                                    <span class="product-title">黄财神心咒手绳</span>
+                                    <span class="status-badge offline">已下架</span>
+                                </div>
+                                <div class="product-meta">库存 0 件 · 售价 ￥198</div>
+                                <div class="product-extra">已助力 987 心愿</div>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button class="action-btn" onclick="showToast('✦ 编辑商品')">编辑</button>
+                            <button class="action-btn" onclick="showToast('✦ 已上架')">上架</button>
+                            <button class="action-btn danger" onclick="showToast('✦ 已删除')">删除</button>
+                        </div>
+                    </div>
+
+                    <!-- 商品 4（菩提兑换） -->
+                    <div class="product-card">
+                        <div class="product-row">
+                            <div class="product-icon">🔔</div>
+                            <div class="product-body">
+                                <div class="product-title-row">
+                                    <span class="product-title">檀木手串 108 颗</span>
+                                    <span class="status-badge">上架中</span>
+                                </div>
+                                <div class="product-meta">库存 56 件 · 菩提兑换 ×3 颗</div>
+                                <div class="product-extra">兑换专区 · 已兑换 234 次</div>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button class="action-btn" onclick="showToast('✦ 编辑商品')">编辑</button>
+                            <button class="action-btn" onclick="showToast('✦ 已下架')">下架</button>
+                            <button class="action-btn danger" onclick="showToast('✦ 已删除')">删除</button>
+                        </div>
+                    </div>
+
+                    <div class="footer-text">— 共 6 件商品（2 待上架 · 4 已发布） —</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+    </script>
+</body>
+</html>

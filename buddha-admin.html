@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 · 佛像管理</title>
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        margin: 0;
+        background: linear-gradient(180deg, #1a0a2e 0%, #0d0015 100%);
+        min-height: 100vh;
+        color: #FFD700;
+        padding-bottom: 80px;
+    }
+
+    /* 头部 */
+    .header {
+        background: linear-gradient(180deg, #3d2a0f 0%, #2a1a08 100%);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #D4AF37;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header h1 { font-size: 18px; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    .header-btn {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .header-btn.reset { background: linear-gradient(135deg, #666, #444); color: #FFF; }
+
+    /* 主内容 */
+    .container { padding: 15px; }
+
+    /* 分类卡片 */
+    .category-card {
+        background: rgba(61, 42, 15, 0.8);
+        border: 2px solid #D4AF37;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+
+    .category-header {
+        background: linear-gradient(90deg, #D4AF37, #8B7355);
+        padding: 12px 15px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #1a0a2e;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .category-content { padding: 10px; }
+
+    /* item-row */
+    .item-row {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        gap: 10px;
+    }
+
+    .item-row:last-child { border-bottom: none; }
+
+    /* item-preview */
+    .item-preview {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+        border: 2px solid #D4AF37;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .item-preview img, .item-preview video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-group {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        max-width: 180px;
+    }
+
+    .preview-small {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+        border: 2px solid #D4AF37;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .preview-small img, .preview-small video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-label {
+        position: absolute;
+        bottom: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: #FFD700;
+        white-space: nowrap;
+    }
+
+    /* 信息区域 */
+    .item-info { flex: 1; min-width: 0; }
+
+    .item-label {
+        font-size: 13px;
+        color: rgba(255, 215, 0, 0.9);
+        margin-bottom: 5px;
+    }
+
+    .item-inputs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    /* 文本输入 */
+    .text-input {
+        flex: 1;
+        min-width: 80px;
+        padding: 8px 10px;
+        border: 2px solid #D4AF37;
+        border-radius: 8px;
+        background: #FFF8DC;
+        color: #8B4513;
+        font-size: 13px;
+    }
+
+    .text-input:focus { outline: none; border-color: #FF6347; }
+
+    .color-input {
+        width: 40px;
+        height: 36px;
+        border: 2px solid #D4AF37;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #FFF8DC;
+        padding: 2px;
+    }
+
+    .range-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .range-input {
+        flex: 1;
+        accent-color: #FFD700;
+    }
+
+    .range-value {
+        font-size: 12px;
+        color: #FFD700;
+        white-space: nowrap;
+        min-width: 40px;
+        text-align: right;
+    }
+
+    /* 上传按钮 */
+    .upload-btn {
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: #FFF;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .upload-btn.video { background: linear-gradient(135deg, #2196F3, #1976D2); }
+    .upload-btn.music { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
+    .upload-btn.fx { background: linear-gradient(135deg, #FF9800, #F57C00); }
+    .upload-btn.model3d { background: linear-gradient(135deg, #00BCD4, #0097A7); }
+    .upload-btn:active { transform: scale(0.95); }
+
+    /* 开关按钮 */
+    .toggle-btn {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #FFF;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+    .toggle-btn.on { background: linear-gradient(135deg, #4CAF50, #388E3C); }
+    .toggle-btn.off { background: linear-gradient(135deg, #666, #444); }
+
+    /* 隐藏的文件输入 */
+    .file-input { display: none; }
+
+    /* 提示信息 */
+    .toast {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        color: #FFD700;
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-size: 16px;
+        z-index: 2000;
+        display: none;
+        text-align: center;
+    }
+
+    .toast.show { display: block; animation: fadeIn 0.3s; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* 返回按钮 */
+    .back-home {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(255,165,0,0.4);
+        z-index: 100;
+    }
+
+    /* 子标题 */
+    .sub-section {
+        padding: 10px 15px;
+        background: rgba(139, 69, 19, 0.3);
+        font-size: 12px;
+        color: #FFD700;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    /* 多图层按钮区 */
+    .layer-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+    }
+
+    .layer-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .layer-title {
+        font-size: 11px;
+        color: rgba(255, 215, 0, 0.7);
+        min-width: 50px;
+    }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ 佛像管理</h1>
+        <div class="header-actions">
+            <button class="header-btn reset" onclick="resetToDefault()">恢复默认</button>
+            <button class="header-btn" onclick="saveChanges()">💾 保存</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 1. 佛像主图管理（画中画三层结构） -->
+        <div class="category-card">
+            <div class="category-header">🏛️ 佛像主图管理（画中画三层结构）</div>
+            <div class="sub-section">第一层：视频佛像 | 第二层：光环 | 第三层：背景</div>
+            <div class="category-content" id="buddha-main-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 2. 佛像光环配置 -->
+        <div class="category-card">
+            <div class="category-header">✨ 佛像光环配置</div>
+            <div class="sub-section">每尊佛像的光晕大小、颜色与开关</div>
+            <div class="category-content" id="buddha-halo-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 3. 背景图管理 -->
+        <div class="category-card">
+            <div class="category-header">🖼️ 背景图管理</div>
+            <div class="category-content" id="bg-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 4. 灵宠图片更换 -->
+        <div class="category-card">
+            <div class="category-header">🐟 灵宠图片更换</div>
+            <div class="category-content" id="pet-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 5. 祈福/追思 贡品上传 -->
+        <div class="category-card">
+            <div class="category-header">🌸 祈福/追思 贡品上传</div>
+            <div class="sub-section">祈福页贡品</div>
+            <div class="category-content" id="offering-pray-list"></div>
+            <div class="sub-section">追思页贡品</div>
+            <div class="category-content" id="offering-rem-list"></div>
+        </div>
+
+        <!-- 6. 特效、音乐与功能模块开关 -->
+        <div class="category-card">
+            <div class="category-header">🎵 特效、音乐与功能模块开关</div>
+            <div class="category-content" id="fx-list">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <a href="admin.html" class="back-home">← 返回管理台</a>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" class="file-input" id="imageInput" accept="image/*">
+    <input type="file" class="file-input" id="videoInput" accept="video/*">
+    <input type="file" class="file-input" id="audioInput" accept="audio/*">
+    <input type="file" class="file-input" id="model3dInput" accept=".glb,.gltf,.obj,.fbx,model/*">
+
+    <!-- 提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app-state.js"></script>
+    <script>
+    /* ============ 1. 常量与数据定义 ============ */
+    const STORAGE_KEY = 'pray_buddha_config_v2';
+    let currentEditField = null;
+
+    const BUDDHA_LIST = [
+        { key: 'buddha_sakyamuni',   name: '释迦牟尼佛', emoji: '🧘' },
+        { key: 'buddha_maitreya',    name: '弥勒佛',   emoji: '😊' },
+        { key: 'buddha_guanyin',     name: '观音菩萨', emoji: '🌸' },
+        { key: 'buddha_caishen',     name: '财神',     emoji: '💰' },
+        { key: 'buddha_guangong',    name: '关公',     emoji: '⚔️' },
+        { key: 'buddha_mazu',        name: '妈祖',     emoji: '🌊' },
+        { key: 'buddha_dizang',      name: '地藏王菩萨', emoji: '🕉️' },
+        { key: 'buddha_wenshu',      name: '文殊菩萨', emoji: '📜' },
+        { key: 'buddha_puxian',      name: '普贤菩萨', emoji: '🐘' },
+        { key: 'buddha_yaoshi',      name: '药师佛',   emoji: '💊' }
+    ];
+
+    const BG_LIST = [
+        { key: 'bg_pray',       name: '祈福页背景', emoji: '🏛️' },
+        { key: 'bg_remembrance', name: '追思页背景', emoji: '🕯️' },
+        { key: 'bg_release',    name: '放生页背景', emoji: '🐟' }
+    ];
+
+    const PET_LIST = [
+        { key: 'pet_koi',       name: '锦鲤',   emoji: '🐟' },
+        { key: 'pet_goldfish',  name: '金鱼',   emoji: '🐠' },
+        { key: 'pet_turtle',    name: '乌龟',   emoji: '🐢' },
+        { key: 'pet_crab',      name: '螃蟹',   emoji: '🦀' },
+        { key: 'pet_seaturtle', name: '海龟',   emoji: '🐢' },
+        { key: 'pet_shell',     name: '海螺',   emoji: '🐚' }
+    ];
+
+    const OFFERING_PRAY = [
+        { key: 'op_flower',  name: '鲜花', emoji: '🌸' },
+        { key: 'op_fruit',   name: '水果', emoji: '🍇' },
+        { key: 'op_snack',   name: '点心', emoji: '🥮' },
+        { key: 'op_water',   name: '清水', emoji: '🍵' },
+        { key: 'op_lamp',    name: '祈福灯', emoji: '🪔' },
+        { key: 'op_incense', name: '香炉', emoji: '🪬' }
+    ];
+
+    const OFFERING_REM = [
+        { key: 'or_vase',    name: '花瓶', emoji: '🏺' },
+        { key: 'or_lamp',    name: '酥油灯', emoji: '🪔' },
+        { key: 'or_incense', name: '香炉', emoji: '🪬' },
+        { key: 'or_fruit',   name: '水果', emoji: '🍇' },
+        { key: 'or_tea',     name: '茶水', emoji: '🍵' },
+        { key: 'or_candle',  name: '蜡烛', emoji: '🕯️' },
+        { key: 'or_pig',     name: '猪头', emoji: '🐷' },
+        { key: 'or_pudding', name: '布丁', emoji: '🍮' },
+        { key: 'or_perfume', name: '香水', emoji: '🧴' }
+    ];
+
+    const FX_LIST = [
+        { key: 'fx_goldglow',  name: '金光特效', emoji: '✨' },
+        { key: 'fx_bell',      name: '木鱼音效', emoji: '🔔' },
+        { key: 'fx_chant',     name: '梵音背景音乐', emoji: '🎶' },
+        { key: 'fx_rain',      name: '下雨粒子特效', emoji: '🌧️' },
+        { key: 'fx_halo',      name: '佛光环绕动画', emoji: '🌟' },
+        { key: 'fx_butterfly', name: '粒子蝴蝶', emoji: '🦋' },
+        { key: 'fx_smoke',     name: '烟雾袅袅', emoji: '💨' },
+        { key: 'fx_goldflow',  name: '金色光流粒子', emoji: '✨' },
+        { key: 'fx_praybell',  name: '祈福铃声', emoji: '🛎️' },
+        { key: 'fx_heartchant', name: '观音心咒播放按钮', emoji: '🙏' },
+        { key: 'fx_falling',   name: '供品飘落动画', emoji: '🎋' }
+    ];
+
+    /* ============ 2. 渲染函数 ============ */
+
+    // 1. 佛像主图三层结构
+    function renderBuddhaMain() {
+        const container = document.getElementById('buddha-main-list');
+        container.innerHTML = BUDDHA_LIST.map(b => `
+            <div class="item-row" data-key="${b.key}">
+                <div class="preview-group">
+                    <div class="item-preview" id="preview-${b.key}_layer1">🎬</div>
+                    <div class="item-preview" id="preview-${b.key}_layer2">🌕</div>
+                    <div class="item-preview" id="preview-${b.key}_layer3">🏛️</div>
+                </div>
+                <div class="item-info">
+                    <div class="item-label">${b.name}</div>
+                    <div class="layer-buttons">
+                        <div class="layer-row">
+                            <span class="layer-title">第一层</span>
+                            <button class="upload-btn video" onclick="uploadFile('video', '${b.key}_layer1')">📹 视频佛像</button>
+                        </div>
+                        <div class="layer-row">
+                            <span class="layer-title">第二层</span>
+                            <button class="upload-btn" onclick="uploadFile('image', '${b.key}_layer2')">📷 光环</button>
+                        </div>
+                        <div class="layer-row">
+                            <span class="layer-title">第三层</span>
+                            <button class="upload-btn" onclick="uploadFile('image', '${b.key}_layer3')">📷 背景</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 2. 佛像光环配置
+    function renderBuddhaHalo() {
+        const container = document.getElementById('buddha-halo-list');
+        container.innerHTML = BUDDHA_LIST.map(b => `
+            <div class="item-row" data-key="${b.key}_halo">
+                <div class="item-preview" id="preview-${b.key}_halo">🌕</div>
+                <div class="item-info">
+                    <div class="item-label">${b.name} · 光环</div>
+                    <div class="item-inputs">
+                        <div class="range-wrap">
+                            <input type="range" class="range-input" id="${b.key}_halo_size"
+                                min="100" max="200" value="120" step="5"
+                                oninput="document.getElementById('${b.key}_halo_size_val').textContent=this.value+'%'">
+                            <span class="range-value" id="${b.key}_halo_size_val">120%</span>
+                        </div>
+                        <input type="color" class="color-input" id="${b.key}_halo_color" value="#FFD700" title="光晕颜色">
+                        <button class="toggle-btn on" id="${b.key}_halo_toggle"
+                            onclick="toggleSwitch('${b.key}_halo_toggle')">启用</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 3. 背景图管理
+    function renderBg() {
+        const container = document.getElementById('bg-list');
+        container.innerHTML = BG_LIST.map(bg => `
+            <div class="item-row" data-key="${bg.key}">
+                <div class="item-preview" id="preview-${bg.key}">${bg.emoji}</div>
+                <div class="item-info">
+                    <div class="item-label">${bg.name}</div>
+                    <div class="item-inputs">
+                        <button class="upload-btn" onclick="uploadFile('image', '${bg.key}')">📷 图片上传</button>
+                        <button class="upload-btn video" onclick="resetFieldPreview('${bg.key}', '${bg.emoji}')">🔄 恢复默认</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 4. 灵宠
+    function renderPet() {
+        const container = document.getElementById('pet-list');
+        container.innerHTML = PET_LIST.map(p => `
+            <div class="item-row" data-key="${p.key}">
+                <div class="item-preview" id="preview-${p.key}">${p.emoji}</div>
+                <div class="item-info">
+                    <div class="item-label">${p.name}</div>
+                    <div class="item-inputs">
+                        <button class="upload-btn" onclick="uploadFile('image', '${p.key}')">📷 图片</button>
+                        <button class="upload-btn model3d" onclick="uploadFile('model3d', '${p.key}')">🧊 3D模型</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 5. 贡品
+    function renderOffering() {
+        const prayEl = document.getElementById('offering-pray-list');
+        const remEl = document.getElementById('offering-rem-list');
+        prayEl.innerHTML = OFFERING_PRAY.map(o => offeringRowHtml(o)).join('');
+        remEl.innerHTML = OFFERING_REM.map(o => offeringRowHtml(o)).join('');
+    }
+
+    function offeringRowHtml(o) {
+        return `
+            <div class="item-row" data-key="${o.key}">
+                <div class="item-preview" id="preview-${o.key}">${o.emoji}</div>
+                <div class="item-info">
+                    <div class="item-label">${o.name}</div>
+                    <div class="item-inputs">
+                        <button class="upload-btn" onclick="uploadFile('image', '${o.key}')">📷 图片</button>
+                        <button class="upload-btn video" onclick="uploadFile('video', '${o.key}')">🎬 视频</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 6. 特效与音乐
+    function renderFx() {
+        const container = document.getElementById('fx-list');
+        container.innerHTML = FX_LIST.map(fx => `
+            <div class="item-row" data-key="${fx.key}">
+                <div class="item-preview" id="preview-${fx.key}">${fx.emoji}</div>
+                <div class="item-info">
+                    <div class="item-label">${fx.name}</div>
+                    <div class="item-inputs">
+                        <button class="toggle-btn on" id="${fx.key}_toggle"
+                            onclick="toggleSwitch('${fx.key}_toggle')">启用</button>
+                        <button class="upload-btn music" onclick="uploadFile('audio', '${fx.key}_music')">🎵 音乐</button>
+                        <button class="upload-btn fx" onclick="uploadFile('image', '${fx.key}_fx')">✨ 特效图</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    /* ============ 3. 交互逻辑 ============ */
+
+    // 切换开关按钮状态
+    function toggleSwitch(btnId) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        if (btn.classList.contains('on')) {
+            btn.classList.remove('on');
+            btn.classList.add('off');
+            btn.textContent = '禁用';
+        } else {
+            btn.classList.remove('off');
+            btn.classList.add('on');
+            btn.textContent = '启用';
+        }
+    }
+
+    // 根据类型选择 file input
+    function getInputForType(type) {
+        switch (type) {
+            case 'image': return document.getElementById('imageInput');
+            case 'video': return document.getElementById('videoInput');
+            case 'audio': return document.getElementById('audioInput');
+            case 'model3d': return document.getElementById('model3dInput');
+            default: return document.getElementById('imageInput');
+        }
+    }
+
+    // 统一的文件上传处理
+    function uploadFile(type, fieldKey) {
+        currentEditField = { type: type, key: fieldKey };
+        const input = getInputForType(type);
+        input.onchange = function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const dataUrl = event.target.result;
+                applyFilePreview(fieldKey, type, dataUrl);
+                saveMediaData(fieldKey, type, dataUrl);
+                showToast('已上传：' + file.name);
+            };
+            reader.readAsDataURL(file);
+        };
+        input.value = '';
+        input.click();
+    }
+
+    // 根据类型应用预览
+    function applyFilePreview(fieldKey, type, dataUrl) {
+        const preview = document.getElementById('preview-' + fieldKey);
+        if (!preview) return;
+        if (type === 'video') {
+            preview.innerHTML = '<video src="' + dataUrl + '" muted loop></video>';
+            try { preview.querySelector('video').play(); } catch (e) {}
+        } else {
+            preview.innerHTML = '<img src="' + dataUrl + '" alt="预览">';
+        }
+    }
+
+    // 保存媒体数据到当前会话缓存
+    const _mediaCache = {};
+    function saveMediaData(fieldKey, type, dataUrl) {
+        _mediaCache[fieldKey] = { type: type, data: dataUrl };
+    }
+
+    // 重置单个字段的预览
+    function resetFieldPreview(fieldKey, defaultEmoji) {
+        const preview = document.getElementById('preview-' + fieldKey);
+        if (preview) preview.textContent = defaultEmoji || '';
+        delete _mediaCache[fieldKey];
+    }
+
+    /* ============ 4. 保存 / 加载 / 恢复默认 ============ */
+
+    // 收集所有输入值
+    function collectAllValues() {
+        const data = {};
+
+        // 光环配置
+        BUDDHA_LIST.forEach(b => {
+            const sizeInput = document.getElementById(b.key + '_halo_size');
+            const colorInput = document.getElementById(b.key + '_halo_color');
+            const toggleBtn = document.getElementById(b.key + '_halo_toggle');
+            data[b.key + '_halo'] = {
+                size: sizeInput ? sizeInput.value : '120',
+                color: colorInput ? colorInput.value : '#FFD700',
+                enabled: toggleBtn ? toggleBtn.classList.contains('on') : true
+            };
+        });
+
+        // 特效开关
+        FX_LIST.forEach(fx => {
+            const toggleBtn = document.getElementById(fx.key + '_toggle');
+            if (!data[fx.key]) data[fx.key] = {};
+            data[fx.key].enabled = toggleBtn ? toggleBtn.classList.contains('on') : true;
+        });
+
+        // 媒体资源（图片/视频/音频/3D）
+        Object.keys(_mediaCache).forEach(function (k) {
+            data[k] = Object.assign({}, data[k] || {}, {
+                mediaType: _mediaCache[k].type,
+                mediaData: _mediaCache[k].data
+            });
+        });
+
+        return data;
+    }
+
+    function saveChanges() {
+        try {
+            const data = collectAllValues();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            showToast('保存成功！✅');
+        } catch (e) {
+            console.error(e);
+            showToast('保存失败：' + (e.message || e));
+        }
+    }
+
+    function loadData() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw) || {};
+
+            // 恢复光环配置
+            BUDDHA_LIST.forEach(b => {
+                const cfg = data[b.key + '_halo'];
+                if (!cfg) return;
+                const sizeInput = document.getElementById(b.key + '_halo_size');
+                const colorInput = document.getElementById(b.key + '_halo_color');
+                const toggleBtn = document.getElementById(b.key + '_halo_toggle');
+                if (sizeInput) {
+                    sizeInput.value = cfg.size;
+                    const valEl = document.getElementById(b.key + '_halo_size_val');
+                    if (valEl) valEl.textContent = cfg.size + '%';
+                }
+                if (colorInput) colorInput.value = cfg.color || '#FFD700';
+                if (toggleBtn) {
+                    if (cfg.enabled === false) {
+                        toggleBtn.classList.remove('on');
+                        toggleBtn.classList.add('off');
+                        toggleBtn.textContent = '禁用';
+                    } else {
+                        toggleBtn.classList.remove('off');
+                        toggleBtn.classList.add('on');
+                        toggleBtn.textContent = '启用';
+                    }
+                }
+            });
+
+            // 恢复特效开关
+            FX_LIST.forEach(fx => {
+                const cfg = data[fx.key];
+                if (!cfg) return;
+                const toggleBtn = document.getElementById(fx.key + '_toggle');
+                if (toggleBtn) {
+                    if (cfg.enabled === false) {
+                        toggleBtn.classList.remove('on');
+                        toggleBtn.classList.add('off');
+                        toggleBtn.textContent = '禁用';
+                    }
+                }
+            });
+
+            // 恢复媒体预览并填充缓存
+            Object.keys(data).forEach(function (k) {
+                const v = data[k];
+                if (v && v.mediaType && v.mediaData) {
+                    _mediaCache[k] = { type: v.mediaType, data: v.mediaData };
+                    const preview = document.getElementById('preview-' + k);
+                    if (preview) {
+                        if (v.mediaType === 'video') {
+                            preview.innerHTML = '<video src="' + v.mediaData + '" muted loop></video>';
+                            try { preview.querySelector('video').play(); } catch (e) {}
+                        } else {
+                            preview.innerHTML = '<img src="' + v.mediaData + '" alt="预览">';
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('加载数据失败', e);
+        }
+    }
+
+    function resetToDefault() {
+        if (!confirm('确定恢复所有默认设置吗？')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        Object.keys(_mediaCache).forEach(function (k) { delete _mediaCache[k]; });
+        location.reload();
+    }
+
+    /* ============ 5. 通用工具 ============ */
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(function () { toast.classList.remove('show'); }, 2000);
+    }
+
+    /* ============ 6. 初始化 ============ */
+    (function init() {
+        renderBuddhaMain();
+        renderBuddhaHalo();
+        renderBg();
+        renderPet();
+        renderOffering();
+        renderFx();
+        loadData();
+    })();
+    </script>
+</body>
+</html>

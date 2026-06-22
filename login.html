@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>祈个福 · 用户登录</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        :root {
+            --bg-warm: #F5E6D3;
+            --primary: #8B5A2B;
+            --primary-light: #A67B4B;
+            --accent: #C04040;
+            --trust: #7BA5A6;
+            --text-dark: #4A3728;
+            --text-light: #8B7355;
+            --card-bg: #FDF8F3;
+            --border: rgba(184, 134, 11, 0.3);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
+        }
+        body { font-family: 'Noto Serif SC', serif; background: var(--bg-warm); min-height: 100vh; overflow-x: hidden; }
+        
+        /* 檀香烟雾全局效果 */
+        body::before {
+          content: "✦ ✦ ✦";
+          position: fixed;
+          top: 20%;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 180px;
+          color: rgba(139,90,43,0.03);
+          letter-spacing: 50px;
+          pointer-events: none;
+          z-index: 0;
+          animation: globalSmoke 12s ease-in-out infinite;
+        }
+        @keyframes globalSmoke {
+          0%, 100% { opacity: 0.03; transform: translateX(-50%) translateY(0) rotate(0deg); }
+          33% { opacity: 0.05; transform: translateX(-50%) translateY(-20px) rotate(1deg); }
+          66% { opacity: 0.04; transform: translateX(-50%) translateY(-10px) rotate(-1deg); }
+        }
+        
+        /* 页面容器 */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 30px 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Logo区域 */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFFBF0 0%, #FDF8F3 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(139, 90, 43, 0.2), 0 0 0 3px rgba(184, 134, 11, 0.15);
+            border: 3px solid rgba(184, 134, 11, 0.4);
+            position: relative;
+        }
+        .logo-circle::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 1px dashed rgba(184, 134, 11, 0.3);
+            pointer-events: none;
+        }
+        .logo-circle .logo-icon {
+            font-size: 60px;
+        }
+        .logo-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 32px;
+            color: var(--primary);
+            letter-spacing: 6px;
+            margin-left: 6px;
+        }
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--text-light);
+            letter-spacing: 4px;
+            margin-top: 8px;
+        }
+        
+        /* 登录表单 */
+        .login-form {
+            width: 100%;
+            max-width: 320px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-field {
+            width: 100%;
+            height: 52px;
+            background: #fff;
+            border: 1.5px solid rgba(184, 134, 11, 0.35);
+            border-radius: 12px;
+            padding: 0 20px;
+            font-size: 15px;
+            color: var(--text-dark);
+            outline: none;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.1);
+        }
+        .input-field::placeholder {
+            color: #c4b5a5;
+        }
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+        .input-row .input-field {
+            flex: 1;
+        }
+        .btn-code {
+            width: 110px;
+            height: 52px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            border: 1.5px solid rgba(184, 134, 11, 0.5);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(139,90,43,0.25);
+            white-space: nowrap;
+        }
+        .btn-code:active {
+            transform: scale(0.97);
+        }
+        
+        /* 登录按钮 */
+        .btn-login {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            border: 1.5px solid rgba(184, 134, 11, 0.5);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: transform .2s, opacity .2s;
+            box-shadow: 0 3px 12px rgba(139,90,43,0.25);
+            letter-spacing: 4px;
+        }
+        .btn-login:active {
+            transform: scale(0.97);
+        }
+        
+        /* 微信登录 */
+        .btn-wechat {
+            width: 100%;
+            height: 52px;
+            background: #07c160;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .btn-wechat:active {
+            transform: scale(0.97);
+        }
+        
+        /* 链接区域 */
+        .login-links {
+            text-align: center;
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 13px;
+        }
+        .login-link-item {
+            color: var(--primary);
+            text-decoration: none;
+            position: relative;
+        }
+        .login-link-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--primary);
+            opacity: 0.4;
+        }
+        
+        /* 滑动验证弹窗 */
+        .slider-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .3s, visibility .3s;
+        }
+        .slider-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slider-modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(74,55,40,0.6);
+        }
+        .slider-modal-card {
+            position: relative;
+            width: 300px;
+            background: linear-gradient(180deg, #FFFBEE 0%, #FFF8EC 100%);
+            border-radius: 16px;
+            padding: 24px 20px 20px;
+            border: 2px solid #D4A574;
+            box-shadow: 0 20px 60px rgba(139,90,43,0.5);
+        }
+        .slider-modal-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 20px;
+            color: #8B5A2B;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+        .slider-modal-desc {
+            font-size: 12px;
+            color: #8B7355;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .slider-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: #8B5A2B;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+        .slider-close-btn:hover {
+            opacity: 1;
+        }
+        .slider-bar-wrap {
+            position: relative;
+        }
+        .slider-bar-bg {
+            width: 100%;
+            height: 44px;
+            background: #f0ebe3;
+            border-radius: 22px;
+            border: 1px solid #d4c4b0;
+            position: relative;
+            overflow: hidden;
+        }
+        .slider-bar-inner {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(135deg, #D4A574, #A67B4B);
+            transition: width 0.1s;
+            border-radius: 22px;
+        }
+        .slider-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(139,90,43,0.4);
+            z-index: 2;
+        }
+        .slider-bar-icon {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        /* 底部版权 */
+        .copyright {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-light);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Logo区域 -->
+        <div class="logo-section">
+            <div class="logo-circle">
+                <span class="logo-icon">🙏</span>
+            </div>
+            <div class="logo-title">祈个福</div>
+            <div class="logo-subtitle">愿力所及 · 皆为净土</div>
+        </div>
+        
+        <!-- 登录表单 -->
+        <form class="login-form" onsubmit="return false;">
+            <div class="input-group">
+                <input type="tel" class="input-field" id="phone" placeholder="请输入手机号" maxlength="11">
+            </div>
+            <div class="input-group">
+                <div class="input-row">
+                    <input type="text" class="input-field" id="code" placeholder="请输入验证码" maxlength="6">
+                    <button type="button" class="btn-code" id="sendCodeBtn" onclick="sendCode()">获取验证码</button>
+                </div>
+            </div>
+            
+            <button type="button" class="btn-login" onclick="showSlider()">登 录</button>
+            
+            <button type="button" class="btn-wechat">
+                <span>微信</span>
+                <span>一键登录</span>
+            </button>
+        </form>
+        
+        <!-- 链接 -->
+        <div class="login-links">
+            <a href="register.html" class="login-link-item">注册账号</a>
+            <a href="#" class="login-link-item">忘记密码</a>
+        </div>
+    </div>
+    
+    <!-- 滑动验证弹窗 -->
+    <div class="slider-modal" id="sliderModal">
+        <div class="slider-modal-overlay" onclick="closeSlider()"></div>
+        <div class="slider-modal-card">
+            <button class="slider-close-btn" onclick="closeSlider()">×</button>
+            <div class="slider-modal-title">安全验证</div>
+            <div class="slider-modal-desc">请滑动完成验证</div>
+            <div class="slider-bar-wrap">
+                <div class="slider-bar-bg">
+                    <div class="slider-bar-inner" id="sliderInner"></div>
+                    <div class="slider-bar" id="sliderBar" draggable="true">
+                        <span class="slider-bar-icon">→</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="copyright">© 2024 祈个福 · 一心向善</div>
+    
+    <script>
+        var countdown = 60;
+        var timer = null;
+        var sliderVerified = false;
+        var pendingPhone = '';
+        var sliderIsDragging = false;
+        var sliderStartX = 0;
+        var sliderMaxMove = 0;
+        var sliderTargetPos = 0;
+        
+        function sendCode() {
+            var phone = document.getElementById('phone').value;
+            if (!phone || phone.length !== 11) {
+                showToast('请输入正确的手机号');
+                return;
+            }
+            
+            var btn = document.getElementById('sendCodeBtn');
+            if (countdown < 60) return;
+            
+            // 保存手机号，等待滑动验证通过后使用
+            pendingPhone = phone;
+            
+            // 先显示滑动验证
+            showSlider();
+        }
+        
+        // 滑动验证通过后的实际发送验证码
+        function doSendCode() {
+            var btn = document.getElementById('sendCodeBtn');
+            if (countdown < 60) return;
+            
+            btn.textContent = countdown + 's';
+            timer = setInterval(function() {
+                countdown--;
+                btn.textContent = countdown + 's';
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    btn.textContent = '获取验证码';
+                    countdown = 60;
+                }
+            }, 1000);
+            
+            showToast('验证码已发送');
+        }
+        
+        function showSlider() {
+            sliderVerified = false;
+            resetSliderVerify();
+            document.getElementById('sliderModal').classList.add('active');
+        }
+        
+        function closeSlider() {
+            document.getElementById('sliderModal').classList.remove('active');
+            sliderIsDragging = false;
+        }
+        
+        function resetSliderVerify() {
+            var bar = document.getElementById('sliderBar');
+            var sliderInner = document.getElementById('sliderInner');
+            var barWrap = document.querySelector('.slider-bar-wrap');
+            if (!bar || !sliderInner || !barWrap) return;
+            
+            var barWrapWidth = barWrap.offsetWidth;
+            var barWidth = bar.offsetWidth || 44;
+            sliderMaxMove = Math.max(0, barWrapWidth - barWidth - 4);
+            
+            // 随机目标位置
+            var minPos = Math.floor(sliderMaxMove * 0.20);
+            var maxPos = Math.floor(sliderMaxMove * 0.85);
+            sliderTargetPos = Math.floor(Math.random() * (maxPos - minPos)) + minPos;
+            
+            // 重置滑块
+            bar.style.left = '2px';
+            sliderInner.style.width = '44px';
+            var icon = bar.querySelector('.slider-bar-icon');
+            if (icon) icon.textContent = '→';
+        }
+        
+        function startDrag(e) {
+            if (sliderVerified) return;
+            e.preventDefault();
+            sliderIsDragging = true;
+            sliderStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            var icon = bar.querySelector('.slider-bar-icon');
+            if (icon) icon.textContent = '●●●';
+        }
+        
+        // 初始化滑块事件
+        var bar = document.getElementById('sliderBar');
+        var sliderInner = document.getElementById('sliderInner');
+        var startX = 0;
+        var barWidth = 44;
+        var maxWidth = 300 - barWidth - 4;
+        
+        bar.addEventListener('mousedown', startDrag);
+        bar.addEventListener('touchstart', startDrag, { passive: false });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!sliderIsDragging) return;
+            var currentX = e.clientX;
+            var diff = currentX - sliderStartX;
+            var barLeft = 2;
+            var newLeft = Math.max(2, Math.min(barLeft + diff, sliderMaxMove + 2));
+            bar.style.left = newLeft + 'px';
+            sliderInner.style.width = (newLeft - 2 + barWidth) + 'px';
+        });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (!sliderIsDragging) return;
+            if (e.touches && e.touches.length > 0) {
+                e.preventDefault();
+                var currentX = e.touches[0].clientX;
+                var diff = currentX - sliderStartX;
+                var barLeft = parseInt(bar.style.left) || 2;
+                var newLeft = Math.max(2, Math.min(barLeft + diff, sliderMaxMove + 2));
+                bar.style.left = newLeft + 'px';
+                sliderInner.style.width = (newLeft - 2 + barWidth) + 'px';
+            }
+        }, { passive: false });
+        
+        document.addEventListener('mouseup', checkSliderResult);
+        document.addEventListener('touchend', checkSliderResult);
+        
+        function checkSliderResult() {
+            if (!sliderIsDragging) return;
+            sliderIsDragging = false;
+            
+            if (sliderVerified) return;
+            
+            var currentLeft = parseInt(bar.style.left) || 2;
+            var tolerance = 15;
+            var diff = Math.abs(currentLeft - 2 - sliderTargetPos);
+            
+            if (diff <= tolerance) {
+                // 验证成功
+                sliderVerified = true;
+                bar.style.background = '#A67B4B';
+                var icon = bar.querySelector('.slider-bar-icon');
+                if (icon) icon.textContent = '✓';
+                sliderInner.style.width = (sliderMaxMove + barWidth + 2) + 'px';
+                
+                showToast('验证通过');
+                
+                // 关闭弹窗并发送验证码
+                setTimeout(function() {
+                    closeSlider();
+                    doSendCode();
+                }, 800);
+            } else {
+                // 验证失败，重置
+                resetSliderVerify();
+            }
+        }
+        
+        // Toast提示
+        function showToast(msg) {
+            var existing = document.querySelector('.login-toast');
+            if (existing) existing.remove();
+            
+            var toast = document.createElement('div');
+            toast.className = 'login-toast';
+            toast.textContent = msg;
+            toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(139,90,43,0.9);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;letter-spacing:2px;z-index:10000;font-family:"Ma Shan Zheng",cursive;opacity:0;transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+            requestAnimationFrame(function() {
+                toast.style.opacity = '1';
+            });
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

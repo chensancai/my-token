@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员管理 · 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #F4E8D8 0%, #FFF8EC 100%); min-height: 100vh; color: #4A3728; overflow-x: hidden; }
+        .page-container { padding: 10px; max-width: 400px; margin: 0 auto; }
+        .scroll-area { padding: 10px 20px 30px; }
+
+        /* 顶部标题（无手机框时的固定顶栏） */
+        .admin-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 14px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(244,232,216,0.97);
+            border-bottom: 1px solid rgba(184,134,11,0.2);
+            z-index: 100;
+        }
+        .admin-header-btn { background: transparent; border: none; color: #8B5A2B; font-size: 26px; cursor: pointer; padding: 0; }
+        .admin-header-title { font-family: 'Ma Shan Zheng', cursive; font-size: 18px; color: #8B5A2B; letter-spacing: 4px; }
+        .admin-header-spacer { width: 30px; }
+
+        /* 管理员身份标识 */
+        .admin-identity-bar {
+            padding: 10px 20px 12px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: rgba(244,232,216,0.97);
+            border-bottom: 1px dashed rgba(184,134,11,0.15);
+            margin-top: 56px;
+        }
+        .admin-dot { width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; }
+        .admin-identity-text { font-size: 11px; color: #4CAF50; letter-spacing: 2px; font-family: 'Ma Shan Zheng', cursive; }
+        .admin-phone-tag { font-size: 10px; color: #8B7355; letter-spacing: 1px; margin-left: 6px; padding: 3px 8px; background: rgba(139,90,43,0.08); border-radius: 8px; }
+
+        /* 功能开关卡片 */
+        .admin-switch-card { background: #fff; border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(139,90,43,0.08); border: 1.5px solid rgba(184,134,11,0.15); }
+        .admin-switch-card-title { font-family: 'Ma Shan Zheng', cursive; font-size: 14px; color: #8B5A2B; letter-spacing: 3px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px dashed rgba(184,134,11,0.25); }
+        .admin-switch-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+        .admin-switch-row + .admin-switch-row { border-top: 1px solid rgba(184,134,11,0.1); }
+        .admin-switch-label { font-size: 13px; color: #4A3728; letter-spacing: 1px; }
+        .admin-switch-desc { font-size: 10px; color: #8B7355; letter-spacing: 1px; margin-top: 2px; opacity: 0.75; }
+
+        /* 开关 */
+        .toggle-switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: #E0E0E0; border-radius: 26px; cursor: pointer; transition: background .3s; box-shadow: inset 0 1px 4px rgba(0,0,0,0.15); }
+        .toggle-slider::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.25); }
+        .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #8B5A2B, #D4AF37); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* 奖励规则行 */
+        .admin-rule-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(184,134,11,0.1); }
+        .admin-rule-row:last-child { border-bottom: none; }
+        .admin-rule-row.dashed-top { margin-top: 8px; padding-top: 16px; border-top: 1px dashed rgba(139,90,43,0.15); border-bottom: none; }
+        .admin-rule-name { font-size: 12px; color: #4A3728; letter-spacing: 1px; flex: 1; line-height: 1.5; padding-right: 8px; }
+        .admin-rule-name small { display: block; font-size: 10px; color: #8B7355; opacity: 0.75; margin-top: 2px; letter-spacing: 0.5px; }
+        .admin-rule-input { width: 80px; text-align: center; padding: 7px 10px; border: 1.5px solid rgba(184,134,11,0.3); border-radius: 8px; font-size: 13px; font-weight: 700; color: #8B5A2B; background: #FFF8EC; outline: none; font-family: inherit; }
+        .admin-rule-input:focus { border-color: #8B5A2B; background: #fff; }
+        .admin-rule-unit { font-size: 11px; color: #8B7355; margin-left: 6px; letter-spacing: 1px; }
+
+        /* 会员设置行 */
+        .admin-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(184,134,11,0.1); }
+        .admin-setting-row:last-child { border-bottom: none; }
+        .admin-setting-name { font-size: 12px; color: #4A3728; letter-spacing: 1px; flex: 1; line-height: 1.5; padding-right: 8px; }
+        .admin-setting-name small { display: block; font-size: 10px; color: #8B7355; opacity: 0.75; margin-top: 2px; letter-spacing: 0.5px; }
+        .admin-setting-input { width: 90px; text-align: center; padding: 7px 10px; border: 1.5px solid rgba(184,134,11,0.3); border-radius: 8px; font-size: 13px; font-weight: 700; color: #8B5A2B; background: #FFF8EC; outline: none; font-family: inherit; }
+        .admin-setting-input:focus { border-color: #8B5A2B; background: #fff; }
+        .admin-setting-unit { font-size: 11px; color: #8B7355; margin-left: 6px; letter-spacing: 1px; }
+
+        /* 字段行（通用） */
+        .admin-field-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(184,134,11,0.1); }
+        .admin-field-row:last-child { border-bottom: none; }
+        .admin-field-label { font-size: 12px; color: #4A3728; letter-spacing: 1px; width: 80px; flex-shrink: 0; }
+        .admin-field-input { flex: 1; padding: 8px 12px; border: 1.5px solid rgba(184,134,11,0.25); border-radius: 8px; font-size: 12px; color: #4A3728; letter-spacing: 1px; background: #FFF8EC; outline: none; font-family: inherit; min-width: 0; }
+        .admin-field-input:focus { border-color: #8B5A2B; background: #fff; }
+        .admin-field-unit { font-size: 11px; color: #8B7355; margin-left: 6px; letter-spacing: 1px; }
+
+        /* 文本域（会员特权介绍） */
+        .admin-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid rgba(184,134,11,0.3);
+            border-radius: 10px;
+            background: #FFF8EC;
+            font-size: 12px;
+            color: #4A3728;
+            letter-spacing: 0.5px;
+            line-height: 1.7;
+            min-height: 120px;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+        }
+        .admin-textarea:focus { border-color: #8B5A2B; background: #fff; }
+
+        /* 卡片描述文本 */
+        .admin-card-desc { font-size: 10px; color: #8B7355; letter-spacing: 1px; margin-bottom: 14px; opacity: 0.8; line-height: 1.6; }
+
+        /* 提交按钮 */
+        .admin-action-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #A67B4B 0%, #B8860B 50%, #6B4423 100%);
+            color: #FFFBEE;
+            border: none;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 14px rgba(184,134,11,0.3);
+            transition: transform .2s;
+        }
+        .admin-action-btn:active { transform: scale(0.98); }
+        .admin-action-btn.secondary { background: transparent; color: #8B5A2B; border: 1.5px solid rgba(139,90,43,0.3); box-shadow: none; }
+        .admin-action-btn.danger { background: linear-gradient(135deg, #C2362B 0%, #8B2A1F 100%); box-shadow: 0 4px 14px rgba(194,54,43,0.3); }
+        .admin-action-btn.small-inline { width: auto; margin-top: 0; padding: 10px 14px; font-size: 11px; margin-left: 8px; white-space: nowrap; }
+
+        /* 用户信息卡片 */
+        .admin-user-info {
+            margin-top: 14px;
+            padding: 14px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF8EC 100%);
+            border-radius: 14px;
+            box-shadow: inset 0 0 0 1px #E8D9B5;
+        }
+        .admin-user-info-header { font-size: 11px; color: #8B6914; letter-spacing: 2px; margin-bottom: 10px; text-align: center; }
+        .admin-user-info-line { display: flex; justify-content: space-between; font-size: 12px; color: #5A4A2E; margin-bottom: 8px; letter-spacing: 1px; }
+        .admin-user-info-line span:last-child { color: #8B6914; font-weight: 600; }
+        .admin-user-info-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-family: 'Ma Shan Zheng', cursive; letter-spacing: 1px; }
+        .admin-user-info-badge.member { background: linear-gradient(135deg, #D4AF37, #8B6914); color: #FFFBEE; }
+        .admin-user-info-badge.active { background: rgba(76,175,80,0.15); color: #388E3C; }
+        .admin-user-info-badge.disabled { background: rgba(255,152,0,0.15); color: #E65100; }
+        .admin-user-actions { display: flex; gap: 8px; margin-top: 14px; }
+        .admin-user-actions .admin-action-btn { margin-top: 0; font-size: 11px; letter-spacing: 1px; padding: 10px; flex: 1; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.92);
+            color: #fff; padding: 14px 28px;
+            border-radius: 12px; font-size: 13px;
+            letter-spacing: 2px; z-index: 10000;
+            opacity: 0; transition: opacity .3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 16px rgba(139,90,43,0.4);
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <!-- 顶部固定标题栏 -->
+    <div class="admin-header">
+        <button class="admin-header-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.length > 1 ? history.back() : null}">‹</button>
+        <div class="admin-header-title">✦ 会员管理</div>
+        <div class="admin-header-spacer"></div>
+    </div>
+
+    <!-- 管理员身份标识 -->
+    <div class="admin-identity-bar">
+        <div class="admin-dot"></div>
+        <div class="admin-identity-text">管理员操作面板</div>
+        <div class="admin-phone-tag" id="adminPhoneTag"></div>
+    </div>
+
+    <div class="scroll-area">
+
+                    <!-- 一、功能开关 -->
+                    <div class="admin-switch-card">
+                        <div class="admin-switch-card-title">✦ 功能开关</div>
+                        <div class="admin-switch-row">
+                            <div>
+                                <div class="admin-switch-label">菩提出让功能</div>
+                                <div class="admin-switch-desc">关闭后前端不显示所有出让相关入口</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="adminSwitchSell">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="admin-switch-row">
+                            <div>
+                                <div class="admin-switch-label">菩提求购功能</div>
+                                <div class="admin-switch-desc">关闭后前端不显示所有求购相关入口</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="adminSwitchBuy">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="admin-switch-row">
+                            <div>
+                                <div class="admin-switch-label">会员置换功能</div>
+                                <div class="admin-switch-desc">关闭后前端不显示会员置换板块</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="adminSwitchExchange">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <button class="admin-action-btn" onclick="saveFeatureSwitches()">✦ 提交修改</button>
+                    </div>
+
+                    <!-- 二、菩提奖励规则 -->
+                    <div class="admin-switch-card">
+                        <div class="admin-switch-card-title">✦ 菩提奖励规则</div>
+                        <div class="admin-rule-row">
+                            <div class="admin-rule-name">
+                                注册奖励菩提
+                                <small>新用户完成注册时自动发放</small>
+                            </div>
+                            <input class="admin-rule-input" type="number" value="1" id="adminRuleReg">
+                            <span class="admin-rule-unit">颗</span>
+                        </div>
+                        <div class="admin-rule-row">
+                            <div class="admin-rule-name">
+                                推荐注册奖励
+                                <small>老用户推荐新用户注册成功</small>
+                            </div>
+                            <input class="admin-rule-input" type="number" value="8" id="adminRuleRef">
+                            <span class="admin-rule-unit">颗</span>
+                        </div>
+                        <div class="admin-rule-row">
+                            <div class="admin-rule-name">
+                                购物确认收货奖励
+                                <small>订单确认收货后自动发放</small>
+                            </div>
+                            <input class="admin-rule-input" type="number" value="3" id="adminRuleBuy">
+                            <span class="admin-rule-unit">颗</span>
+                        </div>
+                        <div class="admin-rule-row">
+                            <div class="admin-rule-name">
+                                开通会员奖励
+                                <small>用户成功开通菩提会员</small>
+                            </div>
+                            <input class="admin-rule-input" type="number" value="20" id="adminRuleOpen">
+                            <span class="admin-rule-unit">颗</span>
+                        </div>
+                        <div class="admin-rule-row">
+                            <div class="admin-rule-name">
+                                分享第三方 10 次奖励
+                                <small>分享到微信/朋友圈/QQ 等平台</small>
+                            </div>
+                            <input class="admin-rule-input" type="number" value="5" id="adminRuleShare">
+                            <span class="admin-rule-unit">颗</span>
+                        </div>
+                        <div class="admin-rule-row dashed-top">
+                            <div class="admin-rule-name" style="align-items:flex-start;">
+                                会员专属权利介绍
+                                <small>此内容将展示在会员介绍弹窗及会员页面的"会员专属权利介绍"区域</small>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:12px">
+                            <textarea class="admin-textarea" id="adminMemberPrivileges">可参与菩提出让变现
+每月赠送 3 颗菩提（年 36 颗）
+全部会员商品 8 折
+专属客服通道
+会员专属活动与限量法物</textarea>
+                        </div>
+                        <button class="admin-action-btn" onclick="saveBodhiRules()">✦ 提交修改</button>
+                    </div>
+
+                    <!-- 三、会员相关设置 -->
+                    <div class="admin-switch-card">
+                        <div class="admin-switch-card-title">✦ 会员相关设置</div>
+                        <div class="admin-setting-row">
+                            <div class="admin-setting-name">
+                                会员价（年费）
+                                <small>开通菩提会员所需费用</small>
+                            </div>
+                            <input class="admin-setting-input" type="number" value="99" id="adminMemberPrice">
+                            <span class="admin-setting-unit">元/年</span>
+                        </div>
+                        <div class="admin-setting-row">
+                            <div class="admin-setting-name">
+                                开通所需菩提数量
+                                <small>年费会员可用菩提全额兑换</small>
+                            </div>
+                            <input class="admin-setting-input" type="number" value="20" id="adminMemberBodhi">
+                            <span class="admin-setting-unit">颗</span>
+                        </div>
+                        <button class="admin-action-btn" onclick="saveMemberSettings()">✦ 提交修改</button>
+                    </div>
+
+                    <!-- 四、退会会员费 -->
+                    <div class="admin-switch-card">
+                        <div class="admin-switch-card-title">✦ 退会会员费</div>
+                        <div class="admin-card-desc">手动为申请退会的会员办理会员费退款，退回金额将返还至用户钱包</div>
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">会员名</span>
+                            <input class="admin-field-input" type="text" placeholder="请输入会员名" id="refundName">
+                        </div>
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">账号</span>
+                            <input class="admin-field-input" type="text" placeholder="请输入手机号/账号" id="refundPhone">
+                        </div>
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">退回金额</span>
+                            <input class="admin-field-input" type="number" placeholder="请输入金额" id="refundAmount">
+                            <span class="admin-field-unit">元</span>
+                        </div>
+                        <button class="admin-action-btn" onclick="submitRefund()">提交退会退款</button>
+                    </div>
+
+                    <!-- 五、菩提录入 -->
+                    <div class="admin-switch-card">
+                        <div class="admin-switch-card-title">✦ 菩提录入</div>
+                        <div class="admin-card-desc">手动为用户增加菩提数量，录入成功后将即时到账至用户账户</div>
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">会员名</span>
+                            <input class="admin-field-input" type="text" placeholder="请输入会员名" id="bodhiName">
+                        </div>
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">账号</span>
+                            <input class="admin-field-input" type="text" placeholder="请输入手机号/账号" id="bodhiPhone">
+                        </div>
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">录入数量</span>
+                            <input class="admin-field-input" type="number" placeholder="请输入数量" id="bodhiAmount">
+                            <span class="admin-field-unit">颗</span>
+                        </div>
+                        <button class="admin-action-btn" onclick="submitBodhi()">提交菩提录入</button>
+                    </div>
+
+                    <!-- 六、用户管理（禁用/注销） -->
+                    <div class="admin-switch-card">
+                        <div class="admin-switch-card-title">✦ 用户管理（禁用/注销）</div>
+                        <div class="admin-card-desc">通过手机号查找用户后，可对账号进行禁用、永久禁用或注销清空操作，请谨慎操作</div>
+
+                        <div class="admin-field-row">
+                            <span class="admin-field-label">客户账号</span>
+                            <input id="adminUserPhone" class="admin-field-input" type="tel" placeholder="请输入客户手机号" style="flex: 1;">
+                            <button class="admin-action-btn small-inline" onclick="adminSearchUser()">🔍 查询</button>
+                        </div>
+
+                        <!-- 查询后显示的用户信息卡片 -->
+                        <div id="adminUserInfo" style="display: none;" class="admin-user-info">
+                            <div class="admin-user-info-header">— 查询到的用户信息 —</div>
+                            <div class="admin-user-info-line"><span>会员名</span><span>善信139****5678</span></div>
+                            <div class="admin-user-info-line"><span>手机号</span><span>139****5678</span></div>
+                            <div class="admin-user-info-line"><span>注册时间</span><span>2024-06-18</span></div>
+                            <div class="admin-user-info-line"><span>会员状态</span><span class="admin-user-info-badge member">菩提会员</span></div>
+                            <div class="admin-user-info-line"><span>账号状态</span><span class="admin-user-info-badge active" id="userStatusBadge">正常</span></div>
+                            <div class="admin-user-info-line"><span>剩余菩提</span><span>25 颗</span></div>
+                            <div class="admin-user-info-line"><span>钱包余额</span><span>￥ 126.50</span></div>
+
+                            <div class="admin-user-actions">
+                                <button class="admin-action-btn" onclick="disableUser('temp')">临时禁用</button>
+                                <button class="admin-action-btn danger" onclick="disableUser('permanent')">永久禁用</button>
+                            </div>
+                            <div class="admin-user-actions">
+                                <button class="admin-action-btn secondary" onclick="disableUser('enable')">恢复账号</button>
+                                <button class="admin-action-btn danger" onclick="disableUser('cancel')">注销清空</button>
+                            </div>
+                        </div>
+                    </div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 统一的会员管理配置（与会员页面实时同步）==========
+        // 所有设置保存到 localStorage 的 memberAdminSettings 对象中
+        var DEFAULT_SETTINGS = {
+            // 功能开关
+            adminSwitchSell: true,
+            adminSwitchBuy: true,
+            adminSwitchExchange: true,
+            // 菩提奖励规则
+            adminRuleReg: 1,
+            adminRuleRef: 8,
+            adminRuleBuy: 3,
+            adminRuleOpen: 20,
+            adminRuleShare: 5,
+            // 会员专属权利介绍文本
+            adminMemberPrivileges: '可参与菩提出让变现\n每月赠送 3 颗菩提（年 36 颗）\n全部会员商品 8 折\n专属客服通道\n会员专属活动与限量法物',
+            // 会员相关设置
+            adminMemberPrice: 99,
+            adminMemberBodhi: 20,
+            lastSaved: null
+        };
+
+        function getSettings() {
+            try {
+                var s = localStorage.getItem('memberAdminSettings');
+                if (s) return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(s));
+            } catch (e) {}
+            return Object.assign({}, DEFAULT_SETTINGS);
+        }
+
+        function setSettings(partial) {
+            var current = getSettings();
+            var updated = Object.assign(current, partial, { lastSaved: new Date().toISOString() });
+            localStorage.setItem('memberAdminSettings', JSON.stringify(updated));
+        }
+
+        function applySettingsToUI() {
+            var s = getSettings();
+
+            // 功能开关
+            document.getElementById('adminSwitchSell').checked = !!s.adminSwitchSell;
+            document.getElementById('adminSwitchBuy').checked = !!s.adminSwitchBuy;
+            document.getElementById('adminSwitchExchange').checked = !!s.adminSwitchExchange;
+
+            // 菩提奖励规则
+            document.getElementById('adminRuleReg').value = s.adminRuleReg;
+            document.getElementById('adminRuleRef').value = s.adminRuleRef;
+            document.getElementById('adminRuleBuy').value = s.adminRuleBuy;
+            document.getElementById('adminRuleOpen').value = s.adminRuleOpen;
+            document.getElementById('adminRuleShare').value = s.adminRuleShare;
+
+            // 会员特权介绍
+            document.getElementById('adminMemberPrivileges').value = s.adminMemberPrivileges || '';
+
+            // 会员相关设置
+            document.getElementById('adminMemberPrice').value = s.adminMemberPrice;
+            document.getElementById('adminMemberBodhi').value = s.adminMemberBodhi;
+
+            // 管理员手机号（若已保存在 localStorage 的其他模块中）
+            try {
+                var adminInfo = localStorage.getItem('adminPhone');
+                if (adminInfo) {
+                    document.getElementById('adminPhoneTag').textContent = adminInfo;
+                } else {
+                    document.getElementById('adminPhoneTag').textContent = '账号 189****1788';
+                }
+            } catch (e) {}
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function () { t.classList.remove('show'); }, 1800);
+        }
+
+        // ========== 保存各模块的设置 ==========
+        function saveFeatureSwitches() {
+            setSettings({
+                adminSwitchSell: document.getElementById('adminSwitchSell').checked,
+                adminSwitchBuy: document.getElementById('adminSwitchBuy').checked,
+                adminSwitchExchange: document.getElementById('adminSwitchExchange').checked
+            });
+            showToast('✦ 功能开关已保存');
+        }
+
+        function saveBodhiRules() {
+            setSettings({
+                adminRuleReg: parseFloat(document.getElementById('adminRuleReg').value) || 0,
+                adminRuleRef: parseFloat(document.getElementById('adminRuleRef').value) || 0,
+                adminRuleBuy: parseFloat(document.getElementById('adminRuleBuy').value) || 0,
+                adminRuleOpen: parseFloat(document.getElementById('adminRuleOpen').value) || 0,
+                adminRuleShare: parseFloat(document.getElementById('adminRuleShare').value) || 0,
+                adminMemberPrivileges: document.getElementById('adminMemberPrivileges').value
+            });
+            showToast('✦ 菩提规则已保存');
+        }
+
+        function saveMemberSettings() {
+            setSettings({
+                adminMemberPrice: parseFloat(document.getElementById('adminMemberPrice').value) || 0,
+                adminMemberBodhi: parseFloat(document.getElementById('adminMemberBodhi').value) || 0
+            });
+            showToast('✦ 会员设置已保存');
+        }
+
+        // ========== 退会/录入/查询等操作 ==========
+        function submitRefund() {
+            var name = document.getElementById('refundName').value;
+            var phone = document.getElementById('refundPhone').value;
+            var amount = document.getElementById('refundAmount').value;
+            if (!phone || !amount) {
+                showToast('✦ 请填写账号和金额');
+                return;
+            }
+            showToast('✦ 退会会员费操作已提交');
+            document.getElementById('refundName').value = '';
+            document.getElementById('refundPhone').value = '';
+            document.getElementById('refundAmount').value = '';
+        }
+
+        function submitBodhi() {
+            var name = document.getElementById('bodhiName').value;
+            var phone = document.getElementById('bodhiPhone').value;
+            var amount = document.getElementById('bodhiAmount').value;
+            if (!phone || !amount) {
+                showToast('✦ 请填写账号和数量');
+                return;
+            }
+            showToast('✦ 菩提录入操作已提交');
+            document.getElementById('bodhiName').value = '';
+            document.getElementById('bodhiPhone').value = '';
+            document.getElementById('bodhiAmount').value = '';
+        }
+
+        function adminSearchUser() {
+            var phone = document.getElementById('adminUserPhone').value.trim();
+            if (!phone) {
+                showToast('✦ 请输入客户手机号');
+                return;
+            }
+            document.getElementById('adminUserInfo').style.display = 'block';
+            showToast('✦ 查询成功');
+        }
+
+        function disableUser(type) {
+            var badge = document.getElementById('userStatusBadge');
+            var msg = '';
+            if (type === 'temp') { msg = '✦ 账号已临时禁用'; badge.textContent = '已禁用'; badge.className = 'admin-user-info-badge disabled'; }
+            else if (type === 'permanent') { msg = '✦ 账号已永久禁用'; badge.textContent = '永久禁用'; badge.className = 'admin-user-info-badge disabled'; }
+            else if (type === 'enable') { msg = '✦ 账号已恢复'; badge.textContent = '正常'; badge.className = 'admin-user-info-badge active'; }
+            else if (type === 'cancel') { msg = '✦ 账号已注销清空'; badge.textContent = '已注销'; badge.className = 'admin-user-info-badge disabled'; }
+            showToast(msg);
+        }
+
+        // 页面加载时读取保存的设置
+        applySettingsToUI();
+    </script>
+</body>
+</html>

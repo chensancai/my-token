@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>祈个福 · 求签</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bamboo-dark: #5a3d1f;
+  --bamboo-mid: #8b5a2b;
+  --bamboo-light: #b8860b;
+  --gold: #d4af37;
+  --gold-light: #ffe066;
+  --gold-bright: #fff8a0;
+  --bg-dark: #2a1810;
+  --bg-darker: #1a0f08;
+  --ink-red: #c0392b;
+  --sign-brown: #6b4423;
+}
+
+body {
+  font-family: "KaiTi", "STKaiti", "楷体", serif;
+  overflow: hidden;
+  touch-action: none;
+  background: linear-gradient(180deg, #3a2815 0%, #2a1a0c 50%, #1a0f08 100%);
+  min-height: 100vh;
+  height: 100dvh;
+  color: #f5e6c8;
+}
+
+/* 背景装饰 */
+.bg-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%, rgba(255,215,0,0.15) 0%, transparent 50%);
+}
+
+.particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2;
+}
+.particle {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle, var(--gold-light), transparent 70%);
+  box-shadow: 0 0 10px var(--gold), 0 0 20px rgba(255,215,0,0.5);
+  animation: floatUp linear forwards;
+}
+@keyframes floatUp {
+  0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+  20% { opacity: 1; transform: translateY(80vh) scale(1); }
+  100% { transform: translateY(-20vh) scale(0.5); opacity: 0; }
+}
+
+/* 顶部状态栏 */
+.top-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 8px;
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 20;
+  gap: 8px;
+}
+
+.back-btn {
+  background: rgba(139,90,43,0.7);
+  border: 1px solid rgba(212,175,55,0.4);
+  color: var(--gold-light);
+  padding: 5px 10px;
+  border-radius: 50%;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.chip {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, rgba(139,90,43,0.7), rgba(90,61,31,0.7));
+  padding: 7px 14px; border-radius: 20px;
+  border: 1px solid rgba(212,175,55,0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 0 10px rgba(255,215,0,0.1);
+  font-size: 13px;
+}
+.chip .icon { font-size: 16px; }
+.chip .val { color: var(--gold-light); font-weight: bold; letter-spacing: 1px; }
+
+/* 标题 */
+.title {
+  position: absolute; top: calc(70px + env(safe-area-inset-top)); left: 50%;
+  transform: translateX(-50%);
+  text-align: center; z-index: 10;
+}
+.title-text {
+  font-size: 28px; color: var(--gold-light); font-weight: bold;
+  letter-spacing: 8px;
+  text-shadow: 0 0 15px rgba(255,215,0,0.6), 0 2px 4px rgba(0,0,0,0.8);
+}
+.title-sub {
+  font-size: 12px; color: rgba(245,230,200,0.7); letter-spacing: 4px;
+  margin-top: 6px;
+}
+
+/* ========== 求签桶舞台 ========== */
+.stage {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  perspective: 1200px;
+  z-index: 5;
+  width: 360px;
+  height: 520px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+/* 签筒本体 */
+.bamboo-container {
+  position: relative; width: 200px; height: 320px;
+  transform-style: preserve-3d;
+  transform: rotateX(-8deg);
+  transition: filter 0.3s;
+}
+
+/* 摇动动画 */
+.bamboo-container.shaking {
+  animation: shakeJadeBamboo 0.2s ease-in-out infinite;
+}
+@keyframes shakeJadeBamboo {
+  0%   { transform: rotateX(-8deg) rotateZ(-12deg) translateX(-12px) translateY(6px); }
+  25%  { transform: rotateX(-8deg) rotateZ(10deg) translateX(10px) translateY(-4px); }
+  50%  { transform: rotateX(-8deg) rotateZ(-12deg) translateX(-10px) translateY(5px); }
+  75%  { transform: rotateX(-8deg) rotateZ(12deg) translateX(12px) translateY(-6px); }
+  100% { transform: rotateX(-8deg) rotateZ(-12deg) translateX(-12px) translateY(6px); }
+}
+
+/* 桶身 - 黄褐色不透明竹筒 */
+.bamboo-body {
+  position: absolute; top: 60px; left: 10px; right: 10px; bottom: 30px;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      #8b6a3f 0px,
+      #8b6a3f 32px,
+      #5a3d1f 32px,
+      #5a3d1f 36px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,0.15) 0%,
+      transparent 30%,
+      rgba(255,220,150,0.12) 50%,
+      transparent 70%,
+      rgba(0,0,0,0.2) 100%
+    ),
+    linear-gradient(
+      180deg,
+      #8b6a3f 0%,
+      #5a3d1f 50%,
+      #3d2815 100%
+    );
+  border: 3px solid #5a3d1f;
+  box-shadow:
+    0 8px 30px rgba(0,0,0,0.6),
+    inset 0 0 25px rgba(0,0,0,0.4),
+    inset 0 0 8px rgba(255,200,120,0.15);
+  overflow: hidden;
+}
+
+/* 桶身纵向竹节分隔 + 顶部高光 + 左右高光 */
+.bamboo-body::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 48px,
+      rgba(60, 35, 15, 0.35) 48px,
+      rgba(60, 35, 15, 0.35) 50px
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 220, 160, 0.25) 0%,
+      rgba(255, 220, 160, 0.1) 15%,
+      transparent 35%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 220, 150, 0.18) 0%,
+      transparent 20%
+    ),
+    linear-gradient(
+      270deg,
+      rgba(255, 220, 150, 0.18) 0%,
+      transparent 20%
+    );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* 金色"佛"字 */
+.fo-character {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, rgba(255, 220, 160, 0.9) 0%, rgba(212, 175, 100, 0.7) 50%, rgba(139, 90, 43, 0.5) 100%);
+  border-radius: 50%;
+  border: 2px solid #8b6a3f;
+  box-shadow:
+    0 0 15px rgba(255,200,120,0.6),
+    inset 0 0 10px rgba(255,220,160,0.35);
+  z-index: 3;
+}
+.fo-character span {
+  font-size: 36px; font-weight: bold;
+  color: #2a1810;
+  text-shadow: 1px 1px 0 rgba(255,230,180,0.3);
+  font-family: "KaiTi", "STKaiti", "楷体", serif;
+}
+
+/* 桶口 - 竹节风格，稳定暖黄光 */
+.bamboo-rim {
+  position: absolute; top: 50px; left: 50%;
+  transform: translateX(-50%);
+  width: 190px; height: 18px;
+  background: radial-gradient(ellipse at center,
+    #3d2815 0%,
+    #6b4820 40%,
+    #8b6a3f 80%
+  );
+  border-radius: 50%;
+  border: 2px solid #3d2815;
+  box-shadow:
+    0 0 15px rgba(139,90,43,0.5),
+    inset 0 2px 4px rgba(255,200,120,0.3),
+    inset 0 -2px 4px rgba(0,0,0,0.5);
+  z-index: 6;
+}
+
+/* 桶底 */
+.bamboo-base {
+  position: absolute; bottom: -5px; left: 50%;
+  transform: translateX(-50%);
+  width: 210px; height: 25px;
+  background: linear-gradient(180deg,
+    #8b6a3f 0%,
+    #5a3d1f 50%,
+    #3d2815 100%
+  );
+  border-radius: 50%;
+  border: 2px solid #3d2815;
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.5),
+    inset 0 1px 2px rgba(255,200,120,0.3);
+  z-index: 1;
+}
+
+/* ========== 竹签（从桶口伸出的20根）========== */
+.sticks-visible {
+  position: absolute; top: 10px; left: 50%;
+  transform: translateX(-50%);
+  width: 170px; height: 160px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* 单根竹签 */
+.stick-up {
+  position: absolute; bottom: 0;
+  width: 12px;
+  background: linear-gradient(180deg,
+    #2a1005 0%,
+    #8b5a2b 40%,
+    #c9a06b 70%,
+    #a67c52 100%
+  );
+  border-radius: 4px 4px 0 0;
+  box-shadow: 1px 0 4px rgba(0,0,0,0.5), inset -1px 0 2px rgba(0,0,0,0.3);
+  transform-origin: bottom center;
+}
+.stick-up::before {
+  content: '';
+  position: absolute; top: -12px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 16px solid #8b2015;
+}
+.stick-up::after {
+  content: '';
+  position: absolute; top: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 2px;
+  background: rgba(60, 40, 20, 0.85);
+  border-radius: 1px;
+}
+
+/* 摇动时竹签的抖动动画 */
+.bamboo-container.shaking .stick-up {
+  animation: shakeStick 0.22s ease-in-out infinite;
+}
+@keyframes shakeStick {
+  0%   { transform: rotate(calc(var(--r,0deg) + 0deg)) translateY(0); }
+  25%  { transform: rotate(calc(var(--r,0deg) + 15deg)) translateY(-40px); }
+  50%  { transform: rotate(calc(var(--r,0deg) - 12deg)) translateY(-10px); }
+  75%  { transform: rotate(calc(var(--r,0deg) + 10deg)) translateY(-35px); }
+  100% { transform: rotate(calc(var(--r,0deg) - 8deg)) translateY(-5px); }
+}
+
+/* ========== 飞出的签 ========== */
+.flying-stick {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 24px; height: 240px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+.flying-stick.animating { animation: flyOut 4.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
+@keyframes flyOut {
+  0%   { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+  10%  { transform: translate(-50%, -300px) scale(0.8) rotate(90deg); opacity: 1; }
+  25%  { transform: translate(-50%, -450px) scale(1) rotate(270deg); opacity: 1; }
+  45%  { transform: translate(-50%, -350px) scale(1.1) rotate(540deg); opacity: 1; }
+  65%  { transform: translate(-50%, -100px) scale(1.15) rotate(720deg); opacity: 1; }
+  80%  { transform: translate(-50%, -20px) scale(1.2) rotate(720deg); opacity: 1; }
+  100% { transform: translate(-50%, -20px) scale(1.2) rotate(720deg); opacity: 1; }
+}
+
+/* 飞出签的竹签身 */
+.flying-stick-body {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg,
+    #e8c89a 0%,
+    #d4a877 15%,
+    #c9a06b 30%,
+    #b8925c 50%,
+    #a67c52 70%,
+    #8b5a2b 85%,
+    #6b4423 100%
+  );
+  border-radius: 3px;
+  box-shadow:
+    2px 0 6px rgba(0,0,0,0.4),
+    0 0 20px var(--gold),
+    0 0 40px rgba(255,215,0,0.5),
+    inset 1px 0 2px rgba(255,220,150,0.4);
+  position: relative;
+}
+
+/* 竹签的荧光边 */
+.flying-stick-body::before {
+  content: '';
+  position: absolute; inset: -2px;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow:
+    0 0 15px var(--gold-bright),
+    0 0 30px rgba(255,248,160,0.6),
+    0 0 50px rgba(255,215,0,0.4);
+  pointer-events: none;
+  animation: fluorescence 1.5s ease-in-out infinite;
+}
+@keyframes fluorescence {
+  0%, 100% { box-shadow: 0 0 15px var(--gold-bright), 0 0 30px rgba(255,248,160,0.6), 0 0 50px rgba(255,215,0,0.4); }
+  50% { box-shadow: 0 0 25px #fff8a0, 0 0 50px rgba(255,248,160,0.8), 0 0 80px rgba(255,215,0,0.6); }
+}
+
+/* 飞出签的红色签头（上） */
+.flying-stick-head {
+  position: absolute; top: -14px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 22px solid var(--ink-red);
+  filter: drop-shadow(0 0 8px rgba(255,80,60,0.8));
+}
+/* 飞出签的底部装饰 */
+.flying-stick-foot {
+  position: absolute; bottom: -4px; left: 50%;
+  transform: translateX(-50%);
+  width: 30px; height: 8px;
+  background: var(--gold);
+  border-radius: 2px;
+  box-shadow: 0 0 10px var(--gold);
+}
+
+/* 竹签上的"点击查看签文"文字 */
+.flying-stick-text {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  white-space: nowrap;
+  color: #f5e6c8;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.6);
+  z-index: 2;
+}
+
+/* ========== 飘落的签（可点击）========== */
+.fallen-stick {
+  position: absolute; top: 55%; left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  cursor: pointer;
+  z-index: 50;
+}
+.fallen-stick.show { display: block; animation: stickLand 0.6s ease-out; }
+@keyframes stickLand {
+  0% { transform: translate(-50%, -150%) rotate(-20deg) scale(1.3); opacity: 0; }
+  60% { transform: translate(-50%, -55%) rotate(5deg) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(0deg) scale(1.15); opacity: 1; }
+}
+
+/* 飘落签的文字提示 */
+.stick-hint {
+  position: absolute; top: -30px; left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold-light);
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(255,215,0,0.8);
+  white-space: nowrap;
+  animation: hintBlink 1.5s ease-in-out infinite;
+}
+@keyframes hintBlink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ========== 摇一摇按钮 ========== */
+.btn-area {
+  position: absolute;
+  bottom: calc(55px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.shake-btn {
+  width: 110px; height: 110px; border-radius: 50%;
+  border: 3px solid #8b6a3f;
+  background: radial-gradient(circle at 30% 30%, #a67c52 0%, #7a5230 40%, #3d2815 80%);
+  color: var(--gold-light);
+  font-size: 15px; font-weight: bold; letter-spacing: 2px;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow:
+    0 0 30px rgba(139,90,43,0.4),
+    0 0 60px rgba(90,61,31,0.2),
+    inset 0 0 20px rgba(0,0,0,0.5),
+    inset 2px 2px 5px rgba(255,220,150,0.25);
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "KaiTi", "STKaiti", serif;
+}
+.shake-btn:active:not(:disabled) { transform: scale(0.93); }
+.shake-btn::before {
+  content: ''; position: absolute; inset: -50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,215,0,0.15) 60deg, transparent 120deg, rgba(255,215,0,0.15) 240deg, transparent 360deg);
+  animation: rotateGlow 4s linear infinite;
+}
+@keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.shake-btn span { position: relative; z-index: 1; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
+.shake-btn:disabled { filter: brightness(0.5); cursor: not-allowed; }
+
+.shake-cost { font-size: 12px; color: rgba(245,230,200,0.6); letter-spacing: 2px; font-family: "KaiTi", serif; }
+
+/* ========== 签文弹窗 ========== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s; padding: 20px;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+
+.scroll-wrap {
+  width: 100%; max-width: 340px;
+  transform: scale(0.7) rotate(-3deg);
+  transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
+  opacity: 0;
+}
+.modal-overlay.show .scroll-wrap { transform: scale(1) rotate(0deg); opacity: 1; }
+
+.scroll-bg {
+  background: linear-gradient(180deg, #f5e6c8 0%, #e8d5a8 20%, #d4b888 50%, #e8d5a8 80%, #c9a878 100%);
+  border-radius: 10px; padding: 36px 24px 40px;
+  border: 2px solid var(--bamboo-dark);
+  box-shadow: 0 15px 50px rgba(0,0,0,0.7), inset 0 0 30px rgba(139,90,43,0.2);
+  position: relative;
+}
+.scroll-top-bar, .scroll-bottom-bar {
+  position: absolute; left: -12px; right: -12px; height: 22px;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 40%, var(--bamboo-light) 100%);
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.4);
+}
+.scroll-top-bar { top: -11px; }
+.scroll-bottom-bar { bottom: -11px; }
+
+.scroll-tassel {
+  position: absolute; bottom: -36px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center;
+}
+.tassel-knot { width: 14px; height: 14px; background: var(--gold); border-radius: 50%; }
+.tassel-string { width: 3px; height: 28px; background: var(--gold); }
+
+.modal-close-btn {
+  position: absolute; top: -4px; right: -4px; z-index: 10;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #d4a877, #8b5a2b);
+  border: 2px solid var(--gold);
+  font-size: 18px; color: #fff8a0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.modal-close-btn:active { transform: scale(0.9); }
+
+.fortune-content { text-align: center; padding: 8px 0; }
+.fortune-type {
+  font-size: 32px; font-weight: bold; color: var(--ink-red);
+  margin-bottom: 8px; letter-spacing: 6px;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.5), 0 2px 6px rgba(192,57,43,0.3);
+}
+.fortune-title {
+  font-size: 20px; color: var(--bamboo-dark);
+  margin-bottom: 12px; letter-spacing: 5px; font-weight: bold;
+}
+.fortune-divider {
+  width: 78%; height: 2px; margin: 0 auto 12px;
+  background: linear-gradient(90deg, transparent, var(--bamboo-mid), transparent);
+}
+.fortune-poem {
+  font-size: 16px; color: #4a2e18;
+  line-height: 2; letter-spacing: 2px;
+  min-height: 70px; margin-bottom: 12px;
+  font-family: "KaiTi", "STKaiti", serif;
+}
+.fortune-num {
+  font-size: 13px; color: var(--bamboo-dark);
+  margin-bottom: 6px; letter-spacing: 2px;
+}
+
+.modal-btn-row { display: flex; gap: 8px; margin-top: 14px; }
+.modal-btn-row button { flex: 1; }
+
+.modal-share-btn {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--bamboo-light) 100%);
+  border: 2px solid var(--gold);
+  padding: 13px 10px;
+  border-radius: 24px;
+  color: #3a2410;
+  font-size: 14px; font-weight: bold;
+  letter-spacing: 2px; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139,90,43,0.4), inset 0 1px 2px rgba(255,255,255,0.5);
+  margin-top: 12px;
+  font-family: "KaiTi", serif;
+  transition: transform 0.15s;
+}
+.modal-share-btn:active { transform: scale(0.97); }
+
+.modal-close-inline {
+  background: rgba(139,90,43,0.3);
+  border: 1px solid var(--bamboo-mid);
+  color: #4a2e18;
+  padding: 12px 10px; border-radius: 24px;
+  font-size: 14px; cursor: pointer; letter-spacing: 2px;
+  transition: transform 0.15s;
+  font-family: "KaiTi", serif;
+}
+.modal-close-inline:active { transform: scale(0.97); }
+
+/* Toast */
+.toast-hint {
+  position: fixed; top: 35%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(90,61,31,0.92);
+  color: var(--gold-light);
+  padding: 11px 26px; border-radius: 26px;
+  font-size: 14px; letter-spacing: 2px; z-index: 250;
+  border: 1px solid var(--gold);
+  animation: toastFade 1.8s ease-out forwards; pointer-events: none;
+  text-shadow: 0 0 10px rgba(255,215,0,0.6);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 30px rgba(255,215,0,0.2);
+}
+@keyframes toastFade {
+  0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.85); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -70%); }
+}
+.reward-popup {
+  position: fixed; top: 35%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px; font-weight: bold; color: var(--gold-light);
+  text-shadow: 0 0 20px var(--gold), 0 2px 4px rgba(0,0,0,0.8);
+  z-index: 260; pointer-events: none;
+  animation: rewardPop 2s ease-out forwards;
+  letter-spacing: 3px;
+}
+@keyframes rewardPop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+  100% { opacity: 0; transform: translate(-50%, -120%); }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="particles" id="particles"></div>
+
+<div class="top-bar">
+  <button class="back-btn" onclick="goBack()">⬅</button>
+  <div class="chip"><span class="icon">💰</span><span class="val" id="balanceDisplay">欢喜: 100</span></div>
+  <div class="chip"><span class="icon">🎋</span><span class="val" id="shakeCountDisplay">今日剩余: 3次</span></div>
+</div>
+
+<div class="title">
+  <div class="title-text">求 签</div>
+  <div class="title-sub">心 诚 则 灵</div>
+</div>
+
+<div class="stage">
+  <div class="bamboo-container" id="bambooContainer">
+    <!-- 桶底 -->
+    <div class="bamboo-base"></div>
+    <!-- 桶身 -->
+    <div class="bamboo-body">
+      <div class="fo-character"><span>佛</span></div>
+    </div>
+    <!-- 桶口 -->
+    <div class="bamboo-rim"></div>
+    <!-- 桶口伸出的20根竹签 -->
+    <div class="sticks-visible" id="sticksVisible"></div>
+  </div>
+
+  <!-- 飞出的签 -->
+  <div class="flying-stick" id="flyingStick">
+    <div class="flying-stick-head"></div>
+    <div class="flying-stick-body"></div>
+    <div class="flying-stick-foot"></div>
+    <div class="flying-stick-text">点击查看签文</div>
+  </div>
+
+  <!-- 飘落的签（可点击） -->
+  <div class="fallen-stick" id="fallenStick" onclick="openFortune()">
+    <div class="stick-hint">点击查看签文</div>
+    <div class="flying-stick-body" style="width: 24px; height: 240px;"></div>
+    <div class="flying-stick-head" style="top: -14px;"></div>
+    <div class="flying-stick-foot"></div>
+  </div>
+</div>
+
+<!-- 摇一摇按钮 -->
+<div class="btn-area">
+  <button class="shake-btn" id="shakeBtn"><span>摇一摇</span></button>
+  <div class="shake-cost">每次消耗 2 欢喜</div>
+</div>
+
+<!-- 签文弹窗 -->
+<div class="modal-overlay" id="fortuneModal">
+  <div class="scroll-wrap">
+    <div class="scroll-bg">
+      <div class="scroll-top-bar"></div>
+      <button class="modal-close-btn" id="modalCloseBtn">×</button>
+      <div class="fortune-content">
+        <div class="fortune-type" id="fortuneType">上上签</div>
+        <div class="fortune-title" id="fortuneTitle">心想事成</div>
+        <div class="fortune-divider"></div>
+        <div class="fortune-poem" id="fortunePoem">宝鼎燃香透九天，祥云缭绕福无边。</div>
+        <div class="fortune-num" id="fortuneNum">第 1 签</div>
+      </div>
+      <div class="scroll-bottom-bar"></div>
+      <div class="scroll-tassel">
+        <div class="tassel-knot"></div>
+        <div class="tassel-string"></div>
+      </div>
+    </div>
+    <div class="modal-btn-row" style="margin-top:36px;">
+      <button class="modal-close-inline" id="modalCloseInline">继续</button>
+      <button class="modal-share-btn" id="modalShareBtn">📤 分享鸿运</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COST_PER_SHAKE = 2;
+const MAX_SHAKES = 3;
+const SHARE_BUDDHA = 100;
+
+const FORTUNE_POOL = [
+  { type: '上上签', title: '心想事成', poems: ['宝鼎燃香透九天，祥云缭绕福无边。\n心诚自有好运来，万事如意乐悠然。','金光普照耀人间，贵人相助福寿全。\n一步登天吉祥地，财源滚滚乐无边。','佛光注照吉星临，祸去福来喜盈门。\n春风雨露润万物，心想事成福满身。','紫气东来满华堂，祥云瑞彩覆金光。\n求财得财求名遂，平安顺利福无疆。'] },
+  { type: '上上签', title: '福星高照', poems: ['红灯高挂映华堂，福星高照吉星明。\n金银满库庆有余，富贵荣华万代兴。','仙鹤盘旋送吉祥，瑞雪纷飞兆丰年。\n福如东海长流水，寿比南山不老仙。','观音菩萨坐莲台，杨枝甘露洒下来。\n消灾解难得庇佑，福寿双全乐开怀。','金龙飞舞入华堂，瑞气盈门福自长。\n贵人相助诸事顺，财星高照运亨通。'] },
+  { type: '上吉签', title: '吉人天相', poems: ['贵人运至福星来，柳暗花明春又回。\n前程似锦光明路，福禄双全乐悠哉。','凤鸣朝阳瑞气生，蛟龙得水青云升。\n才高八斗登金榜，福泽绵长万年青。','瑞雪兆丰年，春风送吉祥。\n家和万事兴，福寿保安康。','观音慈悲救苦难，送子送来福与欢。\n积德行善天保佑，福如东海永不干。'] },
+  { type: '上吉签', title: '贵人相助', poems: ['贵人乘风破浪来，扶摇直上九重台。\n逢凶化吉遇相助，一路顺风福满怀。','枯木逢春再发枝，贵人相助福相随。\n逆境之中得援手，柳暗花明又一村。','拨云见日晴天来，贵人扶持福自开。\n步步高升登金榜，光宗耀祖乐悠哉。','雪中送炭暖人心，贵人相助情意深。\n滴水之恩涌泉报，福报连连乐无垠。'] },
+  { type: '中吉签', title: '平稳发展', poems: ['山重水复疑无路，柳暗花明又一村。\n稳步前行方为道，静待时机福自生。','静心安神祈福缘，稳步前行福自添。\n循序渐进积功德，水到渠成乐悠然。','日出东方照乾坤，风平浪静好行船。\n稳中求进方为上，福随而至乐无边。','观音灵感佑众生，诚心祈祷福自通。\n积小成大福无量，稳步发展乐无穷。'] },
+  { type: '中吉签', title: '财运亨通', poems: ['金玉满堂福寿长，财源广进达三江。\n生意兴隆通四海，富贵荣华耀门庭。','招财进宝福星照，金银满库喜盈门。\n投资得利年年赚，财神到家庆有余。','紫气东来送财神，金玉满堂庆长春。\n八方来财路路通，富甲一方耀门楣。','财星高照运亨通，金玉满堂喜气浓。\n勤劳致富福相伴，富贵荣华代代同。'] },
+  { type: '中平签', title: '守成待机', poems: ['守得云开见月明，静待时机福自生。\n韬光养晦积力量，一鸣惊人天下知。','静心安神待时机，稳中求进是良策。\n厚积薄发方为道，福缘自至莫心急。','风雨过后见彩虹，苦尽甘来福自通。\n耐心等待时机到，功成名就乐无穷。','潜龙在渊待飞时，厚积薄发是良机。\n稳扎稳打积功德，水到渠成福自齐。'] },
+  { type: '中平签', title: '心诚则灵', poems: ['心香一瓣达天庭，诚心祈祷福自灵。\n莫急莫躁静心待，机缘到时自然成。','求签问卜心要诚，心诚则灵福自通。\n放下执念顺自然，好运自会随缘来。','焚香沐浴净身心，诚心祈求福自临。\n机缘未到莫强求，静待花开月自明。','虔诚礼佛心莫疑，心诚自有神明佑。\n机缘到时福自至，好事多磨终有成。'] },
+  { type: '中平签', title: '缘定三生', poems: ['月老红线系良缘，千里姻缘一线牵。\n执子之手与子老，百年好合福绵绵。','桃花深处遇仙姬，缘定三生不分离。\n执手相看泪眼望，此情此爱永不移。','红线缠足系前缘，佳偶天成喜连连。\n同甘共苦长相守，白头偕老福无边。','牛郎织女会七夕，银河相望两相依。\n情深似海永不渝，百年好合共佳期。'] },
+  { type: '下签', title: '谨慎行事', poems: ['行船须防顶头风，小心驶得万年船。\n三思后行方为上，莫贪小利失大全。','路逢险处须当避，事到临头不自由。\n静心忍耐方为道，福祸相依莫强求。','高山峻岭路难行，深潭激流须谨慎。\n稳扎稳打平安过，积德行善福自临。','乌云遮日一时暗，风雨过后见晴天。\n耐心等待时机到，转危为安福自全。'] }
+];
+
+let state = { todayShakes: 0, lastShakeDate: null, currentFortune: null, isShaking: false };
+
+function getBalance() { return parseInt(localStorage.getItem('userJoy') || '100', 10); }
+function setBalance(v) { localStorage.setItem('userJoy', v); }
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('shakeStateV3') || '{}');
+    state.todayShakes = s.todayShakes || 0;
+    state.lastShakeDate = s.lastShakeDate || null;
+  } catch(e) {}
+}
+function saveState() {
+  const today = new Date().toDateString();
+  localStorage.setItem('shakeStateV3', JSON.stringify({ todayShakes: state.todayShakes, lastShakeDate: today }));
+}
+function checkDailyReset() {
+  const today = new Date().toDateString();
+  if (state.lastShakeDate !== today) { state.todayShakes = 0; state.lastShakeDate = today; saveState(); }
+}
+
+function updateUI() {
+  document.getElementById('balanceDisplay').textContent = '欢喜: ' + getBalance();
+  const remaining = MAX_SHAKES - state.todayShakes;
+  document.getElementById('shakeCountDisplay').textContent = '今日剩余: ' + remaining + '次';
+  const btn = document.getElementById('shakeBtn');
+  if (remaining <= 0) {
+    btn.disabled = true;
+    btn.querySelector('span').textContent = '今日摇过了';
+  } else {
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '摇一摇';
+  }
+}
+
+// 返回按钮
+function goBack() {
+  try {
+    window.parent.goPage(0); // 在展示框架中返回首页
+  } catch(e) {
+    window.location.href = 'index.html'; // 独立打开时返回祈福页
+  }
+}
+
+// 创建 20 根从桶口伸出的竹签
+function createSticks() {
+  const c = document.getElementById('sticksVisible');
+  c.innerHTML = '';
+  const count = 20;
+  const width = 170;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'stick-up';
+    const x = (i / (count - 1)) * width + (Math.random() - 0.5) * 4;
+    const rotate = (Math.random() - 0.5) * 16;
+    const height = 100 + Math.random() * 60;
+    s.style.left = x + 'px';
+    s.style.height = height + 'px';
+    s.style.setProperty('--r', rotate + 'deg');
+    s.style.setProperty('--height', height + 'px');
+    s.style.setProperty('--xOffset', ((Math.random() - 0.5) * 6) + 'px');
+    s.style.transform = `rotate(${rotate}deg)`;
+    s.style.animationDelay = (Math.random() * 0.3) + 's';
+    s.style.animationDuration = (0.18 + Math.random() * 0.18) + 's';
+    s.style.zIndex = Math.floor(height);
+    c.appendChild(s);
+  }
+}
+
+// 摇一摇触发
+function triggerShake() {
+  if (state.isShaking) return;
+  if (MAX_SHAKES - state.todayShakes <= 0) { showToast('今日求签次数已用完，明日再来！'); return; }
+  const bal = getBalance();
+  if (bal < COST_PER_SHAKE) { showToast('欢喜不足，请先充值！'); return; }
+
+  state.isShaking = true;
+  setBalance(bal - COST_PER_SHAKE);
+  state.todayShakes++;
+  saveState();
+  updateUI();
+
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 150, 50, 200]);
+
+  // 隐藏飘落的签
+  document.getElementById('fallenStick').classList.remove('show');
+  document.getElementById('bambooContainer').classList.add('shaking');
+
+  // 5秒摇动后飞出签
+  setTimeout(() => {
+    document.getElementById('bambooContainer').classList.remove('shaking');
+    flyOutStick();
+  }, 5000);
+}
+
+function flyOutStick() {
+  const stickNum = Math.floor(Math.random() * 20) + 1;
+  generateFortune(stickNum);
+  createGoldParticles(40);
+
+  const fs = document.getElementById('flyingStick');
+  fs.classList.remove('animating');
+  void fs.offsetHeight;
+  fs.classList.add('animating');
+
+  // 4.5s 后飞出动画结束，显示可点击的飘落签
+  setTimeout(() => {
+    fs.classList.remove('animating');
+    document.getElementById('fallenStick').classList.add('show');
+    state.isShaking = false;
+  }, 4500);
+}
+
+function generateFortune(stickNum) {
+  const weights = [0.25, 0.20, 0.20, 0.20, 0.10, 0.05, 0, 0, 0, 0];
+  let rand = Math.random(), cum = 0, idx = 0;
+  for (let i = 0; i < Math.min(weights.length, FORTUNE_POOL.length); i++) {
+    cum += weights[i];
+    if (rand < cum) { idx = i; break; }
+  }
+  const pool = FORTUNE_POOL[idx % FORTUNE_POOL.length];
+  const poem = pool.poems[Math.floor(Math.random() * pool.poems.length)];
+  state.currentFortune = { type: pool.type, title: pool.title, poem, number: stickNum };
+}
+
+function openFortune() {
+  if (!state.currentFortune) return;
+  const f = state.currentFortune;
+  document.getElementById('fortuneType').textContent = f.type;
+  document.getElementById('fortuneTitle').textContent = f.title;
+  document.getElementById('fortunePoem').innerHTML = f.poem.replace(/\n/g, '<br>');
+  document.getElementById('fortuneNum').textContent = '第 ' + f.number + ' 签';
+  document.getElementById('fortuneModal').classList.add('show');
+}
+
+function closeFortuneModal() {
+  document.getElementById('fortuneModal').classList.remove('show');
+  state.currentFortune = null;
+}
+
+function shareReward() {
+  const f = state.currentFortune;
+  const text = `我在【祈个福】求签求得「${f.type}·${f.title}」，${f.poem.replace(/\n/g, '')}，快来一起祈福吧~`;
+  const url = window.location.origin + window.location.pathname;
+  const full = text + ' ' + url;
+
+  const buddha = parseInt(localStorage.getItem('buddhaLight') || '0', 10);
+  localStorage.setItem('buddhaLight', buddha + SHARE_BUDDHA);
+  showRewardPopup('+100 佛光');
+  createGoldParticles(60);
+
+  closeFortuneModal();
+
+  if (navigator.share) {
+    navigator.share({ title: '祈个福', text, url }).catch(() => {
+      navigator.clipboard.writeText(full).then(() => showToast('✨ 分享内容已复制'));
+    });
+  } else {
+    navigator.clipboard.writeText(full).then(() => {
+      showToast('✨ 分享内容已复制 +100 佛光');
+    }).catch(() => alert('请复制：\n\n' + full + '\n\n（同时获得 +100 佛光）'));
+  }
+}
+
+function createGoldParticles(count) {
+  const layer = document.getElementById('particles');
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.animationDuration = (4 + Math.random() * 4) + 's';
+    p.style.animationDelay = (Math.random() * 1) + 's';
+    p.style.width = (4 + Math.random() * 6) + 'px';
+    p.style.height = p.style.width;
+    layer.appendChild(p);
+    setTimeout(() => p.remove(), 9000);
+  }
+}
+
+function showToast(text) {
+  const t = document.createElement('div');
+  t.className = 'toast-hint';
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+function showRewardPopup(text) {
+  const p = document.createElement('div');
+  p.className = 'reward-popup';
+  p.textContent = text;
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 2200);
+}
+
+// 设备摇一摇
+function setupShake() {
+  if (window.DeviceMotionEvent) {
+    let lX = 0, lY = 0, accum = 0;
+    window.addEventListener('devicemotion', function(e) {
+      if (state.isShaking) return;
+      const acc = e.accelerationIncludingGravity;
+      if (!acc) return;
+      const x = acc.x||0, y = acc.y||0;
+      const dX = Math.abs(x-lX), dY = Math.abs(y-lY);
+      if ((dX > 15 && dY > 15) || dX > 22 || dY > 22) {
+        accum++;
+        if (accum >= 3) { accum = 0; triggerShake(); }
+      }
+      lX = x; lY = y;
+    });
+  }
+}
+
+function bindEvents() {
+  document.getElementById('shakeBtn').addEventListener('click', triggerShake);
+  document.getElementById('modalCloseBtn').addEventListener('click', closeFortuneModal);
+  document.getElementById('modalCloseInline').addEventListener('click', closeFortuneModal);
+  document.getElementById('modalShareBtn').addEventListener('click', shareReward);
+  document.getElementById('fortuneModal').addEventListener('click', function(e) { if (e.target === this) closeFortuneModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFortuneModal(); });
+}
+
+function init() {
+  loadState(); checkDailyReset();
+  createSticks(); updateUI(); setupShake(); bindEvents();
+  // 持续生成背景粒子
+  setInterval(() => createGoldParticles(3), 1500);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

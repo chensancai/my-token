@@ -1,0 +1,3378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 - 灵宠放生</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 灵宠放生页特定样式 */
+        .animal-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            height: 100%;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* 龙宫背景 */
+        .dragon-palace-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, 
+                #001F3F 0%, 
+                #003366 30%, 
+                #0066CC 60%, 
+                #87CEEB 100%);
+            overflow: hidden;
+        }
+
+        /* 水波纹效果 */
+        .water-waves {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            background: linear-gradient(180deg, 
+                transparent 0%, 
+                rgba(0, 105, 148, 0.5) 50%, 
+                rgba(0, 77, 128, 0.8) 100%);
+            animation: waves 3s ease-in-out infinite;
+        }
+
+        @keyframes waves {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 气泡效果 */
+        .bubbles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: bubbleRise 4s ease-in infinite;
+        }
+
+        @keyframes bubbleRise {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* 龙宫建筑 */
+        .palace-building {
+            position: absolute;
+            bottom: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 150px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            animation: palaceFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes palaceFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-15px); }
+        }
+
+        /* 宝石效果 */
+        .gem {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: linear-gradient(135deg, #FF69B4, #FFD700, #00CED1);
+            border-radius: 3px;
+            animation: gemDrop 3s ease-in forwards;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+        }
+
+        @keyframes gemDrop {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(100vh - 150px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 灵宠池塘 */
+        .pet-pond {
+            position: absolute;
+            bottom: 10%;
+            left: 5%;
+            right: 5%;
+            height: 25%;
+            background: linear-gradient(180deg, 
+                rgba(0, 105, 148, 0.6) 0%, 
+                rgba(0, 77, 128, 0.8) 100%);
+            border-radius: 20px;
+            border: 3px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 
+                0 0 20px rgba(0, 105, 148, 0.5),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        /* 灵宠样式 */
+        .pet {
+            position: absolute;
+            font-size: 40px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            animation: swimAround 10s linear infinite;
+        }
+
+        .pet:hover {
+            transform: scale(1.3);
+        }
+
+        .pet.feeding {
+            animation: feedAnimation 0.5s ease-out;
+        }
+
+        @keyframes swimAround {
+            0% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(50px) translateY(-20px); }
+            50% { transform: translateX(100px) translateY(10px); }
+            75% { transform: translateX(50px) translateY(-10px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        @keyframes feedAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        /* 灵宠信息卡片 */
+        .pet-info-card {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 50;
+        }
+
+        .pet-info-card.active {
+            display: block;
+        }
+
+        /* 顶部导航容器（避开状态栏） */
+        .top-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding-top: calc(44px + env(safe-area-inset-top, 0px));
+            padding-left: 15px;
+            padding-right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+        }
+
+        /* 顶部用户信息区 */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: 2px solid #FFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .user-name {
+            font-size: 12px;
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .user-level {
+            font-size: 10px;
+            color: #FFF;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        /* 顶部右上角按钮组 */
+        .top-right-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: calc(44px + env(safe-area-inset-top, 0px) + 10px);
+            right: 15px;
+            gap: 4px;
+            z-index: 100;
+        }
+
+        /* 右侧按钮组（垂直排列 - 与头像水平对齐，按钮组整体向下移动） */
+        .top-right-btns-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 200;
+            padding-top: 5px;
+        }
+
+        /* 问佛按钮包装 */
+        .ask-buddha-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            z-index: 200;
+        }
+
+        /* 问佛按钮 */
+        .ask-buddha-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+            z-index: 100;
+        }
+
+        .ask-buddha-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 问佛标签 */
+        .ask-buddha-label {
+            font-size: 10px;
+            color: #FFD700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            font-weight: bold;
+        }
+
+        /* 音效开关按钮（音乐符号） */
+        .sound-toggle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: #FFD700;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+
+        .sound-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 左侧按钮组：垂直排列 */
+        .side-left-btns {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        /* 左侧按钮（单个） */
+        .side-btn-left {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+            z-index: 100;
+        }
+
+        .side-btn-left:active {
+            transform: scale(0.95);
+        }
+
+        .side-btn-left .btn-icon {
+            font-size: 22px;
+        }
+
+        .side-btn-left .btn-label {
+            font-size: 10px;
+            color: #FFF;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .prayer-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
+        .remembrance-btn {
+            background: linear-gradient(135deg, #4B0082, #8A2BE2);
+        }
+
+        .fish-btn {
+            background: linear-gradient(135deg, #006994, #00CED1);
+        }
+
+        /* 侧边功能按钮 */
+        .side-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .side-btn:active {
+            transform: scale(0.9);
+        }
+
+        .shake-btn {
+            background: linear-gradient(135deg, #FF6347, #FF4500);
+        }
+
+        .pet-info-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .pet-info-icon {
+            font-size: 30px;
+        }
+
+        .pet-info-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .pet-info-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            color: #999;
+        }
+
+        .stat-value {
+            font-weight: bold;
+        }
+
+        .feed-btn {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 20px;
+            color: #FFF;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* 放生按钮 */
+        /* 资产显示 */
+        .asset-display {
+            position: absolute;
+            top: 90px;
+            left: 15px;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            color: #FFF;
+            z-index: 40;
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+
+        .asset-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 0;
+        }
+
+        .asset-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .asset-icon {
+            font-size: 14px;
+        }
+
+        .asset-value {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .asset-label {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        /* 灵宠选择弹窗 */
+        .pet-select-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .pet-select-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid #D4AF37;
+            transition: transform 0.2s;
+        }
+
+        .pet-select-card:active {
+            transform: scale(0.98);
+        }
+
+        .pet-select-card.owned {
+            border-color: #32CD32;
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+        }
+
+        .pet-select-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .pet-select-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+
+        .pet-select-price {
+            font-size: 14px;
+            color: #FF6347;
+            margin-bottom: 5px;
+        }
+
+        .pet-select-desc {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .free-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #32CD32, #228B22);
+            color: #FFF;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-top: 5px;
+        }
+
+        /* 统计数据（已隐藏，移到个人中心查看） */
+        .stats-panel {
+            display: none;
+        }
+
+        .stats-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .stats-item {
+            font-size: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stats-label {
+            opacity: 0.8;
+        }
+
+        /* 中间右侧操作按钮（选灵宠 + 喂食，无框透明，图标靠右，文字靠左） */
+        .center-action-btns {
+            position: fixed;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+
+        .action-btn {
+            width: auto;
+            min-width: 60px;
+            height: 44px;
+            border-radius: 0;
+            border: none;
+            background: transparent;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            cursor: pointer;
+            box-shadow: none;
+            transition: transform 0.2s;
+            text-decoration: none;
+            padding: 2px 4px 2px 8px;
+            pointer-events: auto;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .action-btn .btn-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+        }
+
+        .action-btn .btn-label {
+            font-size: 11px;
+            color: #FFD700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+
+        .btn-release {
+            /* 继承默认样式：蓝色半透明背景 + 金色边框 */
+        }
+
+        .btn-feed {
+            /* 继承默认样式：蓝色半透明背景 + 金色边框 */
+        }
+
+        /* ============ 弹窗样式（必须定义，否则 openModal 无效） ============ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            width: 92%;
+            max-width: 420px;
+            background: linear-gradient(180deg, #FFF8DC 0%, #FFE4B5 100%);
+            border-radius: 20px;
+            padding: 16px;
+            max-height: 82vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            animation: modalPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(218, 165, 32);
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #8B4513;
+            margin: 0;
+        }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(139, 69, 19, 0.12);
+            border: none;
+            font-size: 18px;
+            color: #8B4513;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .modal-close:active {
+            background: rgba(139, 69, 19, 0.25);
+        }
+
+        @keyframes modalPopIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 灵宠头顶愿力光圈 */
+        .pet-halo {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            background: radial-gradient(ellipse at bottom, rgba(255,215,0,0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: haloGlow 1.5s ease-in-out infinite;
+            display: none;
+        }
+
+        .pet-halo.harvestable {
+            display: block;
+        }
+
+        @keyframes haloGlow {
+            0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        }
+
+        .pet-halo .harvest-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #FFF;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 8px;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(255,215,0,0.5);
+        }
+
+        /* 中奖脉冲动画 */
+        @keyframes jackpotPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,215,0,0.8)); }
+            100% { transform: scale(1.2); filter: drop-shadow(0 0 25px rgba(255,215,0,1)); }
+        }
+
+        /* 许愿宝石动画 */
+        .wish-gem {
+            position: absolute;
+            font-size: 20px;
+            animation: wishGemFloat 2s ease-out forwards;
+        }
+
+        @keyframes wishGemFloat {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(100vh - 200px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===============================
+           新增：底部导航栏
+           =============================== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: linear-gradient(180deg,
+                rgba(139, 69, 19, 0.95),
+                rgba(101, 67, 33, 0.98));
+            border-top: 2px solid #D4AF37;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 150;
+            padding: 6px 0;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            flex: 1;
+            cursor: pointer;
+            transition: transform 0.2s;
+            color: #FFF;
+        }
+
+        .bottom-nav-item:active {
+            transform: scale(0.9);
+        }
+
+        .bottom-nav-item .nav-icon {
+            font-size: 20px;
+        }
+
+        .bottom-nav-item .nav-label {
+            font-size: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .bottom-nav-item.active .nav-label {
+            color: #FFD700;
+        }
+
+        /* ============ 右侧中部：追思按钮（上方） + 放生按钮（下方） ============ */
+        .right-btns-column {
+            position: absolute;
+            right: 6px;
+            top: 45%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 180;
+        }
+
+        /* 移到输入框上方 */
+        .right-btns-column.bottom-right-btns {
+            top: auto;
+            bottom: 100px;
+        }
+
+        .release-btn-right {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, rgba(139,69,19,0.9), rgba(93,64,55,0.95));
+            border: 2px solid #D4AF37;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #FFD700;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            text-decoration: none;
+        }
+
+        .release-btn-right .btn-icon {
+            font-size: 18px;
+        }
+
+        .release-btn-right .btn-label {
+            font-size: 9px;
+            margin-top: 0;
+        }
+
+        .release-btn-right:active {
+            transform: scale(0.95);
+        }
+
+        /* ============ 左下角去请佛按钮（无圈无色块，仅图标+文字） ============ */
+        .bottom-left-invite {
+            position: absolute;
+            left: 6px;
+            top: -70px;
+            z-index: 210;
+        }
+
+        .invite-buddha-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #FFD700;
+        }
+
+        .invite-buddha-btn .invite-icon {
+            font-size: 32px;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
+        }
+
+        .invite-buddha-btn .invite-label {
+            font-size: 11px;
+            margin-top: 3px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .invite-buddha-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ============ 底部功能区（跟祈福页一致） ============ */
+        .bottom-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: linear-gradient(180deg, transparent, rgba(62, 39, 35, 0.95));
+            padding: 6px 12px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 许愿输入区（跟祈福页一致） */
+        .wish-input-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 0 2px;
+        }
+
+        .wish-input-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            height: 42px;
+        }
+
+        .wish-icon-left {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            z-index: 2;
+            line-height: 1;
+        }
+
+        .wish-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 48px 0 44px;
+            border: 2px solid #D4AF37;
+            background: rgba(255, 248, 220, 0.95);
+            color: #4A3728;
+            font-size: 14px;
+            outline: none;
+            border-radius: 22px;
+            font-family: inherit;
+        }
+
+        .wish-send-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D4AF37, #B8860B);
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        /* 求签按钮（跟祈福页一致） */
+        .wish-bucket-bar {
+            position: absolute;
+            top: -60px;
+            right: 0px;
+            z-index: 210;
+        }
+
+        .wish-bucket-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(139,69,19,0.9), rgba(93,64,55,0.95));
+            border: 2px solid #D4AF37;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            text-decoration: none;
+            color: #FFD700;
+            gap: 0;
+        }
+
+        .wish-bucket-btn .btn-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .wish-bucket-btn .btn-label {
+            font-size: 9px;
+            margin-top: 1px;
+            line-height: 1;
+        }
+
+        .wish-bucket-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===============================
+           新增：统计数据卡片区域
+           =============================== */
+        .stats-card-row {
+            position: absolute;
+            top: 110px;
+            left: 10px;
+            right: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            z-index: 45;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg,
+                rgba(255, 215, 0, 0.92),
+                rgba(255, 140, 0, 0.92));
+            border-radius: 10px;
+            padding: 8px 4px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #FFF;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .stats-card:active {
+            transform: scale(0.95);
+        }
+
+        .stats-card .stats-card-icon {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .stats-card .stats-card-value {
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+        }
+
+        .stats-card .stats-card-title {
+            font-size: 10px;
+            opacity: 0.95;
+            margin-top: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ===============================
+           新增：灵宠选择弹窗升级版（卡片网格+锁）
+           =============================== */
+        .pet-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 5px;
+        }
+
+        .pet-grid-card {
+            background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+            border: 2px solid #D4AF37;
+            border-radius: 12px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .pet-grid-card:active {
+            transform: scale(0.95);
+        }
+
+        .pet-grid-card.owned {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-color: #32CD32;
+        }
+
+        .pet-grid-card.locked {
+            background: linear-gradient(135deg, #D3D3D3, #A9A9A9);
+            border-color: #696969;
+            opacity: 0.85;
+        }
+
+        .pet-grid-icon {
+            font-size: 30px;
+            margin-bottom: 4px;
+        }
+
+        .pet-grid-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 2px;
+        }
+
+        .pet-grid-price {
+            font-size: 10px;
+            color: #FF6347;
+            font-weight: bold;
+        }
+
+        .pet-grid-price.free {
+            color: #32CD32;
+        }
+
+        .pet-lock {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 12px;
+            background: rgba(0,0,0,0.6);
+            color: #FFD700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pet-status-tag {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            font-size: 10px;
+            background: #32CD32;
+            color: #FFF;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        /* ===============================
+           新增：分享卡片弹窗（二维码）
+           =============================== */
+        .share-card {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            color: #FFF;
+            box-shadow: 0 5px 20px rgba(255, 165, 0, 0.4);
+        }
+
+        .share-card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .share-card-subtitle {
+            font-size: 12px;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .qr-box {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 15px;
+            background: #FFF;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 1px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .qr-dot {
+            background: transparent;
+            border-radius: 1px;
+        }
+
+        .qr-dot.on {
+            background: #000;
+        }
+
+        .share-reward {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+
+        .share-reward strong {
+            color: #FFF8DC;
+            font-size: 14px;
+        }
+
+        .share-btn-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .share-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #FFF;
+            color: #FF8C00;
+        }
+
+        .share-btn.primary {
+            background: linear-gradient(135deg, #32CD32, #228B22);
+            color: #FFF;
+        }
+
+        /* ===============================
+           新增：福运翻转卡牌（3x3）
+           =============================== */
+        .flip-card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px 5px;
+        }
+
+        .flip-card {
+            aspect-ratio: 1 / 1;
+            perspective: 800px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            color: #FFF;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+            color: #8B4513;
+            transform: rotateY(180deg);
+            border: 2px solid #D4AF37;
+            flex-direction: column;
+        }
+
+        .flip-card-back .reward-label {
+            font-size: 11px;
+            margin-top: 6px;
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .flip-card.opened {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .flip-summary {
+            background: #FFF8DC;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            margin-top: 10px;
+            color: #8B4513;
+            font-size: 13px;
+        }
+
+        .flip-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* ===============================
+           新增：邀请/确认弹窗通用内容
+           =============================== */
+        .invite-box {
+            background: linear-gradient(135deg, #FFF8DC, #F5DEB3);
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            color: #8B4513;
+        }
+
+        .invite-emoji {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        .invite-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .invite-desc {
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .invite-btn-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .invite-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .invite-btn.primary {
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            color: #FFF;
+        }
+
+        .invite-btn.secondary {
+            background: #DEB887;
+            color: #8B4513;
+        }
+
+        /* ===============================
+           新增：放生动画水花
+           =============================== */
+        .water-splash {
+            position: fixed;
+            font-size: 40px;
+            pointer-events: none;
+            z-index: 1800;
+            animation: splashAnim 1.2s ease-out forwards;
+        }
+
+        @keyframes splashAnim {
+            0% {
+                transform: translate(-50%, -50%) scale(0.3);
+                opacity: 1;
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1.4);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        .release-pet-anim {
+            position: fixed;
+            font-size: 60px;
+            pointer-events: none;
+            z-index: 1700;
+            transition: all 2s cubic-bezier(0.55, 0.05, 0.3, 1);
+        }
+
+        /* ===============================
+           通用按钮样式
+           =============================== */
+        .common-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            color: #FFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .common-btn:active {
+            transform: scale(0.95);
+        }
+
+        .common-btn.ghost {
+            background: transparent;
+            color: #8B4513;
+            border: 2px solid #D4AF37;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主场景容器 -->
+    <div class="page-container animal-container">
+        <!-- 龙宫背景 -->
+        <div class="dragon-palace-bg" id="dragonPalaceBg">
+            <!-- 气泡 -->
+            <div class="bubbles" id="bubblesContainer"></div>
+            
+            <!-- 水波纹 -->
+            <div class="water-waves"></div>
+            
+            <!-- 龙宫建筑 -->
+            <div class="palace-building">🏯</div>
+        </div>
+
+        <!-- 资产显示（横排，无框，在灵宠放生下方） -->
+        <div class="asset-display">
+            <div class="asset-item">
+                <span class="asset-icon">💎</span>
+                <div>
+                    <div class="asset-value" id="huanxiValue">0</div>
+                    <div class="asset-label">喜呗余额</div>
+                </div>
+            </div>
+            <div class="asset-item">
+                <span class="asset-icon">✨</span>
+                <div>
+                    <div class="asset-value" id="foguangValue">0</div>
+                    <div class="asset-label">愿力收入</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计数据 -->
+        <div class="stats-panel">
+            <div class="stats-title">📊 今日统计</div>
+            <div class="stats-item">
+                <span class="stats-label">喂养次数</span>
+                <span id="feedCount">0/2</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">下次可喂</span>
+                <span id="nextFeedTime">--</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">灵宠总数</span>
+                <span id="petCount">0</span>
+            </div>
+        </div>
+
+        <!-- 统计数据卡片区域（已隐藏，移到个人中心查看） -->
+        <div class="stats-card-row" id="statsCardRow" style="display:none;">
+            <div class="stats-card" id="statsReleaseCount">
+                <div class="stats-card-icon">🐟</div>
+                <div class="stats-card-value" id="statsReleaseCountValue">0</div>
+                <div class="stats-card-title">放生次数</div>
+            </div>
+            <div class="stats-card" id="statsFoguang">
+                <div class="stats-card-icon">✨</div>
+                <div class="stats-card-value" id="statsFoguangValue">0</div>
+                <div class="stats-card-title">获得佛光</div>
+            </div>
+            <div class="stats-card" id="statsCurrentPet" onclick="openNewPetModal()">
+                <div class="stats-card-icon" id="statsCurrentPetIcon">🏯</div>
+                <div class="stats-card-value" id="statsCurrentPetName">--</div>
+                <div class="stats-card-title">当前灵宠</div>
+            </div>
+            <div class="stats-card" id="statsRemainingPets">
+                <div class="stats-card-icon">🎁</div>
+                <div class="stats-card-value" id="statsRemainingPetsValue">0</div>
+                <div class="stats-card-title">剩余灵宠</div>
+            </div>
+        </div>
+
+        <!-- 中间右侧操作按钮（选灵宠 + 喂食，无框无色块，上下图标+文字） -->
+        <div class="center-action-btns">
+            <button class="action-btn btn-release" id="goReleaseBtn" title="选灵宠" onclick="onGoReleaseClick(event)">
+                <span class="btn-icon">🐟</span>
+                <span class="btn-label">选灵宠</span>
+            </button>
+            <button class="action-btn btn-feed" id="goFeedBtn" title="喂食" onclick="onGoFeedClick(event)">
+                <span class="btn-icon">🍽️</span>
+                <span class="btn-label">喂食</span>
+            </button>
+        </div>
+
+        <!-- 弹屏滚动 -->
+        <div class="scrolling-banner" id="scrollingBanner">
+            <div class="banner-content" id="bannerContent">
+                <!-- 动态内容 -->
+            </div>
+        </div>
+
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <!-- 用户信息 -->
+            <div class="user-info" id="userInfoBtn" onclick="tryGoToProfile()">
+                <div class="user-avatar">🐲</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">游客</div>
+                    <div class="user-level">灵宠放生</div>
+                </div>
+            </div>
+
+            <!-- 右侧天使按钮和音效（垂直排列，与超度追思页格式统一） -->
+            <div class="top-right-group">
+                <div class="ask-buddha-wrapper">
+                    <button class="ask-buddha-btn" id="angelBtn" title="传播天使" onclick="tryOpenAngel()">👼</button>
+                    <span class="ask-buddha-label">天使</span>
+                </div>
+                <button class="ask-buddha-btn" id="soundToggle" title="音效开关" onclick="tryToggleSound()" style="background: rgba(0, 0, 0, 0.5); width: 36px; height: 36px;">🎵</button>
+            </div>
+        </div>
+
+        <!-- 右侧按钮组：祈福（上方） + 追思（下方），移到输入框上方 -->
+        <div class="right-btns-column bottom-right-btns">
+            <!-- 祈福按钮 -->
+            <a href="index.html" class="release-btn-right" title="祈福" style="text-decoration:none;color:inherit;">
+                <span class="btn-icon">🏛️</span>
+                <span class="btn-label">祈福</span>
+            </a>
+            <!-- 追思按钮 -->
+            <a href="remembrance.html" class="release-btn-right" title="追思" style="text-decoration:none;color:inherit;">
+                <span class="btn-icon">🕯️</span>
+                <span class="btn-label">追思</span>
+            </a>
+        </div>
+
+        <!-- 灵宠池塘 -->
+        <div class="pet-pond" id="petPond">
+            <!-- 灵宠会动态添加到这里 -->
+        </div>
+
+        <!-- 许愿输入区（无去请佛和求签按钮） -->
+        <div class="bottom-area">
+            <div class="wish-input-area">
+                <div class="wish-input-wrapper">
+                    <button class="wish-icon-left" onclick="tryMakeWish()" title="合十许愿">🙏</button>
+                    <input type="text" class="wish-input" id="wishInput" placeholder="许个愿望..." maxlength="50">
+                    <button class="wish-send-btn" onclick="trySendWish()" title="发送心愿">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 灵宠信息卡片 -->
+        <div class="pet-info-card" id="petInfoCard">
+            <div class="pet-info-header">
+                <span class="pet-info-icon" id="petInfoIcon">🐟</span>
+                <span class="pet-info-name" id="petInfoName">锦鲤</span>
+            </div>
+            <div class="pet-info-stats">
+                <div class="stat-item">
+                    <span class="stat-label">购买价格</span>
+                    <span class="stat-value" id="petInfoPrice">500元</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">剩余寿命</span>
+                    <span class="stat-value" id="petInfoLife">750天</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">日均收益</span>
+                    <span class="stat-value" id="petInfoIncome">0.5愿力</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最后喂养</span>
+                    <span class="stat-value" id="petInfoLastFeed">--</span>
+                </div>
+            </div>
+            <button class="feed-btn" id="feedBtn">🐟 喂养</button>
+        </div>
+    </div>
+
+    <!-- 灵宠选择弹窗（卡片网格 2x3 = 6款） -->
+    <div class="modal-overlay" id="releaseModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">🐟 选择灵宠</h3>
+                <button class="modal-close" data-close-modal="releaseModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="pet-grid" id="petGrid">
+                    <!-- 动态渲染：由 JS 生成 6 个灵宠卡片 -->
+                </div>
+                <div style="text-align:center; margin-top:12px; color:#8B4513; font-size:12px;">
+                    💡 点击卡片查看灵宠详情
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 灵宠大预览图+喂食规则弹窗 -->
+    <div class="modal-overlay" id="petDetailModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="petDetailTitle">灵宠详情</h3>
+                <button class="modal-close" data-close-modal="petDetailModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div style="padding: 20px 15px; text-align: center;">
+                    <!-- 大预览图 -->
+                    <div style="font-size: 90px; line-height: 1; margin-bottom: 12px; filter: drop-shadow(0 0 20px rgba(255,215,0,0.5));" id="petDetailIcon">🐟</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #8B4513; margin-bottom: 8px;" id="petDetailName">锦鲤</div>
+                    <div style="font-size: 13px; color: #FF6347; margin-bottom: 15px;" id="petDetailPrice">🎁 免费 / 值 500 喜呗</div>
+
+                    <!-- 喂食愿力收获规则 -->
+                    <div style="background: #FFF8DC; border-radius: 12px; padding: 12px; text-align: left; border: 1px solid #F5DEB3;">
+                        <div style="font-size: 13px; font-weight: bold; color: #8B4513; margin-bottom: 8px; text-align: center;">🌟 愿力收获规则</div>
+                        <div style="font-size: 11px; color: #666; line-height: 1.7; margin-bottom: 4px;">
+                            1. 免费喂食，每天最多可喂食两次
+                        </div>
+                        <div style="font-size: 11px; color: #666; line-height: 1.7; margin-bottom: 4px;">
+                            2. 每次至少间隔 6 小时，6 小时后方可收获愿力
+                        </div>
+                        <div style="font-size: 11px; color: #666; line-height: 1.7;">
+                            3. 喂食 6 小时后获得 <span id="petDetailIncome" style="color: #FF6347; font-weight: bold;">0.5 愿力</span>（价值的千分之一）
+                        </div>
+                    </div>
+
+                    <button class="feed-btn" id="petDetailAdoptBtn" style="margin-top: 15px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #FFF; padding: 10px 30px; border-radius: 20px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%;">
+                        领养
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 灵宠支付确认弹窗 -->
+    <div class="modal-overlay" id="petPayModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">💎 确认支付</h3>
+                <button class="modal-close" data-close-modal="petPayModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div style="padding: 15px 10px; text-align: center;">
+                    <!-- 灵宠预览 -->
+                    <div style="font-size: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 20px rgba(255,215,0,0.5));" id="payPetIcon">🐠</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #8B4513; margin-bottom: 6px;" id="payPetName">金龙鱼</div>
+                    <div style="font-size: 14px; color: #FF6347; font-weight: bold; margin-bottom: 16px;" id="payPetPrice">💎 500 喜呗</div>
+
+                    <!-- 当前余额 -->
+                    <div style="background: #FFF8DC; border-radius: 10px; padding: 10px; margin-bottom: 15px; font-size: 12px; color: #8B4513; border: 1px solid #F5DEB3;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>当前喜呗余额：</span>
+                            <span id="payCurrentBalance" style="color: #FF6347; font-weight: bold;">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span>支付金额：</span>
+                            <span id="payAmount" style="color: #FF8C00; font-weight: bold;">-0</span>
+                        </div>
+                        <div style="border-top: 1px dashed #D4AF37; margin-top: 6px; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>支付后余额：</span>
+                            <span id="payAfterBalance" style="color: #32CD32; font-weight: bold;">0</span>
+                        </div>
+                    </div>
+
+                    <div id="payErrorMsg" style="display:none; color: #FF0000; font-size: 12px; margin-bottom: 10px; text-align: center;"></div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="feed-btn secondary" data-close-modal="petPayModal" style="background: linear-gradient(135deg, #999, #777); color: #FFF; flex: 1;">取消</button>
+                        <button class="feed-btn primary" id="confirmPayBtn" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #FFF; flex: 1;">确认支付</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 愿力收获/分享弹窗（中奖特效） -->
+    <div class="modal-overlay" id="harvestModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">✨ 愿力收获</h3>
+                <button class="modal-close" data-close-modal="harvestModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div style="padding: 20px 15px; text-align: center;">
+                    <div style="font-size: 70px; margin-bottom: 10px; animation: jackpotPulse 0.5s ease-in-out infinite alternate;">🎰</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #FFD700; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255,215,0,0.5);">恭喜获得愿力！</div>
+                    <div style="font-size: 28px; color: #FF6347; font-weight: bold; margin-bottom: 15px;" id="harvestIncome">+0.5 愿力</div>
+                    <button class="feed-btn" id="harvestShareBtn" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #FFF; padding: 10px 30px; border-radius: 20px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%;">
+                        分享获得愿力
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 免费领养锦鲤弹窗（首次进入页面显示） -->
+    <div class="modal-overlay" id="freeKoiModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">🎁 免费领取</h3>
+                <button class="modal-close" data-close-modal="freeKoiModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div style="padding: 20px 15px; text-align: center;">
+                    <div style="font-size: 90px; line-height: 1; margin-bottom: 12px; filter: drop-shadow(0 0 20px rgba(255,215,0,0.5));">🐟</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #8B4513; margin-bottom: 8px;">锦鲤</div>
+                    <div style="font-size: 13px; color: #32CD32; font-weight: bold; margin-bottom: 15px;">🎁 免费 / 值 500 喜呗</div>
+
+                    <div style="background: #FFF8DC; border-radius: 12px; padding: 12px; text-align: left; border: 1px solid #F5DEB3;">
+                        <div style="font-size: 12px; font-weight: bold; color: #8B4513; margin-bottom: 8px; text-align: center;">🌟 喂养收获愿力</div>
+                        <div style="font-size: 11px; color: #666; line-height: 1.7; margin-bottom: 4px;">
+                            1. 免费喂食，每天最多可喂食两次
+                        </div>
+                        <div style="font-size: 11px; color: #666; line-height: 1.7; margin-bottom: 4px;">
+                            2. 每次至少间隔 6 小时，6 小时后方可收获愿力
+                        </div>
+                        <div style="font-size: 11px; color: #666; line-height: 1.7;">
+                            3. 喂食 6 小时后获得 <span style="color: #FF6347; font-weight: bold;">0.5 愿力</span>
+                        </div>
+                    </div>
+
+                    <button class="feed-btn" id="freeKoiAdoptBtn" style="margin-top: 15px; background: linear-gradient(135deg, #32CD32, #228B22); color: #FFF; padding: 12px 30px; border-radius: 20px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%;">
+                        免费领养
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 放生确认弹窗 -->
+    <div class="modal-overlay" id="releaseConfirmModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">✨ 确认放生</h3>
+                <button class="modal-close" data-close-modal="releaseConfirmModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="invite-box" style="padding:15px;">
+                    <div style="font-size:70px; margin-bottom:10px;" id="releaseConfirmIcon">🐟</div>
+                    <div style="font-size:17px; font-weight:bold; color:#8B4513; margin-bottom:8px;" id="releaseConfirmName">锦鲤</div>
+                    <div style="font-size:13px; color:#666; margin-bottom:6px;">
+                        放生可获得 <span style="color:#FF6347; font-weight:bold;">+50 佛光</span>
+                    </div>
+                    <div style="font-size:13px; color:#666; margin-bottom:15px;" id="releaseConfirmPrice">
+                        消耗：<strong style="color:#FF8C00;">🎁 免费领养</strong>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="invite-btn secondary" data-close-modal="releaseConfirmModal">再想想</button>
+                        <button class="invite-btn primary" id="releaseConfirmBtn">确认放生</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 非注册用户邀请弹窗 -->
+    <div class="modal-overlay" id="inviteModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">📢 专属邀请</h3>
+                <button class="modal-close" data-close-modal="inviteModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="invite-box">
+                    <div class="invite-emoji">🙏</div>
+                    <div class="invite-title">注册享更多灵宠</div>
+                    <div class="invite-desc">
+                        注册后可解锁 🦞龙虾、🦂螃蟹、🐢乌龟等稀有灵宠，<br>
+                        并每日赠送 <strong>100 佛光</strong> 奖励！
+                    </div>
+                    <div style="background:#FFF8DC; border-radius:10px; padding:10px; margin-bottom:15px; font-size:12px; color:#8B4513;">
+                        ✅ 解锁全部灵宠 &nbsp; ✅ 每日佛光奖励 &nbsp; ✅ 专属推广码
+                    </div>
+                    <div class="invite-btn-row">
+                        <button class="invite-btn secondary" data-close-modal="inviteModal">稍后再说</button>
+                        <button class="invite-btn primary" id="registerBtn">立即注册</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享卡片弹窗（二维码 + 奖励） -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">🔗 邀请好友祈福</h3>
+                <button class="modal-close" data-close-modal="shareModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="share-card">
+                    <div class="share-card-title">祈个福 · 结缘放生</div>
+                    <div class="share-card-subtitle">扫一扫，一起来放生祈福</div>
+
+                    <!-- 伪二维码图案 -->
+                    <div class="qr-box" id="qrBox">
+                        <!-- JS 动态生成 64 个二维码格子 -->
+                    </div>
+
+                    <div class="share-reward">
+                        邀请好友注册可获 <strong>+500 欢喜币</strong><br>
+                        好友首次放生，您再得 <strong>+200 佛光</strong>
+                    </div>
+
+                    <div class="share-btn-row">
+                        <button class="share-btn" id="copyLinkBtn">📋 复制链接</button>
+                        <button class="share-btn primary" id="doShareBtn">📤 立即分享</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 福运翻转卡牌弹窗（3x3） -->
+    <div class="modal-overlay" id="flipCardModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">🎴 福运翻转卡牌</h3>
+                <button class="modal-close" data-close-modal="flipCardModal">×</button>
+            </div>
+            <div class="modal-content">
+                <div style="text-align:center; color:#8B4513; font-size:13px; margin-bottom:10px;">
+                    每日 <strong>3</strong> 次翻牌机会 · 翻开卡牌获得随机福运奖励
+                </div>
+                <div class="flip-card-grid" id="flipCardGrid">
+                    <!-- JS 动态渲染 9 张 -->
+                </div>
+                <div class="flip-summary" id="flipSummary">
+                    剩余次数：<strong id="flipRemaining">3</strong> / 3
+                </div>
+                <div class="flip-actions">
+                    <button class="invite-btn secondary" data-close-modal="flipCardModal">关闭</button>
+                    <button class="invite-btn primary" id="shareAfterFlip">把福运分享出去</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 传播天使弹窗 -->
+    <div class="modal-overlay" id="angelModal">
+        <div class="modal-card" style="height: 70vh;">
+            <div class="modal-header">
+                <h3 class="modal-title">👼 传播天使</h3>
+                <button class="modal-close" data-close-modal="angelModal">×</button>
+            </div>
+            <div style="padding: 20px;">
+                <!-- 身份信息 -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 60px; margin-bottom: 10px;">👼</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #8B4513;">准天使</div>
+                    <div style="font-size: 12px; color: #666;">所在区域：全国</div>
+                </div>
+                
+                <!-- 仪表盘数据 -->
+                <div style="background: #FFF8DC; border-radius: 15px; padding: 15px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: #8B4513;">📊 收益明细</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 10px;">
+                            <div style="font-size: 20px; font-weight: bold; color: #FF6347;">0</div>
+                            <div style="font-size: 11px; color: #666;">直推人数</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 10px;">
+                            <div style="font-size: 20px; font-weight: bold; color: #32CD32;">0</div>
+                            <div style="font-size: 11px; color: #666;">区域用户</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 10px;">
+                            <div style="font-size: 20px; font-weight: bold; color: #FFD700;">0%</div>
+                            <div style="font-size: 11px; color: #666;">区域充值奖励</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 10px;">
+                            <div style="font-size: 20px; font-weight: bold; color: #FF69B4;">0%</div>
+                            <div style="font-size: 11px; color: #666;">直推奖励</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <button id="openShareFromAngel" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #FFD700, #FFA500); border: none; border-radius: 25px; color: #FFF; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+                    📱 分享专属推广码
+                </button>
+                <button style="width: 100%; padding: 12px; background: linear-gradient(135deg, #4B0082, #8A2BE2); border: none; border-radius: 25px; color: #FFF; font-size: 15px; font-weight: bold; cursor: pointer;">
+                    👥 查看我的团队
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入JavaScript（原逻辑保持不变，新增逻辑内联在下方） -->
+    <script src="animal-release.js"></script>
+
+    <!-- ==========================================
+         新增功能内联逻辑（放生动画 / 弹窗 / 状态管理）
+         ========================================== -->
+    <script>
+    (function () {
+        'use strict';
+
+        /* -----------------------------
+         * 灵宠数据定义（按需求定制）
+         * 免费：锦鲤(500元) | 付费：金龙鱼500元,金乌龟2000元,金蟾蜍2000元,小白龙5000元,小金龙5000元
+         * ----------------------------- */
+        const PET_CATALOG = [
+            { id: 'koi',        name: '锦鲤',    icon: '🐟', price: 0,     income: 0.5,  lifespan: 750, free: true,  locked: false, color: '#FF6B6B' },
+            { id: 'dragonfish', name: '金龙鱼',  icon: '🐠', price: 500,   income: 0.5,  lifespan: 750, free: false, locked: false, color: '#FFD700' },
+            { id: 'turtle',     name: '金乌龟',  icon: '🐢', price: 2000,  income: 2,    lifespan: 750, free: false, locked: false, color: '#90EE90' },
+            { id: 'toad',       name: '金蟾蜍',  icon: '🐸', price: 2000,  income: 2,    lifespan: 750, free: false, locked: false, color: '#98FB98' },
+            { id: 'whitedragon',name: '小白龙',  icon: '🐲', price: 5000,  income: 5,    lifespan: 750, free: false, locked: false, color: '#E6E6FA' },
+            { id: 'golddragon', name: '小金龙',  icon: '🐉', price: 5000,  income: 5,    lifespan: 750, free: false, locked: false, color: '#FFD700' }
+        ];
+
+        /* -----------------------------
+         * 状态管理（localStorage 持久化）
+         * ----------------------------- */
+        const STATE_KEY = 'animal_state_v2';
+        const defaultState = {
+            isRegistered: false,          // 是否已注册
+            releaseCount: 0,              // 累计放生次数
+            foguangReward: 0,             // 累计获得佛光（放生奖励部分）
+            currentPet: null,             // 当前灵宠 {id,name,icon,price,income}
+            ownedIds: [],                 // 已拥有的灵宠 id
+            lastInviteTime: 0,            // 上次邀请弹窗时间戳
+            flipLeft: 3,                  // 今日剩余翻牌次数
+            flipDate: null,               // 翻牌计数对应的日期
+            hasFreeKoi: false,            // 免费锦鲤是否已领
+            // 喂养系统
+            lastFeedTime: 0,              // 上次喂养时间戳
+            todayFeedCount: 0,            // 今日已喂养次数
+            lastFeedDate: null,           // 喂养计数对应的日期
+            feedHistory: [],              // 喂养历史记录
+            // 灵宠寿命管理
+            petPurchaseDates: {}          // {petId: purchaseTimestamp}
+        };
+
+        let AnimalState = loadState();
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STATE_KEY);
+                if (raw) {
+                    return Object.assign({}, defaultState, JSON.parse(raw));
+                }
+            } catch (e) { console.warn('加载状态失败', e); }
+            return Object.assign({}, defaultState);
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STATE_KEY, JSON.stringify(AnimalState));
+            } catch (e) { console.warn('保存状态失败', e); }
+        }
+
+        // 每日翻牌重置
+        function checkDailyFlip() {
+            const today = new Date().toISOString().slice(0, 10);
+            if (AnimalState.flipDate !== today) {
+                AnimalState.flipDate = today;
+                AnimalState.flipLeft = 3;
+                saveState();
+            }
+        }
+
+        // 每日喂养重置（每天最多2次）
+        function checkDailyFeed() {
+            const today = new Date().toISOString().slice(0, 10);
+            if (AnimalState.lastFeedDate !== today) {
+                AnimalState.lastFeedDate = today;
+                AnimalState.todayFeedCount = 0;
+                saveState();
+            }
+        }
+
+        // 计算下次可喂养时间
+        function getNextFeedTime() {
+            if (!AnimalState.lastFeedTime) return null;
+            const sixHours = 6 * 60 * 60 * 1000; // 6小时
+            const nextTime = AnimalState.lastFeedTime + sixHours;
+            const now = Date.now();
+            if (nextTime <= now) return null;
+            const remaining = nextTime - now;
+            const hours = Math.floor(remaining / (60 * 60 * 1000));
+            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+            return hours + "小时" + minutes + "分";
+        }
+
+        // 检查是否可以喂养
+        function canFeed() {
+            checkDailyFeed();
+            if (AnimalState.todayFeedCount >= 2) {
+                return { can: false, reason: '今日已喂养2次，明日再来' };
+            }
+            const nextTime = getNextFeedTime();
+            if (nextTime) {
+                return { can: false, reason: '下次可喂: ' + nextTime };
+            }
+            if (!AnimalState.currentPet) {
+                return { can: false, reason: '请先放生灵宠' };
+            }
+            return { can: true };
+        }
+
+        // 执行喂养
+        function doFeed() {
+            const check = canFeed();
+            if (!check.can) {
+                showFloat(check.reason, null, '#FF6347');
+                return;
+            }
+
+            // 更新状态
+            AnimalState.lastFeedTime = Date.now();
+            AnimalState.todayFeedCount += 1;
+            AnimalState.feedHistory.push({
+                petId: AnimalState.currentPet.id,
+                time: Date.now()
+            });
+
+            // 计算收入（购买价格千分之一）
+            const petInfo = PET_CATALOG.find(p => p.id === AnimalState.currentPet.id);
+            const income = petInfo ? Math.floor(petInfo.price * 0.001 * 100) / 100 : 0.5;
+
+            saveState();
+
+            // 播放喂养动画
+            const petEl = document.querySelector('.pet.feeding');
+            if (petEl) {
+                petEl.classList.remove('feeding');
+                void petEl.offsetWidth; // 触发重排
+                petEl.classList.add('feeding');
+            }
+
+            showFloat('🐟 喂养成功！+' + income + ' 愿力', null, '#32CD32');
+            updateStatsUI();
+        }
+
+        // 计算灵宠剩余寿命
+        function getPetRemainingLife(petId) {
+            if (!AnimalState.petPurchaseDates[petId]) return null;
+            const petInfo = PET_CATALOG.find(p => p.id === petId);
+            if (!petInfo) return null;
+            const lifespan = petInfo.lifespan * 24 * 60 * 60 * 1000; // 转换为毫秒
+            const elapsed = Date.now() - AnimalState.petPurchaseDates[petId];
+            const remaining = lifespan - elapsed;
+            if (remaining <= 0) return 0;
+            return Math.ceil(remaining / (24 * 60 * 60 * 1000)); // 返回天数
+        }
+
+        /* -----------------------------
+         * 通用弹窗开关
+         * ----------------------------- */
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+        }
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+        }
+        window.openNewPetModal = function () { openModal('releaseModal'); };
+
+        // 为所有带 data-close-modal 属性按钮绑定关闭
+        document.addEventListener('click', function (e) {
+            const t = e.target;
+            if (t && t.getAttribute && t.getAttribute('data-close-modal')) {
+                closeModal(t.getAttribute('data-close-modal'));
+                return;
+            }
+            // 点击遮罩层关闭
+            if (t && t.classList && t.classList.contains('modal-overlay')) {
+                t.classList.remove('active');
+            }
+        });
+
+        /* -----------------------------
+         * 渲染灵宠卡片网格（2列x3行= 6款）
+         * 点击卡片 -> 打开灵宠详情弹窗（大预览图+愿力规则）
+         * ----------------------------- */
+        function renderPetGrid() {
+            const grid = document.getElementById('petGrid');
+            if (!grid) return;
+            grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            grid.innerHTML = '';
+
+            PET_CATALOG.forEach(function (pet) {
+                const owned = AnimalState.ownedIds.indexOf(pet.id) >= 0;
+                const card = document.createElement('div');
+                card.className = 'pet-grid-card' + (owned ? ' owned' : '') + (pet.locked && !AnimalState.isRegistered ? ' locked' : '');
+
+                // 价格显示
+                let priceHtml;
+                if (pet.id === 'koi' && !AnimalState.hasFreeKoi) {
+                    priceHtml = '<div class="pet-grid-price free">🎁 免费</div>';
+                } else if (owned) {
+                    priceHtml = '<div class="pet-grid-price free">✅ 已拥有</div>';
+                } else if (pet.locked && !AnimalState.isRegistered) {
+                    priceHtml = '<div class="pet-grid-price">🔒 注册解锁</div>';
+                } else {
+                    priceHtml = '<div class="pet-grid-price">💎 ' + pet.price + ' 喜呗</div>';
+                }
+
+                card.innerHTML =
+                    (owned ? '<div class="pet-status-tag">已拥有</div>' : '') +
+                    (pet.locked && !AnimalState.isRegistered ? '<div class="pet-lock">🔒</div>' : '') +
+                    '<div class="pet-grid-icon">' + pet.icon + '</div>' +
+                    '<div class="pet-grid-name">' + pet.name + '</div>' +
+                    priceHtml;
+
+                card.addEventListener('click', function () {
+                    if (pet.locked && !AnimalState.isRegistered) {
+                        openModal('inviteModal');
+                        return;
+                    }
+                    if (owned) {
+                        showFloat('您已拥有 ' + pet.name, null, '#8B4513');
+                        return;
+                    }
+                    // 打开灵宠详情弹窗（大预览图+愿力收获规则）
+                    openPetDetailModal(pet);
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        /* -----------------------------
+         * 打开灵宠详情弹窗（大预览图+愿力收获规则）
+         * ----------------------------- */
+        let pendingDetailPet = null;
+
+        function openPetDetailModal(pet) {
+            pendingDetailPet = pet;
+            document.getElementById('petDetailTitle').textContent = pet.name;
+            document.getElementById('petDetailIcon').textContent = pet.icon;
+            document.getElementById('petDetailName').textContent = pet.name;
+
+            const isFree = pet.id === 'koi' && !AnimalState.hasFreeKoi;
+            const income = Math.max(0.5, Math.floor(pet.price * 0.001 * 100) / 100);
+            document.getElementById('petDetailPrice').innerHTML = isFree
+                ? '<span style="color:#32CD32;font-weight:bold;">🎁 免费领养</span> / 值 ' + pet.price + ' 喜呗'
+                : '<span style="color:#FF8C00;font-weight:bold;">💎 ' + pet.price + ' 喜呗</span>';
+            document.getElementById('petDetailIncome').textContent = income + ' 愿力';
+
+            // 根据是否免费调整按钮文字
+            const btn = document.getElementById('petDetailAdoptBtn');
+            btn.textContent = isFree ? '免费领养' : '立即领养';
+            btn.style.background = isFree
+                ? 'linear-gradient(135deg, #32CD32, #228B22)'
+                : 'linear-gradient(135deg, #FFD700, #FFA500)';
+
+            closeModal('releaseModal');
+            openModal('petDetailModal');
+        }
+
+        /* -----------------------------
+         * 从详情弹窗点击"领养" -> 付费灵宠→支付弹窗；免费灵宠→直接领养
+         * ----------------------------- */
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'petDetailAdoptBtn' && pendingDetailPet) {
+                const pet = pendingDetailPet;
+                const isFree = pet.id === 'koi' && !AnimalState.hasFreeKoi;
+
+                if (isFree) {
+                    // 免费锦鲤：直接领养
+                    doRelease(pet);
+                    closeModal('petDetailModal');
+                } else {
+                    // 付费灵宠：弹出支付确认弹窗
+                    openPetPayModal(pet);
+                }
+            }
+        });
+
+        /* -----------------------------
+         * 打开灵宠支付确认弹窗
+         * ----------------------------- */
+        let pendingPayPet = null;
+
+        function openPetPayModal(pet) {
+            pendingPayPet = pet;
+            document.getElementById('payPetIcon').textContent = pet.icon;
+            document.getElementById('payPetName').textContent = pet.name;
+            document.getElementById('payPetPrice').innerHTML = '<span style="color:#FF8C00;font-weight:bold;">💎 ' + pet.price + ' 喜呗</span>';
+
+            // 读取当前喜呗余额
+            let currentBalance = 0;
+            try {
+                var bs = JSON.parse(localStorage.getItem('animal_state') || '{}');
+                currentBalance = bs.user && bs.user.huanxi ? bs.user.huanxi : 0;
+            } catch (e) { }
+
+            document.getElementById('payCurrentBalance').textContent = currentBalance;
+            document.getElementById('payAmount').textContent = '-' + pet.price;
+            const afterBalance = Math.max(0, currentBalance - pet.price);
+            document.getElementById('payAfterBalance').textContent = afterBalance;
+            document.getElementById('payAfterBalance').style.color = afterBalance < 0 ? '#FF0000' : '#32CD32';
+            document.getElementById('payErrorMsg').style.display = 'none';
+
+            // 余额不足时显示错误
+            if (currentBalance < pet.price) {
+                document.getElementById('payErrorMsg').textContent = '⚠️ 喜呗余额不足，请先充值！';
+                document.getElementById('payErrorMsg').style.display = 'block';
+                document.getElementById('confirmPayBtn').disabled = true;
+                document.getElementById('confirmPayBtn').style.opacity = '0.5';
+                document.getElementById('confirmPayBtn').style.cursor = 'not-allowed';
+            } else {
+                document.getElementById('confirmPayBtn').disabled = false;
+                document.getElementById('confirmPayBtn').style.opacity = '1';
+                document.getElementById('confirmPayBtn').style.cursor = 'pointer';
+            }
+
+            closeModal('petDetailModal');
+            openModal('petPayModal');
+        }
+
+        /* -----------------------------
+         * 确认支付按钮 -> 扣款 + 领养
+         * ----------------------------- */
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'confirmPayBtn' && pendingPayPet) {
+                const pet = pendingPayPet;
+
+                // 扣款
+                try {
+                    var bs = JSON.parse(localStorage.getItem('animal_state') || '{}');
+                    if (!bs.user) bs.user = {};
+                    if ((bs.user.huanxi || 0) < pet.price) {
+                        showFloat('喜呗余额不足！', null, '#FF6347');
+                        return;
+                    }
+                    bs.user.huanxi = (bs.user.huanxi || 0) - pet.price;
+                    localStorage.setItem('animal_state', JSON.stringify(bs));
+                } catch (e) { }
+
+                // 执行领养（alreadyPaid=true：支付弹窗已扣款，不再重复扣）
+                doRelease(pet, true);
+                closeModal('petPayModal');
+                showFloat('✅ ' + pet.name + ' 领养成功！', null, '#32CD32');
+            }
+        });
+
+        /* -----------------------------
+         * 放生确认弹窗
+         * ----------------------------- */
+        let pendingPet = null;
+
+        function openReleaseConfirm(pet) {
+            pendingPet = pet;
+            document.getElementById('releaseConfirmIcon').textContent = pet.icon;
+            document.getElementById('releaseConfirmName').textContent = pet.name;
+
+            const isFree = pet.id === 'koi' && !AnimalState.hasFreeKoi;
+            document.getElementById('releaseConfirmPrice').innerHTML =
+                isFree
+                    ? '消耗：<strong style="color:#32CD32;">🎁 免费领养</strong>'
+                    : '消耗：<strong style="color:#FF8C00;">💎 ' + pet.price + ' 欢喜币</strong>';
+
+            closeModal('releaseModal');
+            openModal('releaseConfirmModal');
+        }
+
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'releaseConfirmBtn' && pendingPet) {
+                doRelease(pendingPet);
+            }
+        });
+
+        /* -----------------------------
+         * 执行放生（扣款 + 动画 + 奖励）
+         * ----------------------------- */
+        function doRelease(pet, alreadyPaid) {
+            const isFree = pet.id === 'koi' && !AnimalState.hasFreeKoi;
+
+            // 读取 base animal 状态中的欢喜余额（若存在）
+            let baseState = null;
+            try {
+                const raw = localStorage.getItem('animal_state');
+                if (raw) baseState = JSON.parse(raw);
+            } catch (e) { }
+
+            // 余额检查（仅在没有支付时检查）
+            if (!isFree && !alreadyPaid) {
+                if (baseState && typeof baseState.user !== 'undefined' && baseState.user.huanxi < pet.price) {
+                    showFloat('欢喜余额不足！需要 💎' + pet.price, null, '#FF6347');
+                    return;
+                }
+            }
+
+            closeModal('releaseConfirmModal');
+
+            // === 扣款（仅在没有支付时扣款，支付弹窗已扣过）===
+            if (!isFree && !alreadyPaid && baseState) {
+                baseState.user.huanxi = (baseState.user.huanxi || 0) - pet.price;
+                try { localStorage.setItem('animal_state', JSON.stringify(baseState)); } catch (e) { }
+            }
+            if (isFree) AnimalState.hasFreeKoi = true;
+            if (AnimalState.ownedIds.indexOf(pet.id) < 0) AnimalState.ownedIds.push(pet.id);
+
+            // 当前灵宠记录（包含价格和收益信息）
+            AnimalState.currentPet = {
+                id: pet.id,
+                name: pet.name,
+                icon: pet.icon,
+                price: pet.price,
+                income: pet.income
+            };
+
+            // 记录购买时间（用于寿命计算）
+            AnimalState.petPurchaseDates[pet.id] = Date.now();
+
+            // 放生计数与佛光奖励
+            AnimalState.releaseCount += 1;
+            AnimalState.foguangReward += 50;
+
+            // baseState 佛光同步
+            if (baseState) {
+                baseState.user.foguang = (baseState.user.foguang || 0) + 50;
+                try { localStorage.setItem('animal_state', JSON.stringify(baseState)); } catch (e) { }
+            }
+
+            saveState();
+
+            // === 动画：灵宠游向池塘 + 水花 ===
+            playReleaseAnimation(pet.icon, pet.color, function () {
+                // 佛光飘字
+                showFloat('+50 佛光 ✨ 放生成功！', null, '#FFD700');
+                // 刷新界面
+                renderPetGrid();
+                updateStatsUI();
+                // 添加灵宠到池塘
+                addPetToPond(pet);
+                if (typeof updateUI === 'function') { try { updateUI(); } catch (e) { } }
+            });
+
+            // === 3天一次非注册用户邀请弹窗 ===
+            scheduleInvite();
+        }
+
+        function playReleaseAnimation(icon, color, done) {
+            // 起点：屏幕中心偏下，终点：池塘位置
+            const startX = window.innerWidth / 2;
+            const startY = window.innerHeight * 0.6;
+            const pondEl = document.getElementById('petPond');
+            const endX = pondEl ? pondEl.getBoundingClientRect().left + pondEl.offsetWidth / 2 : window.innerWidth * 0.5;
+            const endY = pondEl ? pondEl.getBoundingClientRect().top + pondEl.offsetHeight / 2 : window.innerHeight * 0.7;
+
+            const petEl = document.createElement('div');
+            petEl.className = 'release-pet-anim';
+            petEl.textContent = icon;
+            petEl.style.left = startX + 'px';
+            petEl.style.top = startY + 'px';
+            document.body.appendChild(petEl);
+
+            // 触发 transition
+            requestAnimationFrame(function () {
+                petEl.style.left = endX + 'px';
+                petEl.style.top = endY + 'px';
+                petEl.style.transform = 'scale(0.4) rotate(360deg)';
+                petEl.style.opacity = '0.1';
+            });
+
+            // 水花特效（三处）
+            setTimeout(function () { spawnSplash(startX, startY); }, 100);
+            setTimeout(function () { spawnSplash((startX + endX) / 2, (startY + endY) / 2); }, 700);
+            setTimeout(function () { spawnSplash(endX, endY); }, 1400);
+
+            // 结束清理
+            setTimeout(function () {
+                if (petEl.parentNode) petEl.parentNode.removeChild(petEl);
+                if (typeof done === 'function') done();
+            }, 2100);
+        }
+
+        function spawnSplash(x, y) {
+            const splash = document.createElement('div');
+            splash.className = 'water-splash';
+            splash.textContent = '💦';
+            splash.style.left = x + 'px';
+            splash.style.top = y + 'px';
+            document.body.appendChild(splash);
+            setTimeout(function () {
+                if (splash.parentNode) splash.parentNode.removeChild(splash);
+            }, 1300);
+        }
+
+        /* -----------------------------
+         * 简单飘字（与 animal-release.js 中 showFloatingText 补充）
+         * ----------------------------- */
+        function showFloat(text, refEl, color) {
+            const f = document.createElement('div');
+            f.className = 'floating-text';
+            if (color) f.style.color = color;
+            f.textContent = text;
+            if (refEl && refEl.getBoundingClientRect) {
+                const r = refEl.getBoundingClientRect();
+                f.style.left = (r.left + r.width / 2) + 'px';
+                f.style.top = r.top + 'px';
+            } else {
+                f.style.left = (window.innerWidth / 2) + 'px';
+                f.style.top = (window.innerHeight / 2) + 'px';
+            }
+            document.body.appendChild(f);
+            setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 2200);
+        }
+
+        /* -----------------------------
+         * 统计卡片 UI 更新
+         * ----------------------------- */
+        function updateStatsUI() {
+            checkDailyFeed();
+            const releaseEl = document.getElementById('statsReleaseCountValue');
+            const foguangEl = document.getElementById('statsFoguangValue');
+            const petNameEl = document.getElementById('statsCurrentPetName');
+            const petIconEl = document.getElementById('statsCurrentPetIcon');
+            const remainingEl = document.getElementById('statsRemainingPetsValue');
+
+            if (releaseEl) releaseEl.textContent = AnimalState.releaseCount;
+            if (foguangEl) foguangEl.textContent = AnimalState.foguangReward;
+            if (petNameEl) petNameEl.textContent = AnimalState.currentPet ? AnimalState.currentPet.name : '--';
+            if (petIconEl) petIconEl.textContent = AnimalState.currentPet ? AnimalState.currentPet.icon : '🏯';
+
+            // 更新喂养统计
+            const feedCountEl = document.getElementById('feedCount');
+            const nextFeedTimeEl = document.getElementById('nextFeedTime');
+            const petCountEl = document.getElementById('petCount');
+            if (feedCountEl) feedCountEl.textContent = AnimalState.todayFeedCount + '/2';
+            if (nextFeedTimeEl) {
+                const nextTime = getNextFeedTime();
+                nextFeedTimeEl.textContent = nextTime || '可喂养';
+            }
+            if (petCountEl) petCountEl.textContent = AnimalState.ownedIds.length;
+
+            // 更新灵宠信息卡片
+            if (AnimalState.currentPet) {
+                const petInfo = PET_CATALOG.find(p => p.id === AnimalState.currentPet.id);
+                const lifeEl = document.getElementById('petInfoLife');
+                const incomeEl = document.getElementById('petInfoIncome');
+                const lastFeedEl = document.getElementById('petInfoLastFeed');
+                if (lifeEl && petInfo) {
+                    const remainingLife = getPetRemainingLife(AnimalState.currentPet.id);
+                    lifeEl.textContent = remainingLife !== null ? remainingLife + '天' : petInfo.lifespan + '天';
+                }
+                if (incomeEl && petInfo) {
+                    const income = Math.floor(petInfo.price * 0.001 * 100) / 100;
+                    incomeEl.textContent = income + '愿力';
+                }
+                if (lastFeedEl) {
+                    lastFeedEl.textContent = AnimalState.lastFeedTime
+                        ? new Date(AnimalState.lastFeedTime).toLocaleTimeString()
+                        : '从未喂养';
+                }
+            }
+
+            // 剩余可领取灵宠数（未拥有 + 未锁定 / 已注册则全开放）
+            let remain = 0;
+            PET_CATALOG.forEach(function (p) {
+                if (AnimalState.ownedIds.indexOf(p.id) < 0) {
+                    if (!p.locked || AnimalState.isRegistered) remain += 1;
+                }
+            });
+            if (remainingEl) remainingEl.textContent = remain;
+        }
+
+        /* -----------------------------
+         * 3 天一次的非注册用户邀请
+         * ----------------------------- */
+        function scheduleInvite() {
+            if (AnimalState.isRegistered) return;
+            const threeDays = 3 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            if (!AnimalState.lastInviteTime || (now - AnimalState.lastInviteTime) > threeDays) {
+                AnimalState.lastInviteTime = now;
+                saveState();
+                setTimeout(function () { openModal('inviteModal'); }, 2400);
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'registerBtn') {
+                AnimalState.isRegistered = true;
+                saveState();
+                closeModal('inviteModal');
+                showFloat('🎉 注册成功！解锁全部灵宠', null, '#32CD32');
+                renderPetGrid();
+                updateStatsUI();
+            }
+        });
+
+        /* -----------------------------
+         * 底部导航栏跳转
+         * ----------------------------- */
+        document.addEventListener('click', function (e) {
+            const item = e.target && e.target.closest ? e.target.closest('.bottom-nav-item') : null;
+            if (!item) return;
+            const go = item.getAttribute('data-go');
+            if (go === 'home') { window.location.href = 'index.html'; }
+            else if (go === 'remembrance') { window.location.href = 'remembrance.html'; }
+            else if (go === 'release') { /* 当前页 */ window.scrollTo(0, 0); }
+            else if (go === 'flip') { openModal('flipCardModal'); renderFlipCards(); }
+            else if (go === 'profile') {
+                if (typeof goToProfile === 'function') { try { goToProfile(); } catch (e) { alert('个人中心开发中'); } }
+                else alert('个人中心开发中');
+            }
+        });
+
+        /* -----------------------------
+         * 分享卡片 - 二维码伪图案生成
+         * ----------------------------- */
+        function renderQRCode() {
+            const box = document.getElementById('qrBox');
+            if (!box) return;
+            box.innerHTML = '';
+            // 8x8 = 64 格，固定 3 个定位角 + 随机填充
+            const positions = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) positions.push({ r: r, c: c });
+            }
+            const cornerIdx = [
+                [0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],
+                [0,5],[0,6],[0,7],[1,5],[1,6],[1,7],[2,5],[2,6],[2,7],
+                [5,0],[5,1],[5,2],[6,0],[6,1],[6,2],[7,0],[7,1],[7,2]
+            ];
+            const cornerSet = {};
+            cornerIdx.forEach(function (p) { cornerSet[p[0] + '-' + p[1]] = true; });
+
+            positions.forEach(function (p) {
+                const dot = document.createElement('div');
+                dot.className = 'qr-dot';
+                if (cornerSet[p.r + '-' + p.c]) {
+                    // 定位角：固定为黑
+                    dot.classList.add('on');
+                } else {
+                    // 其它：随机黑白（基于 hash）
+                    if ((p.r * 7 + p.c * 13 + Math.floor(Math.random() * 3)) % 2 === 0) {
+                        dot.classList.add('on');
+                    }
+                }
+                box.appendChild(dot);
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target) return;
+            if (e.target.id === 'copyLinkBtn') {
+                try {
+                    const link = window.location.href;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(link).then(function () {
+                            showFloat('✅ 链接已复制', null, '#32CD32');
+                        }, function () { alert('链接：' + link); });
+                    } else {
+                        alert('链接：' + link);
+                    }
+                } catch (err) { alert('复制失败'); }
+            }
+            if (e.target.id === 'doShareBtn') {
+                showFloat('📤 正在唤起分享...', null, '#FFD700');
+            }
+            if (e.target.id === 'openShareFromAngel') {
+                closeModal('angelModal');
+                setTimeout(function () { openModal('shareModal'); renderQRCode(); }, 200);
+            }
+            if (e.target.id === 'shareAfterFlip') {
+                closeModal('flipCardModal');
+                setTimeout(function () { openModal('shareModal'); renderQRCode(); }, 200);
+            }
+        });
+
+        /* -----------------------------
+         * 选灵宠按钮 - 使用事件委托（确保100%可靠）
+         * ----------------------------- */
+        let feedModeActive = false;
+
+        document.addEventListener('click', function (e) {
+            const btn = e.target && e.target.closest ? e.target.closest('#goReleaseBtn, #goFeedBtn, .action-btn') : null;
+            if (!btn) return;
+            e.stopPropagation();
+
+            if (btn.id === 'goReleaseBtn') {
+                // 选灵宠
+                renderPetGrid();
+                openModal('releaseModal');
+            } else if (btn.id === 'goFeedBtn') {
+                // 喂食模式
+                if (!AnimalState.currentPet && AnimalState.ownedIds.length === 0) {
+                    showFloat('请先领养一只灵宠', null, '#FF6347');
+                    return;
+                }
+                feedModeActive = !feedModeActive;
+                if (feedModeActive) {
+                    showFloat('🍽️ 现在点击灵宠即可喂食', null, '#32CD32');
+                    btn.style.transform = 'scale(1.1)';
+                    const pets = document.querySelectorAll('.pet');
+                    pets.forEach(function (pet) {
+                        pet.style.filter = 'brightness(1.2) drop-shadow(0 0 12px #32CD32)';
+                        pet.style.cursor = 'pointer';
+                    });
+                } else {
+                    showFloat('喂养模式已关闭', null, '#666');
+                    btn.style.transform = '';
+                    const pets = document.querySelectorAll('.pet');
+                    pets.forEach(function (pet) {
+                        pet.style.filter = '';
+                    });
+                }
+            }
+        });
+
+        /* -----------------------------
+         * 灵宠头顶愿力光圈效果
+         * ----------------------------- */
+        function updatePetHalos() {
+            const pets = document.querySelectorAll('.pet');
+            pets.forEach(function(pet) {
+                const petId = pet.dataset.petId;
+                if (!petId) return;
+
+                // 检查是否可收获愿力（喂养后6小时）
+                const lastFeedTime = AnimalState.lastFeedTime;
+                const sixHours = 6 * 60 * 60 * 1000;
+                const petInfo = PET_CATALOG.find(p => p.id === petId);
+
+                let halo = pet.querySelector('.pet-halo');
+                if (!halo) {
+                    halo = document.createElement('div');
+                    halo.className = 'pet-halo';
+                    halo.innerHTML = '<span class="harvest-value"></span>';
+                    pet.style.position = 'relative';
+                    pet.appendChild(halo);
+                }
+
+                if (lastFeedTime && petInfo) {
+                    const timeSinceFeed = Date.now() - lastFeedTime;
+                    if (timeSinceFeed >= sixHours) {
+                        // 可以收获愿力
+                        const income = Math.floor(petInfo.price * 0.001 * 100) / 100;
+                        halo.classList.add('harvestable');
+                        halo.querySelector('.harvest-value').textContent = '+' + income + '愿力';
+                    } else {
+                        halo.classList.remove('harvestable');
+                    }
+                } else {
+                    halo.classList.remove('harvestable');
+                }
+            });
+        }
+
+        /* -----------------------------
+         * 收获愿力（点击有光圈的灵宠）- 打开愿力收获弹窗 + 金币音效 + 中奖特效
+         * ----------------------------- */
+        let harvestIncomeValue = 0;
+
+        function harvestWishPower(petEl) {
+            const petId = petEl.dataset.petId;
+            if (!petId) return;
+
+            const halo = petEl.querySelector('.pet-halo');
+            if (!halo || !halo.classList.contains('harvestable')) return;
+
+            const petInfo = PET_CATALOG.find(p => p.id === petId);
+            if (!petInfo) return;
+
+            const income = Math.max(0.5, Math.floor(petInfo.price * 0.001 * 100) / 100);
+            harvestIncomeValue = income;
+
+            // 更新弹窗显示
+            document.getElementById('harvestIncome').textContent = '+' + income + ' 愿力';
+
+            // 隐藏光圈
+            halo.classList.remove('harvestable');
+
+            // 播放金币音效
+            playCoinSound();
+
+            // 打开愿力收获弹窗
+            openModal('harvestModal');
+
+            // 重置喂养时间，开始新的6小时倒计时
+            const sixHours = 6 * 60 * 60 * 1000;
+            AnimalState.lastFeedTime = Date.now() - sixHours + 1000;
+
+            // 更新统计
+            AnimalState.foguangReward += income;
+            saveState();
+            updateStatsUI();
+
+            // 播放中奖粒子特效
+            setTimeout(function() { spawnJackpotParticles(); }, 200);
+        }
+
+        // 分享获得愿力按钮
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'harvestShareBtn') {
+                closeModal('harvestModal');
+                showFloat('✅ 分享成功，愿力已入账！', null, '#32CD32');
+            }
+        });
+
+        /* -----------------------------
+         * 金币音效（Web Audio API 生成）
+         * ----------------------------- */
+        function playCoinSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+
+                // 两声清脆的"叮叮"
+                [0, 0.08].forEach(function (offset, idx) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(idx === 0 ? 988 : 1319, now + offset); // B5, E6
+                    gain.gain.setValueAtTime(0, now + offset);
+                    gain.gain.linearRampToValueAtTime(0.25, now + offset + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + offset);
+                    osc.stop(now + offset + 0.35);
+                });
+            } catch (e) {}
+        }
+
+        /* -----------------------------
+         * 中奖粒子特效
+         * ----------------------------- */
+        function spawnJackpotParticles() {
+            const symbols = ['💰', '✨', '🌟', '💎', '🎁'];
+            const container = document.body;
+            for (let i = 0; i < 15; i++) {
+                const p = document.createElement('div');
+                p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                p.style.position = 'fixed';
+                p.style.left = (40 + Math.random() * 20) + '%';
+                p.style.top = (40 + Math.random() * 20) + '%';
+                p.style.fontSize = (20 + Math.random() * 20) + 'px';
+                p.style.zIndex = 9999;
+                p.style.pointerEvents = 'none';
+                p.style.transition = 'all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                p.style.opacity = '1';
+                p.style.transform = 'scale(0) rotate(0deg)';
+                container.appendChild(p);
+
+                // 触发动画
+                setTimeout(function() {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 100 + Math.random() * 200;
+                    p.style.transform =
+                        'translate(' + Math.cos(angle) * distance + 'px, ' +
+                        Math.sin(angle) * distance + 'px) scale(1) rotate(' +
+                        (Math.random() * 720 - 360) + 'deg)';
+                    p.style.opacity = '0';
+                }, 10 + i * 50);
+
+                setTimeout(function() {
+                    if (p.parentNode) p.parentNode.removeChild(p);
+                }, 2000 + i * 50);
+            }
+        }
+
+        /* -----------------------------
+         * 修改 addPetToPond 函数，添加喂养点击和收获愿力逻辑
+         * ----------------------------- */
+        const originalAddPetToPond = addPetToPond;
+        addPetToPond = function(pet) {
+            const pond = document.getElementById('petPond');
+            if (!pond) return;
+
+            // 创建灵宠元素
+            const petEl = document.createElement('div');
+            petEl.className = 'pet';
+            petEl.textContent = pet.icon;
+            petEl.dataset.petId = pet.id;
+
+            // 随机位置
+            const maxX = pond.offsetWidth - 60;
+            const maxY = pond.offsetHeight - 60;
+            petEl.style.left = Math.random() * maxX + 'px';
+            petEl.style.top = Math.random() * maxY + 'px';
+
+            // 随机游泳动画
+            const duration = 8 + Math.random() * 6;
+            petEl.style.animationDuration = duration + 's';
+
+            // 点击处理
+            petEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (feedModeActive) {
+                    // 喂养模式：执行喂养
+                    doFeedForPet(pet);
+                } else {
+                    // 检查是否可收获愿力
+                    const halo = petEl.querySelector('.pet-halo');
+                    if (halo && halo.classList.contains('harvestable')) {
+                        harvestWishPower(petEl);
+                    } else {
+                        showPetInfo(pet);
+                    }
+                }
+            });
+
+            pond.appendChild(petEl);
+
+            // 更新光圈状态
+            setTimeout(updatePetHalos, 100);
+        };
+
+        /* -----------------------------
+         * 为指定灵宠喂养
+         * ----------------------------- */
+        function doFeedForPet(pet) {
+            const check = canFeed();
+            if (!check.can) {
+                showFloat(check.reason, null, '#FF6347');
+                return;
+            }
+
+            AnimalState.lastFeedTime = Date.now();
+            AnimalState.todayFeedCount += 1;
+            AnimalState.feedHistory.push({
+                petId: pet.id,
+                time: Date.now()
+            });
+
+            const petInfo = PET_CATALOG.find(p => p.id === pet.id);
+            const income = petInfo ? Math.floor(petInfo.price * 0.001 * 100) / 100 : 0.5;
+
+            saveState();
+
+            // 播放喂养动画
+            const petEl = document.querySelector('.pet[data-pet-id="' + pet.id + '"]');
+            if (petEl) {
+                petEl.classList.add('feeding');
+                setTimeout(function() { petEl.classList.remove('feeding'); }, 500);
+            }
+
+            showFloat('🍽️ 喂养 ' + pet.name + ' 成功！6小时后可收获愿力', null, '#32CD32');
+
+            // 关闭喂养模式
+            feedModeActive = false;
+            const feedBtnEl = document.getElementById('goFeedBtn');
+            if (feedBtnEl) {
+                feedBtnEl.style.transform = '';
+                feedBtnEl.style.boxShadow = '';
+            }
+            const pets = document.querySelectorAll('.pet');
+            pets.forEach(function(p) {
+                p.style.filter = '';
+            });
+
+            // 更新光圈状态
+            updatePetHalos();
+            updateStatsUI();
+        }
+
+        /* -----------------------------
+         * 福运翻转卡牌 - 3x3
+         * ----------------------------- */
+        const FLIP_REWARDS = [
+            { icon: '💰', text: '+88 欢喜币' },
+            { icon: '✨', text: '+50 佛光' },
+            { icon: '🎁', text: '灵宠盲盒' },
+            { icon: '🐟', text: '锦鲤放生券' },
+            { icon: '🙏', text: '佛祖保佑' },
+            { icon: '🌸', text: '好运莲莲' },
+            { icon: '🍀', text: '幸运草 ×1' },
+            { icon: '🎋', text: '求签筒 ×3' },
+            { icon: '🔔', text: '福气铃铛' }
+        ];
+        let flipOrder = [];
+
+        function renderFlipCards() {
+            checkDailyFlip();
+            const grid = document.getElementById('flipCardGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            // 生成随机奖励顺序
+            flipOrder = FLIP_REWARDS.slice().sort(function () { return Math.random() - 0.5; });
+
+            flipOrder.forEach(function (reward, idx) {
+                const card = document.createElement('div');
+                card.className = 'flip-card';
+                card.dataset.idx = idx;
+                card.innerHTML =
+                    '<div class="flip-card-inner">' +
+                        '<div class="flip-card-face flip-card-front">🎴</div>' +
+                        '<div class="flip-card-face flip-card-back">' +
+                            '<div style="font-size:40px;">' + reward.icon + '</div>' +
+                            '<div class="reward-label">' + reward.text + '</div>' +
+                        '</div>' +
+                    '</div>';
+                card.addEventListener('click', function () { handleFlip(card, idx); });
+                grid.appendChild(card);
+            });
+
+            const remainEl = document.getElementById('flipRemaining');
+            if (remainEl) remainEl.textContent = AnimalState.flipLeft;
+        }
+
+        function handleFlip(card, idx) {
+            if (card.classList.contains('flipped') || card.classList.contains('opened')) return;
+            if (AnimalState.flipLeft <= 0) {
+                alert('今日翻牌次数已用完，请明日再来～');
+                return;
+            }
+            card.classList.add('flipped');
+            AnimalState.flipLeft -= 1;
+            saveState();
+
+            const remainEl = document.getElementById('flipRemaining');
+            if (remainEl) remainEl.textContent = AnimalState.flipLeft;
+
+            const reward = flipOrder[idx];
+            if (reward) {
+                // 同步发放奖励
+                if (reward.text.indexOf('佛光') >= 0) AnimalState.foguangReward += 50;
+                if (reward.text.indexOf('欢喜币') >= 0) {
+                    try {
+                        const raw = localStorage.getItem('animal_state');
+                        if (raw) {
+                            const bs = JSON.parse(raw);
+                            bs.user.huanxi = (bs.user.huanxi || 0) + 88;
+                            localStorage.setItem('animal_state', JSON.stringify(bs));
+                        }
+                    } catch (e) { }
+                }
+                saveState();
+                setTimeout(function () {
+                    showFloat(reward.icon + ' ' + reward.text, null, '#FFD700');
+                }, 500);
+            }
+
+            setTimeout(function () { card.classList.add('opened'); }, 1200);
+            updateStatsUI();
+        }
+
+        /* -----------------------------
+         * 右侧放生按钮：已用 goReleaseBtn 替代
+         * ----------------------------- */
+
+        /* -----------------------------
+         * 顶部天使按钮：跳转到 angel.html
+         * ----------------------------- */
+        const angelBtn = document.getElementById('angelBtn');
+        if (angelBtn) {
+            angelBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                // 尝试跳转 angel.html；若不存在则退回到弹窗
+                const target = 'angel.html';
+                window.location.href = target;
+            });
+        }
+
+        /* -----------------------------
+         * 将灵宠添加到池塘
+         * ----------------------------- */
+        function addPetToPond(pet) {
+            const pond = document.getElementById('petPond');
+            if (!pond) return;
+
+            // 创建灵宠元素
+            const petEl = document.createElement('div');
+            petEl.className = 'pet';
+            petEl.textContent = pet.icon;
+            petEl.dataset.petId = pet.id;
+
+            // 随机位置
+            const maxX = pond.offsetWidth - 60;
+            const maxY = pond.offsetHeight - 60;
+            petEl.style.left = Math.random() * maxX + 'px';
+            petEl.style.top = Math.random() * maxY + 'px';
+
+            // 随机游泳动画
+            const duration = 8 + Math.random() * 6;
+            petEl.style.animationDuration = duration + 's';
+
+            // 点击喂养
+            petEl.addEventListener('click', function() {
+                showPetInfo(pet);
+            });
+
+            pond.appendChild(petEl);
+        }
+
+        // 显示灵宠信息卡片
+        function showPetInfo(pet) {
+            const card = document.getElementById('petInfoCard');
+            if (!card) return;
+
+            document.getElementById('petInfoIcon').textContent = pet.icon;
+            document.getElementById('petInfoName').textContent = pet.name;
+            document.getElementById('petInfoPrice').textContent = pet.price > 0 ? pet.price + '元' : '免费';
+
+            const petInfo = PET_CATALOG.find(p => p.id === pet.id);
+            if (petInfo) {
+                const income = Math.floor(petInfo.price * 0.001 * 100) / 100;
+                document.getElementById('petInfoIncome').textContent = income + '愿力';
+                const remainingLife = getPetRemainingLife(pet.id);
+                document.getElementById('petInfoLife').textContent = remainingLife !== null ? remainingLife + '天' : petInfo.lifespan + '天';
+            }
+
+            document.getElementById('petInfoLastFeed').textContent = AnimalState.lastFeedTime
+                ? new Date(AnimalState.lastFeedTime).toLocaleTimeString()
+                : '从未喂养';
+
+            // 绑定喂养按钮
+            const feedBtn = document.getElementById('feedBtn');
+            if (feedBtn) {
+                feedBtn.onclick = function() {
+                    doFeed();
+                };
+            }
+
+            card.classList.add('active');
+        }
+
+        /* -----------------------------
+         * 初始化
+         * ----------------------------- */
+        function init() {
+            checkDailyFlip();
+            checkDailyFeed();
+            updateStatsUI();
+            renderPetGrid();
+
+            // 恢复已拥有的灵宠到池塘
+            AnimalState.ownedIds.forEach(function(petId) {
+                const petInfo = PET_CATALOG.find(p => p.id === petId);
+                if (petInfo) {
+                    addPetToPond(petInfo);
+                }
+            });
+
+            // 更新灵宠光圈状态
+            updatePetHalos();
+
+            // 定期检查光圈状态（每分钟更新一次）
+            setInterval(updatePetHalos, 60000);
+
+            // 绑定喂养按钮
+            const feedBtn = document.getElementById('feedBtn');
+            if (feedBtn) {
+                feedBtn.addEventListener('click', function() {
+                    doFeed();
+                });
+            }
+
+            // 关闭灵宠信息卡片点击池塘关闭
+            document.getElementById('petPond').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    document.getElementById('petInfoCard').classList.remove('active');
+                }
+            });
+
+            // === 首次进入页面，还没有领养过灵宠 -> 弹出免费领养锦鲤弹窗 ===
+            setTimeout(function() {
+                if (!AnimalState.hasFreeKoi && AnimalState.ownedIds.length === 0) {
+                    openModal('freeKoiModal');
+                }
+            }, 800);
+        }
+
+        // 免费领养锦鲤弹窗 - 点击"免费领养"按钮
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'freeKoiAdoptBtn') {
+                const koiPet = PET_CATALOG.find(p => p.id === 'koi');
+                if (koiPet) {
+                    closeModal('freeKoiModal');
+                    doRelease(koiPet);
+                }
+            }
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // ===== 把关键函数暴露到全局，供 onclick 属性调用 =====
+        window.onGoReleaseClick = function (e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            try {
+                renderPetGrid();
+                openModal('releaseModal');
+            } catch (err) {
+                // 回退：直接尝试调用可能存在的全局函数
+                if (typeof window.openNewPetModal === 'function') {
+                    window.openNewPetModal();
+                } else {
+                    alert('请稍候，灵宠正在加载...');
+                }
+            }
+        };
+
+        window.onGoFeedClick = function (e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            // 没有灵宠则提示
+            if (!AnimalState || (AnimalState.ownedIds && AnimalState.ownedIds.length === 0)) {
+                showFloat('请先领养一只灵宠', null, '#FF6347');
+                return;
+            }
+            // 切换喂养模式
+            feedModeActive = !feedModeActive;
+            const btn = document.getElementById('goFeedBtn');
+            if (feedModeActive) {
+                showFloat('🍽️ 现在点击灵宠即可喂食', null, '#32CD32');
+                if (btn) btn.style.transform = 'scale(1.1)';
+                const pets = document.querySelectorAll('.pet');
+                pets.forEach(function (p) {
+                    p.style.filter = 'brightness(1.2) drop-shadow(0 0 12px #32CD32)';
+                    p.style.cursor = 'pointer';
+                });
+            } else {
+                showFloat('喂养模式已关闭', null, '#666');
+                if (btn) btn.style.transform = '';
+                const pets = document.querySelectorAll('.pet');
+                pets.forEach(function (p) { p.style.filter = ''; });
+            }
+        };
+
+        // 把 openModal / renderPetGrid 也暴露到全局作为保险
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.renderPetGrid = renderPetGrid;
+        window.showFloat = showFloat;
+    })();
+    </script>
+
+    <!-- 音效与许愿功能 -->
+    <script>
+    // 音效状态（保持与其他页面一致）
+    var soundOn = true;
+
+    // 音效播放函数
+    var _audioCtx = null;
+    function playSound(type) {
+        if (!soundOn) return;
+        try {
+            if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            var now = _audioCtx.currentTime;
+            var osc = _audioCtx.createOscillator();
+            var gain = _audioCtx.createGain();
+
+            if (type === 'bell') {
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.8);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            } else if (type === 'click') {
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            } else if (type === 'incense') {
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(250, now + 0.6);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            } else {
+                osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            }
+
+            osc.connect(gain).connect(_audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 1);
+        } catch (e) {}
+    }
+
+    // 音效按钮
+    var soundBtn = document.getElementById('soundToggle');
+    if (soundBtn) {
+        soundBtn.addEventListener('click', function() {
+            soundOn = !soundOn;
+            this.textContent = soundOn ? '🎵' : '🔕';
+            if (soundOn) playSound('bell');
+        });
+    }
+
+    // 许愿发送
+    var sendBtn = document.getElementById('sendWishBtn');
+    var wishInput = document.getElementById('wishInput');
+    if (sendBtn && wishInput) {
+        sendBtn.addEventListener('click', function() {
+            var val = wishInput.value.trim();
+            if (!val) return;
+            playSound('bell');
+            wishInput.value = '';
+            // 显示简单提示
+            var msg = document.createElement('div');
+            msg.textContent = '愿望已送达 🐟';
+            msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,215,0,0.95);color:#8B4513;padding:15px 25px;border-radius:15px;font-size:16px;font-weight:bold;z-index:300;box-shadow:0 5px 20px rgba(0,0,0,0.3);';
+            document.body.appendChild(msg);
+            setTimeout(function() { msg.style.transition = 'opacity 0.5s'; msg.style.opacity = '0'; }, 1500);
+            setTimeout(function() { if (msg.parentNode) msg.parentNode.removeChild(msg); }, 2100);
+        });
+        wishInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') sendBtn.click();
+        });
+    }
+
+    // 求签按钮
+    var shakeBtn = document.getElementById('shakeBtn');
+    if (shakeBtn) {
+        shakeBtn.addEventListener('click', function() {
+            playSound('incense');
+            var signs = ['上上签·诸事顺遂', '上签·万事亨通', '中吉·平稳安康', '上吉·平安吉祥', '中签·稳中有进'];
+            var msg = document.createElement('div');
+            msg.textContent = '🎋 ' + signs[Math.floor(Math.random() * signs.length)];
+            msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,215,0,0.95);color:#8B4513;padding:15px 25px;border-radius:15px;font-size:16px;font-weight:bold;z-index:300;box-shadow:0 5px 20px rgba(0,0,0,0.3);';
+            document.body.appendChild(msg);
+            setTimeout(function() { msg.style.transition = 'opacity 0.5s'; msg.style.opacity = '0'; }, 1500);
+            setTimeout(function() { if (msg.parentNode) msg.parentNode.removeChild(msg); }, 2100);
+        });
+    }
+
+    // 天使按钮（传播音效）
+    var angelBtn = document.getElementById('angelBtn');
+    if (angelBtn) {
+        angelBtn.addEventListener('click', function() {
+            playSound('bell');
+            var msg = document.createElement('div');
+            msg.textContent = '👼 天使为您祈福';
+            msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,215,0,0.95);color:#8B4513;padding:15px 25px;border-radius:15px;font-size:16px;font-weight:bold;z-index:300;box-shadow:0 5px 20px rgba(0,0,0,0.3);';
+            document.body.appendChild(msg);
+            setTimeout(function() { msg.style.transition = 'opacity 0.5s'; msg.style.opacity = '0'; }, 1500);
+            setTimeout(function() { if (msg.parentNode) msg.parentNode.removeChild(msg); }, 2100);
+        });
+    }
+    </script>
+
+    <!-- 文字语音对话弹窗（问佛） -->
+    <div class="dialog-modal-mask" id="dialogModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1500; align-items:flex-end; justify-content:center;" onclick="if(event.target===this)closeDialog()">
+        <div class="dialog-modal-card" style="width:100%; max-width:500px; background:linear-gradient(180deg,#fff 0%,#FFF8EC 100%); border-radius:24px 24px 0 0; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 -10px 50px rgba(0,0,0,0.3);">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:2px solid rgba(184,134,11,0.3); background:linear-gradient(135deg,#FFF8EC,#FFEFC1); border-radius:24px 24px 0 0;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#D4AF37,#8B5A2B); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 6px rgba(139,90,43,0.3);" id="dialogAvatar">🧘</div>
+                    <div>
+                        <div style="font-family:cursive; font-size:15px; color:#4A3728; letter-spacing:2px; font-weight:bold;" id="dialogTitle">问佛</div>
+                        <div style="font-size:11px; color:#8B7355; margin-top:2px; letter-spacing:1px;" id="dialogSubtitle">向佛提问，聆听慈悲开示</div>
+                    </div>
+                </div>
+                <button style="width:34px; height:34px; border-radius:50%; border:none; background:rgba(139,90,43,0.1); color:#8B5A2B; font-size:16px; cursor:pointer;" onclick="closeDialog()">✕</button>
+            </div>
+            <div class="dialog-messages" id="dialogMessages" style="flex:1; overflow-y:auto; padding:14px 20px; display:flex; flex-direction:column; gap:10px; min-height:200px;">
+                <div class="dialog-msg" style="display:flex; gap:8px; max-width:85%; align-items:flex-start;">
+                    <div class="dialog-msg-avatar" style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#D4AF37,#8B5A2B); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">🧘</div>
+                    <div class="dialog-bubble" style="background:rgba(139,90,43,0.08); padding:8px 12px; border-radius:14px; font-size:12px; color:#4A3728; line-height:1.6;">阿弥陀佛。施主请坐。有何心事，尽管说来。</div>
+                </div>
+            </div>
+            <div style="padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px)); border-top:2px solid rgba(184,134,11,0.2); background:rgba(255,248,220,0.6); display:flex; align-items:center; gap:8px;">
+                <button style="width:38px; height:38px; border-radius:50%; border:2px solid #D4AF37; background:linear-gradient(135deg,#FFEFC1,#D4AF37); color:#4A3728; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(184,134,11,0.3); flex-shrink:0;" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+                <input type="text" id="dialogTextInput" placeholder="向佛提问..." maxlength="200" style="flex:1; border:2px solid rgba(184,134,11,0.3); background:#fff; border-radius:22px; padding:8px 14px; font-size:13px; color:#4A3728; outline:none; font-family:inherit;">
+                <button style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#D4AF37,#8B5A2B); color:#fff; border:none; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(139,90,43,0.4); flex-shrink:0;" onclick="sendDialogMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===== 跳转个人中心 =====
+    function goToProfile() {
+      try {
+        window.parent.goPage(7); // 跳转到个人中心页面
+      } catch(e) {
+        window.location.href = 'profile.html'; // 独立打开时跳转
+      }
+    }
+    function tryGoToProfile() { goToProfile(); }
+    function tryToggleSound() { try { toggleSound(); } catch (e) { alert('音效开关'); } }
+    function tryOpenShake() { try { if (typeof openShakeModal === 'function') openShakeModal(); } catch (e) { alert('摇签筒求签中...'); } }
+    function tryOpenAngel() {
+        var msg = document.createElement('div');
+        msg.textContent = '👼 天使为您祈福';
+        msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,215,0,0.95);color:#8B4513;padding:15px 25px;border-radius:15px;font-size:16px;font-weight:bold;z-index:300;box-shadow:0 5px 20px rgba(0,0,0,0.3);';
+        document.body.appendChild(msg);
+        setTimeout(function() { msg.style.transition = 'opacity 0.5s'; msg.style.opacity = '0'; }, 1500);
+        setTimeout(function() { if (msg.parentNode) msg.parentNode.removeChild(msg); }, 2100);
+    }
+    function tryMakeWish() {
+        var input = document.getElementById('wishInput');
+        if (!input.value.trim()) { input.value = '愿灵宠健康，愿家人幸福'; return; }
+        trySendWish();
+    }
+    function tryShowOfferingModal() {
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#FFF8DC,#F5DEB3);color:#8B4513;padding:20px 25px;border-radius:15px;font-size:14px;font-weight:bold;z-index:300;box-shadow:0 5px 20px rgba(0,0,0,0.3);border:2px solid #D4AF37;';
+        modal.innerHTML = '<div style="font-size:32px;text-align:center;">🧘</div><div style="margin-top:8px;text-align:center;">去请佛供奉</div><button style="margin-top:12px;padding:8px 16px;background:linear-gradient(135deg,#D4AF37,#B8860B);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:bold;width:100%;" onclick="this.parentNode.remove();">确认</button>';
+        document.body.appendChild(modal);
+    }
+    function trySendWish() {
+        var input = document.getElementById('wishInput');
+        var msg = input.value.trim();
+        if (!msg) return;
+        var bubble = document.createElement('div');
+        bubble.textContent = '🙏 ' + msg;
+        bubble.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(218,165,32,0.95);color:#fff;padding:15px 25px;border-radius:15px;font-size:15px;font-weight:bold;z-index:300;box-shadow:0 5px 20px rgba(0,0,0,0.3);';
+        document.body.appendChild(bubble);
+        setTimeout(function() { bubble.style.transition = 'opacity 0.5s'; bubble.style.opacity = '0'; }, 1500);
+        setTimeout(function() { if (bubble.parentNode) bubble.parentNode.removeChild(bubble); }, 2100);
+        input.value = '';
+    }
+
+    function closeDialog() {
+        var modal = document.getElementById('dialogModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function toggleVoice() {
+        var btn = document.getElementById('voiceBtn');
+        if (btn) {
+            btn.style.background = 'linear-gradient(135deg,#FF6347,#FF4500)';
+            btn.textContent = '⏹';
+            setTimeout(function () {
+                btn.style.background = 'linear-gradient(135deg,#FFEFC1,#D4AF37)';
+                btn.textContent = '🎤';
+                var input = document.getElementById('dialogTextInput');
+                if (input) input.value = '愿佛保佑众生，愿灵宠健康长久';
+            }, 1500);
+        }
+    }
+
+    function sendDialogMessage() {
+        var input = document.getElementById('dialogTextInput');
+        var msg = input ? input.value.trim() : '';
+        if (!msg) return;
+        var msgs = document.getElementById('dialogMessages');
+        if (!msgs) return;
+
+        var userMsg = document.createElement('div');
+        userMsg.style.cssText = 'display:flex; justify-content:flex-end; margin:4px 0;';
+        userMsg.innerHTML = '<div style="background:linear-gradient(135deg,#FFEFC1,#FFDB85); color:#4A3728; padding:8px 12px; border-radius:14px 14px 4px 14px; font-size:12px; line-height:1.6; max-width:75%;">' + msg + '</div>';
+        msgs.appendChild(userMsg);
+
+        input.value = '';
+        msgs.scrollTop = msgs.scrollHeight;
+
+        setTimeout(function () {
+            var replies = ['阿弥陀佛。善哉善哉。', '施主请放宽心，因缘际会皆是缘。', '放生即施予，善举终有善果。', '愿所有生命被温柔以待。'];
+            var reply = replies[Math.floor(Math.random() * replies.length)];
+            var aiMsg = document.createElement('div');
+            aiMsg.style.cssText = 'display:flex; justify-content:flex-start; margin:4px 0;';
+            aiMsg.innerHTML = '<div style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#D4AF37,#8B5A2B); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; margin-right:8px;">🧘</div><div style="background:rgba(139,90,43,0.08); color:#4A3728; padding:8px 12px; border-radius:14px 14px 14px 4px; font-size:12px; line-height:1.6; max-width:75%;">' + reply + '</div>';
+            msgs.appendChild(aiMsg);
+            msgs.scrollTop = msgs.scrollHeight;
+        }, 1000);
+    }
+    </script>
+    <script src="app-state.js"></script>
+</body>
+</html>

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 · 福运翻牌</title>
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        margin: 0;
+        background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0015 100%);
+        overflow-x: hidden;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    /* 背景光效层 */
+    .light-rays {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300vmax;
+        height: 300vmax;
+        background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.06), transparent, rgba(255,215,0,0.03), transparent);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* 星光粒子 */
+    .sparkle-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+    }
+    .sparkle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: radial-gradient(circle, #FFD700, #FFA500);
+        border-radius: 50%;
+    }
+
+    /* 主内容区 */
+    .container {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: 30px 15px;
+    }
+
+    /* 顶部装饰光环 */
+    .top-glow {
+        position: absolute;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(255,215,0,0.3) 0%, transparent 70%);
+        z-index: 0;
+    }
+
+    /* 标题区 */
+    .header {
+        text-align: center;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .source-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        box-shadow: 0 3px 15px rgba(255,165,0,0.4);
+    }
+
+    .title {
+        font-size: 28px;
+        color: #FFD700;
+        text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.4);
+        margin: 0 0 5px 0;
+        letter-spacing: 4px;
+        font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 13px;
+        color: rgba(255,215,0,0.7);
+    }
+
+    /* 轮次信息 */
+    .round-info {
+        margin: 15px 0 10px;
+        padding: 8px 18px;
+        background: rgba(255,215,0,0.08);
+        border: 1px solid rgba(255,215,0,0.3);
+        border-radius: 20px;
+        color: #FFD700;
+        font-size: 13px;
+        letter-spacing: 2px;
+    }
+    .round-info strong {
+        color: #FFE4B5;
+        margin: 0 4px;
+    }
+
+    /* 翻牌区域 */
+    .cards-area {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        margin: 15px 0;
+        width: 100%;
+        perspective: 1500px;
+    }
+
+    /* 每张卡片 */
+    .card-wrap {
+        width: 30%;
+        max-width: 110px;
+        aspect-ratio: 2 / 3;
+        position: relative;
+        perspective: 1000px;
+    }
+
+    .card {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 1.2s cubic-bezier(0.4, 0.2, 0.2, 1);
+        cursor: pointer;
+    }
+
+    .card.flipped {
+        transform: rotateY(540deg); /* 360 + 180 = 540，立体翻转 */
+    }
+
+    .card.revealed-winner {
+        animation: winnerPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes winnerPulse {
+        0%, 100% { filter: drop-shadow(0 0 15px #FFD700); }
+        50% { filter: drop-shadow(0 0 35px #FFD700); }
+    }
+
+    /* 卡片正反面通用样式 */
+    .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        overflow: hidden;
+    }
+
+    /* 背面（显示"福/运/来"字样，初始朝上） */
+    .card-back {
+        background: linear-gradient(160deg, #3d2a0f 0%, #2a1a08 40%, #3d2a0f 70%, #4a3510 100%);
+        border: 2px solid #D4AF37;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,215,0,0.1);
+    }
+
+    .card-back::before {
+        content: '';
+        position: absolute;
+        inset: 6px;
+        border: 1px solid rgba(255,215,0,0.3);
+        border-radius: 10px;
+    }
+
+    .back-char {
+        font-size: 54px;
+        font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', serif;
+        color: #FFD700;
+        text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.4);
+        line-height: 1;
+        z-index: 2;
+    }
+
+    /* 正面（中奖或图标，翻牌后显示） */
+    .card-front {
+        background: linear-gradient(160deg, #FFF8DC 0%, #F5DEB3 50%, #FFE4B5 100%);
+        border: 2px solid #D4AF37;
+        transform: rotateY(180deg);
+        box-shadow: 0 6px 20px rgba(255,215,0,0.3), inset 0 0 25px rgba(255,215,0,0.15);
+    }
+
+    /* 中奖卡片的特殊样式 */
+    .card-front.winner {
+        background: linear-gradient(160deg, #FFFAF0 0%, #FFE4B5 50%, #FFD700 100%);
+        border: 3px solid #FF6347;
+        box-shadow: 0 0 30px rgba(255,215,0,0.8), inset 0 0 25px rgba(255,215,0,0.3);
+    }
+
+    .front-icon {
+        font-size: 52px;
+        margin-bottom: 4px;
+    }
+
+    .front-label {
+        font-size: 16px;
+        color: #8B4513;
+        font-weight: bold;
+        letter-spacing: 4px;
+        margin-bottom: 4px;
+    }
+
+    .front-icon-only {
+        font-size: 60px;
+    }
+
+    /* 已翻卡片（非当前轮）的淡化效果 */
+    .card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* 底部操作区 */
+    .action-area {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .hint-text {
+        color: rgba(255,215,0,0.7);
+        font-size: 13px;
+        letter-spacing: 2px;
+    }
+
+    .action-btn {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        border: none;
+        padding: 12px 32px;
+        border-radius: 26px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 18px rgba(255,165,0,0.5);
+        letter-spacing: 2px;
+        transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .action-btn:active {
+        transform: scale(0.96);
+    }
+
+    .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* 中奖弹窗 */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.4s;
+    }
+    .modal-overlay.show {
+        display: flex;
+        opacity: 1;
+    }
+    .modal {
+        background: linear-gradient(160deg, #FFF8DC 0%, #F5DEB3 50%, #FFE4B5 100%);
+        border: 4px solid #D4AF37;
+        border-radius: 22px;
+        padding: 30px 25px;
+        text-align: center;
+        max-width: 320px;
+        width: 90%;
+        transform: scale(0.6);
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 0 80px rgba(255,215,0,0.7);
+        position: relative;
+        overflow: hidden;
+    }
+    .modal-overlay.show .modal {
+        transform: scale(1);
+    }
+    .modal-emoji {
+        font-size: 70px;
+        margin-bottom: 8px;
+    }
+    .modal-title {
+        font-size: 24px;
+        color: #8B4513;
+        font-weight: bold;
+        margin-bottom: 8px;
+        letter-spacing: 3px;
+    }
+    .modal-desc {
+        font-size: 14px;
+        color: #A0522D;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+    }
+    .modal-value {
+        font-size: 20px;
+        color: #FF6347;
+        margin-bottom: 20px;
+    }
+    .modal-value .val-num {
+        color: #FFD700;
+        font-size: 48px;
+        text-shadow: 0 0 15px rgba(255,215,0,0.7);
+        margin: 0 6px;
+        font-weight: bold;
+    }
+    .modal-btn-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    .modal-share-btn {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255,165,0,0.5);
+        letter-spacing: 2px;
+    }
+    .modal-close-btn {
+        background: rgba(139,69,19,0.1);
+        color: #8B4513;
+        border: 1px solid rgba(139,69,19,0.3);
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        cursor: pointer;
+        letter-spacing: 2px;
+    }
+    .modal-close-btn:active, .modal-share-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* 流星雨动画容器 */
+    .meteor-layer {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 500;
+        overflow: hidden;
+    }
+    .meteor {
+        position: absolute;
+        width: 3px;
+        height: 40px;
+        background: linear-gradient(to bottom, transparent, #FFD700, #FFF);
+        border-radius: 50%;
+        box-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+        animation: meteorFall linear forwards;
+    }
+    @keyframes meteorFall {
+        0% {
+            transform: translate(0, 0) rotate(25deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(-300px, 800px) rotate(25deg);
+            opacity: 0;
+        }
+    }
+
+    /* 爆炸光晕 */
+    .halo-burst {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,215,0,0.4) 30%, transparent 70%);
+        z-index: 499;
+        pointer-events: none;
+        animation: haloBurstAnim 1.5s ease-out forwards;
+    }
+    @keyframes haloBurstAnim {
+        0% { width: 20px; height: 20px; opacity: 1; }
+        100% { width: 700px; height: 700px; opacity: 0; }
+    }
+
+    /* 提示 Toast */
+    .toast {
+        position: fixed;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(139,90,43,0.85);
+        color: #FFD700;
+        padding: 12px 28px;
+        border-radius: 28px;
+        font-size: 14px;
+        letter-spacing: 2px;
+        z-index: 800;
+        border: 1px solid rgba(255,215,0,0.4);
+        animation: toastIn 1.6s ease-out forwards;
+        pointer-events: none;
+    }
+    @keyframes toastIn {
+        0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.85); }
+        15%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        85%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -70%) scale(0.95); }
+    }
+
+    /* 顶部状态栏装饰 */
+    .stats-bar {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .stat-chip {
+        background: rgba(255,215,0,0.08);
+        border: 1px solid rgba(255,215,0,0.25);
+        border-radius: 14px;
+        padding: 6px 12px;
+        font-size: 11px;
+        color: rgba(255,215,0,0.85);
+        letter-spacing: 1px;
+    }
+    .stat-chip span { color: #FFD700; font-weight: bold; }
+
+    /* 返回首页 */
+    .back-home {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255,215,0,0.12);
+        border: 1px solid rgba(255,215,0,0.3);
+        color: #FFD700;
+        padding: 8px 20px;
+        border-radius: 18px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 100;
+        text-decoration: none;
+        letter-spacing: 2px;
+    }
+    .back-home:active { background: rgba(255,215,0,0.22); }
+
+    /* 小屏适配 */
+    @media (max-width: 360px) {
+        .back-char { font-size: 44px; }
+        .title { font-size: 22px; }
+        .card-wrap { max-width: 95px; }
+    }
+    </style>
+</head>
+<body>
+    <div class="light-rays"></div>
+    <div class="sparkle-container" id="sparkles"></div>
+    <div class="meteor-layer" id="meteorLayer"></div>
+
+    <div class="container">
+        <div class="top-glow"></div>
+
+        <div class="header">
+            <div class="source-tag" id="sourceTag">🏆 连续拜佛奖励</div>
+            <h1 class="title">福运翻牌</h1>
+            <p class="subtitle">翻开福运 · 祈得欢喜</p>
+        </div>
+
+        <div class="round-info">
+            第 <strong id="currentRound">1</strong> 轮 · 共 <strong>2</strong> 轮 · 剩余 <strong id="remainingCards">3</strong> 张
+        </div>
+
+        <div class="cards-area" id="cardsArea">
+            <!-- 3张卡片，由 JS 动态插入 -->
+        </div>
+
+        <div class="action-area">
+            <div class="hint-text" id="hintText">👆 点击卡片翻牌</div>
+            <button class="action-btn" id="nextRoundBtn" style="display:none;">🎴 再来一次</button>
+            <button class="action-btn" id="restartBtn" style="display:none;">🔄 再来一次</button>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-chip">已翻 <span id="flippedCount">0</span> / 6</div>
+            <div class="stat-chip">累计欢喜 <span id="totalHuaxi">0</span></div>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-home">← 返回首页</a>
+
+    <!-- 中奖弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-emoji" id="modalEmoji">🎉</div>
+            <div class="modal-title" id="modalTitle">恭喜中奖</div>
+            <div class="modal-desc" id="modalDesc">福运连连 · 心诚则灵</div>
+            <div class="modal-value">
+                +<span class="val-num" id="winAmount">0</span>欢喜
+            </div>
+            <div class="modal-btn-row">
+                <button class="modal-close-btn" id="modalCloseBtn">继续</button>
+                <button class="modal-share-btn" id="modalShareBtn">📤 分享奖励</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ========== 配置 ==========
+    const CARD_BACK_CHARS = ['福', '运', '来'];
+    const LOSER_ICONS = ['✨', '🌟', '💫', '🎐', '🕉️', '🙏', '🧧', '🪔', '🔔', '📿', '🌸', '🍀'];
+    const TOTAL_ROUNDS = 2;
+    const CARDS_PER_ROUND = 3;
+    const FLIPS_PER_ROUND = 3;
+    const TOTAL_FLIPS = TOTAL_ROUNDS * FLIPS_PER_ROUND; // 6
+    // 3欢喜(30%), 5欢喜(30%), 10欢喜(40%)
+    const WIN_AMOUNTS = [
+        { amount: 3, prob: 0.30 },
+        { amount: 5, prob: 0.30 },
+        { amount: 10, prob: 0.40 }
+    ];
+
+    // ========== 游戏状态 ==========
+    let gameState = {
+        currentRound: 0,            // 当前第0轮（0-indexed）
+        flipsInRound: 0,            // 本轮已翻次数
+        totalFlipped: 0,            // 总共已翻次数
+        totalHuaxi: 0,              // 累计欢喜
+        winnerRound: -1,            // 哪一轮中奖（随机）
+        winnerPosition: -1,         // 本轮中奖卡片是第几张
+        winnerAmount: 0,            // 中奖金额
+        hasWon: false,              // 是否已中奖
+        winnerTriggered: false,     // 是否已触发中奖特效与弹窗
+        revealedCards: []           // [{round, position, isWinner, amount/icon}]
+    };
+
+    const cardsArea = document.getElementById('cardsArea');
+    const currentRoundEl = document.getElementById('currentRound');
+    const remainingCardsEl = document.getElementById('remainingCards');
+    const flippedCountEl = document.getElementById('flippedCount');
+    const totalHuaxiEl = document.getElementById('totalHuaxi');
+    const hintText = document.getElementById('hintText');
+    const nextRoundBtn = document.getElementById('nextRoundBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalShareBtn = document.getElementById('modalShareBtn');
+    const winAmountEl = document.getElementById('winAmount');
+
+    // ========== 初始化 ==========
+    function initGame() {
+        // 随机决定哪一轮中奖
+        gameState.winnerRound = Math.floor(Math.random() * TOTAL_ROUNDS);
+
+        // 根据概率决定中奖金额
+        const rand = Math.random();
+        let cumProb = 0;
+        for (let i = 0; i < WIN_AMOUNTS.length; i++) {
+            cumProb += WIN_AMOUNTS[i].prob;
+            if (rand < cumProb) {
+                gameState.winnerAmount = WIN_AMOUNTS[i].amount;
+                break;
+            }
+        }
+
+        // 决定本轮中哪张卡片是中奖卡
+        gameState.winnerPosition = Math.floor(Math.random() * CARDS_PER_ROUND);
+
+        // 重置其他状态
+        gameState.currentRound = 0;
+        gameState.flipsInRound = 0;
+        gameState.totalFlipped = 0;
+        gameState.totalHuaxi = 0;
+        gameState.hasWon = false;
+        gameState.winnerTriggered = false;
+        gameState.revealedCards = [];
+
+        renderRound();
+        updateStats();
+    }
+
+    // ========== 渲染当前轮的卡片 ==========
+    function renderRound() {
+        currentRoundEl.textContent = gameState.currentRound + 1;
+
+        // 构建3张卡片
+        cardsArea.innerHTML = '';
+        for (let i = 0; i < CARDS_PER_ROUND; i++) {
+            const wrap = document.createElement('div');
+            wrap.className = 'card-wrap';
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.position = i;
+
+            // 判断这张卡片是否是中奖卡（仅在中奖轮时，且对应位置才是winner）
+            const isWinner = (gameState.currentRound === gameState.winnerRound && i === gameState.winnerPosition);
+
+            // 正面内容
+            let frontHtml = '';
+            if (isWinner) {
+                frontHtml = `
+                    <div class="card-face card-front winner">
+                        <div class="front-icon">${gameState.winnerAmount}</div>
+                        <div class="front-label">欢喜</div>
+                    </div>`;
+            } else {
+                // 随机图标
+                const randomIcon = LOSER_ICONS[Math.floor(Math.random() * LOSER_ICONS.length)];
+                frontHtml = `
+                    <div class="card-face card-front">
+                        <div class="front-icon-only">${randomIcon}</div>
+                    </div>`;
+            }
+
+            // 背面（福/运/来）
+            const backChar = CARD_BACK_CHARS[i];
+            const backHtml = `
+                <div class="card-face card-back">
+                    <div class="back-char">${backChar}</div>
+                </div>`;
+
+            // 注意：rotateY翻转规则是 card.flipped → rotateY(540deg)
+            // 初始状态：背面朝前（即用户看到"福/运/来"）
+            // 翻转后：正面朝前（用户看到金额/图标）
+            // 为了让"福/运/来"默认可见，card-back不要加rotateY(180deg)
+            // 但 CSS 已写：card-front 是 transform: rotateY(180deg)，card-back 是默认
+            // 所以默认用户看到 card-back（"福/运/来"），flipped后用户看到 card-front
+            card.innerHTML = backHtml + frontHtml;
+
+            // 绑定点击事件
+            card.addEventListener('click', () => onCardClick(card, i, isWinner));
+
+            wrap.appendChild(card);
+            cardsArea.appendChild(wrap);
+        }
+
+        // 更新剩余可翻数
+        remainingCardsEl.textContent = CARDS_PER_ROUND;
+        hintText.textContent = '👆 点击卡片翻牌（每轮翻完3张）';
+        nextRoundBtn.style.display = 'none';
+        restartBtn.style.display = 'none';
+    }
+
+    // ========== 点击卡片 ==========
+    function onCardClick(cardEl, position, isWinner) {
+        // 已翻过或已翻完本轮，或全局中奖已发
+        if (cardEl.classList.contains('flipped')) return;
+        if (gameState.flipsInRound >= FLIPS_PER_ROUND) return;
+        if (gameState.hasWon && gameState.winnerTriggered) return;
+
+        cardEl.classList.add('flipped');
+        gameState.flipsInRound++;
+        gameState.totalFlipped++;
+        remainingCardsEl.textContent = CARDS_PER_ROUND - gameState.flipsInRound;
+        flippedCountEl.textContent = gameState.totalFlipped;
+
+        // 播放翻牌音
+        playFlipSound();
+
+        // 如果是中奖卡，标记中奖状态，但不立刻触发特效（等翻完本轮）
+        if (isWinner) {
+            gameState.hasWon = true;
+            gameState.winnerRound = gameState.currentRound;
+            gameState.totalHuaxi += gameState.winnerAmount;
+            totalHuaxiEl.textContent = gameState.totalHuaxi;
+            cardEl.classList.add('revealed-winner');
+        }
+
+        // 本轮是否翻完
+        if (gameState.flipsInRound >= FLIPS_PER_ROUND) {
+            if (gameState.hasWon && gameState.winnerRound === gameState.currentRound && !gameState.winnerTriggered) {
+                gameState.winnerTriggered = true;
+                setTimeout(() => {
+                    triggerMeteorShower();
+                    triggerHaloBurst();
+                    playWinSound();
+                    showWinModal(gameState.winnerAmount);
+                }, 2000);
+            } else if (!gameState.hasWon) {
+                setTimeout(() => {
+                    if (gameState.currentRound < TOTAL_ROUNDS - 1) {
+                        hintText.textContent = '本轮未中 · 请点击「再来一次」';
+                        nextRoundBtn.style.display = 'inline-block';
+                    } else {
+                        hintText.textContent = '福运未至 · 下次再来';
+                        restartBtn.style.display = 'inline-block';
+                        showToast('🙏 福运未到，下次再来');
+                    }
+                }, 900);
+            }
+        }
+    }
+
+    // ========== 再抽一轮 ==========
+    nextRoundBtn.addEventListener('click', () => {
+        if (gameState.hasWon) return;
+        if (gameState.currentRound >= TOTAL_ROUNDS - 1) return;
+        gameState.currentRound++;
+        gameState.flipsInRound = 0;
+        renderRound();
+        updateStats();
+    });
+
+    // ========== 重新开始 ==========
+    restartBtn.addEventListener('click', () => {
+        initGame();
+    });
+
+    // ========== 中奖弹窗 ==========
+    function showWinModal(amount) {
+        winAmountEl.textContent = amount;
+        modalOverlay.classList.add('show');
+    }
+
+    modalCloseBtn.addEventListener('click', () => {
+        modalOverlay.classList.remove('show');
+        // 中奖后结束游戏
+        hintText.textContent = '🎉 恭喜获得 ' + gameState.winnerAmount + ' 欢喜！';
+        restartBtn.style.display = 'inline-block';
+        nextRoundBtn.style.display = 'none';
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalCloseBtn.click();
+        }
+    });
+
+    // ========== 分享奖励 ==========
+    modalShareBtn.addEventListener('click', () => {
+        const shareText = `我在【祈个福】福运翻牌中抽到了 ${gameState.winnerAmount} 欢喜，快来一起祈福吧~`;
+        const shareUrl = window.location.origin + window.location.pathname;
+        if (navigator.share) {
+            navigator.share({ title: '祈个福', text: shareText, url: shareUrl }).catch(() => {});
+        } else {
+            const fullText = shareText + ' ' + shareUrl;
+            navigator.clipboard.writeText(fullText).then(() => {
+                showToast('✨ 分享内容已复制');
+            }).catch(() => {
+                alert('请复制分享：\n\n' + fullText);
+            });
+        }
+    });
+
+    // ========== 特效：流星雨 ==========
+    function triggerMeteorShower() {
+        const layer = document.getElementById('meteorLayer');
+        for (let i = 0; i < 25; i++) {
+            const m = document.createElement('div');
+            m.className = 'meteor';
+            m.style.left = (40 + Math.random() * 70) + '%';
+            m.style.top = (-10 - Math.random() * 30) + '%';
+            const dur = 0.8 + Math.random() * 1.2;
+            m.style.animationDuration = dur + 's';
+            m.style.animationDelay = (Math.random() * 0.8) + 's';
+            m.style.height = (30 + Math.random() * 40) + 'px';
+            layer.appendChild(m);
+            setTimeout(() => m.remove(), (dur + 1.2) * 1000);
+        }
+    }
+
+    // ========== 特效：金色环形光晕 ==========
+    function triggerHaloBurst() {
+        const burst = document.createElement('div');
+        burst.className = 'halo-burst';
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 1600);
+    }
+
+    // ========== Toast 提示 ==========
+    function showToast(text) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = text;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1700);
+    }
+
+    // ========== 更新统计 ==========
+    function updateStats() {
+        flippedCountEl.textContent = gameState.totalFlipped;
+        totalHuaxiEl.textContent = gameState.totalHuaxi;
+    }
+
+    // ========== 音效（使用 Web Audio API 生成简单音效）==========
+    let audioCtx = null;
+    function getAudioCtx() {
+        if (!audioCtx) {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) { return null; }
+        }
+        return audioCtx;
+    }
+
+    function playFlipSound() {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+    }
+
+    function playWinSound() {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        // 模拟金币落地：一连串短促的金属音
+        const intervals = [0, 0.08, 0.18, 0.3, 0.45, 0.6, 0.78, 1.0];
+        intervals.forEach((delay, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            const freq = 900 - idx * 60 + Math.random() * 100;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + delay + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.18);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.2);
+        });
+    }
+
+    // ========== 连续拜佛检测（读取 localStorage 的 prayStreak）==========
+    function checkPrayStreak() {
+        try {
+            const streak = parseInt(localStorage.getItem('prayStreak') || '0', 10);
+            return streak >= 7;
+        } catch (e) { return false; }
+    }
+
+    // 初始化星光背景
+    (function initSparkles() {
+        const container = document.getElementById('sparkles');
+        for (let i = 0; i < 40; i++) {
+            const s = document.createElement('div');
+            s.className = 'sparkle';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.opacity = (0.3 + Math.random() * 0.5).toFixed(2);
+            s.style.animation = `meteorFall ${2 + Math.random() * 3}s ease-in-out infinite`;
+            container.appendChild(s);
+        }
+    })();
+
+    // 启动游戏
+    initGame();
+
+    // 如果用户不是连续拜佛7天，则提示（但仍允许试玩，以便演示）
+    // 在真实场景中，这里可以阻止进入
+    if (!checkPrayStreak()) {
+        document.getElementById('sourceTag').textContent = '🎁 试玩演示';
+        // 可选择：setTimeout(() => showToast('连续拜佛7天后方可翻牌'), 500);
+    }
+    </script>
+</body>
+</html>

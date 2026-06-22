@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章管理 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FFFBEE;
+            min-height: 100vh;
+            color: #4A3728;
+            max-width: 430px;
+            margin: 0 auto;
+            position: relative;
+            padding-bottom: 40px;
+        }
+        .status-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            padding: 10px 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 10;
+            color: #4A3728;
+        }
+        .back-btn {
+            position: absolute;
+            top: 8px; left: 12px;
+            width: 32px; height: 32px;
+            background: rgba(139,90,43,0.18);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            color: #8B5A2B;
+            border: none;
+            font-weight: 700;
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .page-header {
+            padding: 64px 20px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .page-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 22px;
+            color: #8B5A2B;
+            letter-spacing: 4px;
+        }
+        .page-title-left { width: 32px; }
+
+        .page-subtitle-bar {
+            padding: 0 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #C2362B;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .dot-red {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #C2362B;
+        }
+
+        .scroll-area { padding: 0 20px 10px; }
+
+        /* 顶部操作按钮 */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .big-btn {
+            flex: 1;
+            padding: 12px 10px;
+            border-radius: 12px;
+            border: none;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            transition: all 0.2s;
+        }
+        .big-btn:active { transform: scale(0.97); }
+        .big-btn.new {
+            background: linear-gradient(135deg,#8B5A2B 0%,#D4AF37 100%);
+            color: #FFFBEE;
+            box-shadow: 0 3px 10px rgba(139,90,43,0.25);
+        }
+        .big-btn.reset {
+            background: #FFF8EC;
+            color: #8B5A2B;
+            border: 1.5px solid #D4A574;
+        }
+
+        /* 搜索框 */
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1.5px solid #D4A574;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+        }
+        .search-icon { font-size: 14px; color: #8B5A2B; }
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            color: #4A3728;
+            font-family: inherit;
+        }
+        .search-input::placeholder { color: #8B7355; opacity: 0.6; }
+
+        /* 分类筛选 */
+        .category-filter {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .filter-chip {
+            padding: 6px 12px;
+            border-radius: 16px;
+            background: #FFF8EC;
+            border: 1.5px solid #D4A574;
+            color: #8B5A2B;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .filter-chip:active { transform: scale(0.96); }
+        .filter-chip.active {
+            background: linear-gradient(135deg,#8B5A2B 0%,#D4AF37 100%);
+            color: #FFFBEE;
+            border-color: #8B5A2B;
+        }
+
+        /* 分类标题（金色竖条 + 标题 + 金色分隔线） */
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 15px;
+            font-weight: 600;
+            color: #8B5A2B;
+            padding: 16px 0 8px;
+            margin-top: 4px;
+            letter-spacing: 2px;
+        }
+        .category-header::before {
+            content: "";
+            display: inline-block;
+            width: 3px;
+            height: 16px;
+            background: linear-gradient(180deg, #D4AF37, #8B5A2B);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .category-header::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0) 100%);
+            margin-left: 4px;
+        }
+        .category-header .count {
+            font-size: 10px;
+            color: #8B7355;
+            padding: 2px 8px;
+            background: #FFF8EC;
+            border-radius: 10px;
+            font-family: inherit;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        /* 文章行（一行内容） */
+        .article-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 4px;
+            border-bottom: 1px solid rgba(139,90,43,0.1);
+        }
+        .article-row:last-child { border-bottom: none; }
+
+        .article-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .article-title {
+            font-size: 13px;
+            color: #4A3728;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            font-family: 'Ma Shan Zheng', cursive;
+            flex-shrink: 0;
+        }
+        .tag.category {
+            background: #FFF8EC;
+            color: #8B5A2B;
+            border: 1px solid #D4A574;
+        }
+        .tag.status {
+            background: rgba(212,175,55,0.15);
+            color: #8B5A2B;
+            border: 1px solid #D4AF37;
+        }
+        .tag.status.published {
+            background: rgba(74,124,126,0.15);
+            color: #4A7C7E;
+            border-color: #4A7C7E;
+        }
+        .tag.status.draft {
+            background: rgba(200,85,61,0.15);
+            color: #C2362B;
+            border-color: #C2362B;
+        }
+        .article-date {
+            font-size: 10px;
+            color: #8B7355;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .mini-btn {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            border: 1.5px solid #D4A574;
+            background: #FFF8EC;
+            color: #8B5A2B;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .mini-btn:active { transform: scale(0.94); }
+        .mini-btn.delete {
+            background: #fff;
+            color: #C2362B;
+            border-color: rgba(200,85,61,0.5);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: #8B7355;
+            font-size: 12px;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .admin-tip {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #8B7355;
+            opacity: 0.75;
+            letter-spacing: 2px;
+            font-family: 'Ma Shan Zheng', cursive;
+            line-height: 1.6;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            background: rgba(139,90,43,0.94);
+            color: #FFFBEE;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.9);
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+    <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+
+    <div class="page-header">
+        <button class="back-btn" onclick="try{window.parent.goPage(7);}catch(e){window.history.back();}" aria-label="返回">‹</button>
+        <div class="page-title">✦ 文章管理</div>
+        <div class="page-title-left"></div>
+    </div>
+
+    <div class="page-subtitle-bar">
+        <span class="dot-red"></span>
+        <span>祈福 · 追思 · 公告 · 活动</span>
+        <span class="dot-red"></span>
+    </div>
+
+    <div class="scroll-area">
+
+        <!-- 顶部操作按钮 -->
+        <div class="action-bar">
+            <button class="big-btn new" onclick="newArticle()">＋ 新建文章</button>
+            <button class="big-btn reset" onclick="resetAll()">↺ 重置默认</button>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="searchInput" placeholder="按标题搜索文章..." oninput="onSearchInput()">
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="category-filter" id="filterBar">
+            <button class="filter-chip active" data-filter="all" onclick="setFilter('all')">全部</button>
+            <button class="filter-chip" data-filter="blessing" onclick="setFilter('blessing')">祈福</button>
+            <button class="filter-chip" data-filter="memorial" onclick="setFilter('memorial')">追思</button>
+            <button class="filter-chip" data-filter="notice" onclick="setFilter('notice')">公告</button>
+            <button class="filter-chip" data-filter="activity" onclick="setFilter('activity')">活动</button>
+        </div>
+
+        <!-- 内容区域（由 JS 渲染） -->
+        <div id="contentArea"></div>
+
+        <div class="admin-tip">— 数据键 articleSettings · 自动保存 —</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 默认配置 ==========
+        const CATEGORY_MAP = {
+            blessing: '祈福',
+            memorial: '追思',
+            notice:   '公告',
+            activity: '活动'
+        };
+        const CATEGORY_ORDER = ['blessing', 'memorial', 'notice', 'activity'];
+        const STORAGE_KEY = 'articleSettings';
+
+        const DEFAULTS = {
+            articles: [
+                { id: 'a1', title: '今日祈福 · 平安喜乐', category: 'blessing', status: 'published', date: '2026-06-18' },
+                { id: 'a2', title: '文殊菩萨圣诞日祈福', category: 'blessing', status: 'published', date: '2026-06-10' },
+                { id: 'a3', title: '普贤菩萨行愿品', category: 'blessing', status: 'draft', date: '2026-06-05' },
+                { id: 'a4', title: '追思 · 先祖父大人', category: 'memorial', status: 'published', date: '2026-05-28' },
+                { id: 'a5', title: '追思 · 慈母百日', category: 'memorial', status: 'draft', date: '2026-05-15' },
+                { id: 'a6', title: '关于平台「欢喜值」规则调整', category: 'notice', status: 'published', date: '2026-06-12' },
+                { id: 'a7', title: '系统维护通知 · 6月20日', category: 'notice', status: 'published', date: '2026-06-15' },
+                { id: 'a8', title: '新版佛像上线公告', category: 'notice', status: 'draft', date: '2026-06-01' },
+                { id: 'a9', title: '端午节 · 线上点灯活动', category: 'activity', status: 'published', date: '2026-06-18' },
+                { id: 'a10', title: '七夕 · 姻缘祈福法会', category: 'activity', status: 'draft', date: '2026-07-01' }
+            ]
+        };
+
+        // ========== 状态 ==========
+        let state = {
+            articles: [],
+            filter: 'all',
+            keyword: ''
+        };
+
+        // ========== Toast ==========
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+        }
+
+        // ========== 加载 / 保存 ==========
+        function loadData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data && Array.isArray(data.articles)) {
+                        state.articles = data.articles;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('加载文章设置失败，使用默认值', e);
+            }
+            state.articles = JSON.parse(JSON.stringify(DEFAULTS.articles));
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ articles: state.articles }));
+                localStorage.setItem(STORAGE_KEY + 'Updated', Date.now().toString());
+            } catch (e) {
+                showToast('❌ 保存失败');
+            }
+        }
+
+        // ========== 渲染 ==========
+        function statusLabel(status) {
+            return status === 'published' ? '已发布' : (status === 'draft' ? '草稿' : '未发布');
+        }
+        function statusClass(status) {
+            return status === 'published' ? 'published' : (status === 'draft' ? 'draft' : '');
+        }
+
+        function renderArticleRow(a) {
+            return (
+                '<div class="article-row">' +
+                    '<div class="article-main">' +
+                        '<div class="article-title">' + escapeHtml(a.title) + '</div>' +
+                        '<div class="article-meta">' +
+                            '<span class="tag category">' + (CATEGORY_MAP[a.category] || '未分类') + '</span>' +
+                            '<span class="tag status ' + statusClass(a.status) + '">' + statusLabel(a.status) + '</span>' +
+                            '<span class="article-date">' + (a.date || '') + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="article-actions">' +
+                        '<button class="mini-btn" onclick="editArticle(\'' + a.id + '\')">编辑</button>' +
+                        '<button class="mini-btn delete" onclick="deleteArticle(\'' + a.id + '\')">删除</button>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        function render() {
+            const area = document.getElementById('contentArea');
+            const keyword = state.keyword.trim().toLowerCase();
+
+            // 过滤
+            const filtered = state.articles.filter(a => {
+                if (state.filter !== 'all' && a.category !== state.filter) return false;
+                if (keyword && (a.title || '').toLowerCase().indexOf(keyword) === -1) return false;
+                return true;
+            });
+
+            // 如选中筛选「全部」，按分类分组展示
+            if (state.filter === 'all' && !keyword) {
+                let html = '';
+                CATEGORY_ORDER.forEach(cat => {
+                    const items = filtered.filter(a => a.category === cat);
+                    if (items.length === 0) return;
+                    html += '<div class="category-header">' + CATEGORY_MAP[cat] + '<span class="count">' + items.length + ' 篇</span></div>';
+                    items.forEach(a => html += renderArticleRow(a));
+                });
+                if (!html) html = '<div class="empty-state">✦ 暂无文章 ✦</div>';
+                area.innerHTML = html;
+                return;
+            }
+
+            // 已筛选或搜索，平铺列表
+            if (filtered.length === 0) {
+                area.innerHTML = '<div class="empty-state">✦ 未找到匹配文章 ✦</div>';
+                return;
+            }
+            let html = '<div class="category-header">' +
+                (keyword ? ('搜索：' + state.keyword) : CATEGORY_MAP[state.filter]) +
+                '<span class="count">' + filtered.length + ' 篇</span></div>';
+            filtered.forEach(a => html += renderArticleRow(a));
+            area.innerHTML = html;
+        }
+
+        // ========== 交互 ==========
+        function setFilter(filter) {
+            state.filter = filter;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            render();
+        }
+
+        function onSearchInput() {
+            state.keyword = document.getElementById('searchInput').value;
+            render();
+        }
+
+        function newArticle() {
+            const title = prompt('请输入文章标题：', '新建文章');
+            if (!title) return;
+            const category = prompt('请输入分类代码（blessing 祈福 / memorial 追思 / notice 公告 / activity 活动）：', 'blessing');
+            if (!CATEGORY_MAP[category]) {
+                showToast('❌ 分类无效');
+                return;
+            }
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            state.articles.unshift({
+                id: 'a' + Date.now(),
+                title: title.trim(),
+                category: category,
+                status: 'draft',
+                date: yyyy + '-' + mm + '-' + dd
+            });
+            saveData();
+            render();
+            showToast('✦ 已新建文章');
+        }
+
+        function editArticle(id) {
+            const a = state.articles.find(x => x.id === id);
+            if (!a) return;
+            const newTitle = prompt('编辑文章标题：', a.title);
+            if (newTitle === null) return;
+            a.title = newTitle.trim() || a.title;
+            if (a.status === 'draft') a.status = 'published';
+            saveData();
+            render();
+            showToast('✦ 已保存编辑');
+        }
+
+        function deleteArticle(id) {
+            if (!confirm('确认删除该文章？')) return;
+            state.articles = state.articles.filter(a => a.id !== id);
+            saveData();
+            render();
+            showToast('✦ 已删除');
+        }
+
+        function resetAll() {
+            if (!confirm('恢复默认文章列表？')) return;
+            state.articles = JSON.parse(JSON.stringify(DEFAULTS.articles));
+            saveData();
+            render();
+            showToast('✦ 已重置');
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        // ========== 初始化 ==========
+        loadData();
+        render();
+    </script>
+</body>
+</html>

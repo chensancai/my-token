@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章编辑 | 祈个福</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FFFBEE;
+            min-height: 100vh;
+            color: #4A3728;
+            display: flex;
+            justify-content: center;
+        }
+        .page-container {
+            width: 100%;
+            max-width: 430px;
+            min-height: 100vh;
+            background: #FFFBEE;
+            position: relative;
+            padding: 10px;
+        }
+        .status-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            padding: 10px 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+            color: rgba(0,0,0,0.7);
+        }
+        .back-btn {
+            position: absolute;
+            top: 52px; left: 16px;
+            width: 32px; height: 32px;
+            background: rgba(139,90,43,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            color: #8B5A2B;
+            border: 1px solid rgba(139,90,43,0.2);
+        }
+        .back-btn:active { transform: scale(0.93); }
+
+        .page-header {
+            padding: 90px 20px 20px;
+            background: linear-gradient(135deg, #4A148C 0%, #8B5A2B 100%);
+            color: #fff;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            margin: -10px -10px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -20%;
+            width: 140%; height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(212,175,55,0.15), transparent 50%);
+            pointer-events: none;
+        }
+        .page-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 24px;
+            letter-spacing: 6px;
+            position: relative;
+            z-index: 2;
+        }
+        .page-subtitle {
+            font-size: 11px;
+            opacity: 0.85;
+            letter-spacing: 3px;
+            margin-top: 4px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-label {
+            font-size: 13px;
+            color: #8B5A2B;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: block;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1px solid #D4A574;
+            border-radius: 8px;
+            background: #FFF8EC;
+            color: #4A3728;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus { border-color: #8B5A2B; box-shadow: 0 0 0 3px rgba(139,90,43,0.1); }
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        .form-textarea.big { min-height: 320px; line-height: 1.8; }
+
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B5A2B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            padding-right: 38px;
+        }
+
+        .status-switch {
+            display: flex;
+            background: #FFF8EC;
+            border: 1px solid #D4A574;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .status-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 3px;
+            color: #8B7355;
+            transition: all 0.2s;
+        }
+        .status-option.active {
+            background: linear-gradient(135deg, #4A148C 0%, #8B5A2B 100%);
+            color: #fff;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 24px;
+            padding-bottom: 30px;
+        }
+        .action-row {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 14px 0;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            border: none;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .btn-action:active { transform: scale(0.97); }
+        .btn-cancel { background: #fff; color: #8B7355; border: 1px solid #D4A574; }
+        .btn-save { background: #FFF8EC; color: #8B5A2B; border: 1px solid #D4A574; }
+        .btn-publish {
+            background: linear-gradient(135deg, #4A148C 0%, #8B5A2B 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(74,20,140,0.25);
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,90,43,0.94);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-family: 'Ma Shan Zheng', cursive;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="status-bar"><span>9:41</span><span>●●● 5G</span></div>
+        <button class="back-btn" onclick="handleBack()" aria-label="返回">‹</button>
+
+        <div class="page-header">
+            <div class="page-title">编辑文章</div>
+            <div class="page-subtitle">祈 · 追思 · 公告 · 活动</div>
+        </div>
+
+        <!-- 文章标题 -->
+        <div class="form-group">
+            <label class="form-label" for="title">文章标题</label>
+            <input type="text" id="title" class="form-input" placeholder="请输入文章标题">
+        </div>
+
+        <!-- 文章分类 -->
+        <div class="form-group">
+            <label class="form-label" for="category">文章分类</label>
+            <select id="category" class="form-input">
+                <option value="祈福">祈福</option>
+                <option value="追思">追思</option>
+                <option value="公告">公告</option>
+                <option value="活动">活动</option>
+            </select>
+        </div>
+
+        <!-- 状态切换 -->
+        <div class="form-group">
+            <label class="form-label">文章状态</label>
+            <div class="status-switch" id="statusSwitch">
+                <div class="status-option active" data-status="已发布" onclick="selectStatus(this)">已发布</div>
+                <div class="status-option" data-status="草稿" onclick="selectStatus(this)">草稿</div>
+            </div>
+        </div>
+
+        <!-- 文章正文 -->
+        <div class="form-group">
+            <label class="form-label" for="content">文章正文</label>
+            <textarea id="content" class="form-input form-textarea big" placeholder="在此编写文章正文...&#10;&#10;示例：&#10;&#10;# 第一章&#10;&#10;正文内容……"></textarea>
+        </div>
+
+        <!-- 按钮 -->
+        <div class="action-group">
+            <button class="btn-action btn-publish" onclick="handleAction('publish')">发 布</button>
+            <div class="action-row">
+                <button class="btn-action btn-save" onclick="handleAction('save')">保存草稿</button>
+                <button class="btn-action btn-cancel" onclick="handleAction('cancel')">取 消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const STORAGE_KEY = 'articleEdit';
+        const els = {
+            title: document.getElementById('title'),
+            category: document.getElementById('category'),
+            content: document.getElementById('content'),
+            status: '已发布'
+        };
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        function selectStatus(el) {
+            document.querySelectorAll('.status-option').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            els.status = el.dataset.status;
+        }
+
+        function getCurrentData() {
+            return {
+                title: els.title.value,
+                category: els.category.value,
+                content: els.content.value,
+                status: els.status,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (data.title !== undefined) els.title.value = data.title;
+                if (data.category !== undefined) els.category.value = data.category;
+                if (data.content !== undefined) els.content.value = data.content;
+                if (data.status) {
+                    const opts = document.querySelectorAll('.status-option');
+                    opts.forEach(o => {
+                        o.classList.toggle('active', o.dataset.status === data.status);
+                    });
+                    els.status = data.status;
+                }
+            } catch (e) {
+                console.warn('加载失败', e);
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(getCurrentData()));
+                return true;
+            } catch (e) {
+                console.warn('保存失败', e);
+                return false;
+            }
+        }
+
+        function handleAction(type) {
+            const data = getCurrentData();
+            if (type === 'publish') {
+                if (!data.title.trim()) { showToast('请填写文章标题'); return; }
+                if (!data.content.trim()) { showToast('请填写文章正文'); return; }
+                saveData();
+                showToast('✦ 文章已发布');
+            } else if (type === 'save') {
+                saveData();
+                showToast('✦ 已保存草稿');
+            } else if (type === 'cancel') {
+                showToast('✦ 已取消');
+                setTimeout(() => { if (history.length > 1) history.back(); }, 400);
+            }
+        }
+
+        function handleBack() {
+            try { window.parent.goPage(7); } catch(e) {
+                if (history.length > 1) history.back();
+                else showToast('✦ 返回');
+            }
+        }
+
+        ['title','category','content'].forEach(k => {
+            els[k].addEventListener('input', () => {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(getCurrentData()));
+                } catch (e) {}
+            });
+        });
+
+        loadData();
+    </script>
+</body>
+</html>

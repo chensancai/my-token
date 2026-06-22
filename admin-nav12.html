@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 · 参数管理</title>
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        margin: 0;
+        background: linear-gradient(180deg, #1a0a2e 0%, #0d0015 100%);
+        min-height: 100vh;
+        color: #FFD700;
+        padding-bottom: 80px;
+    }
+
+    /* 头部：参考 buddha-admin11 */
+    .header {
+        background: linear-gradient(180deg, rgba(61,42,15,0.6) 0%, rgba(42,26,8,0.3) 100%);
+        padding: 14px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(212,175,55,0.35);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(8px);
+    }
+
+    .header h1 { font-size: 17px; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.35); font-weight: 600; }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    .header-btn {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .header-btn.reset { background: transparent; color: #FFD700; border: 1px solid rgba(212,175,55,0.6); }
+
+    /* 主内容 */
+    .container { padding: 10px 14px; }
+
+    /* 分类卡片：去除方框 */
+    .category-card {
+        margin-bottom: 28px;
+    }
+
+    /* 分类标题：简约文字 + 金色下划线 + 左侧金色竖条 */
+    .category-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #FFD700;
+        padding: 10px 0 8px 0;
+        margin-bottom: 4px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+        position: relative;
+    }
+
+    .category-header::before {
+        content: "";
+        display: inline-block;
+        width: 3px;
+        height: 16px;
+        background: linear-gradient(180deg, #FFD700, #FFA500);
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    /* 子标题说明 */
+    .sub-section {
+        padding: 6px 4px 10px 13px;
+        font-size: 12px;
+        color: rgba(255, 215, 0, 0.55);
+    }
+
+    /* 内容区域：去 padding 和边框 */
+    .category-content { padding: 0; border: none; }
+
+    /* item-row：简约水平列表，上下 padding 12px，只有底部极细分隔线 */
+    .item-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 4px;
+        gap: 12px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+    }
+
+    .item-row:last-child { border-bottom: none; }
+
+    /* item-preview */
+    .item-preview {
+        width: 46px;
+        height: 46px;
+        background: rgba(255, 215, 0, 0.06);
+        border: 1px solid rgba(212, 175, 55, 0.35);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .item-info { flex: 1; min-width: 0; }
+
+    .item-label {
+        font-size: 13px;
+        color: rgba(255, 215, 0, 0.9);
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+
+    .item-inputs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    /* 数字输入：透明底 + 细金色边框 */
+    .num-input {
+        width: 80px;
+        padding: 6px 10px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 6px;
+        background: transparent;
+        color: #FFD700;
+        font-size: 12px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .num-input:focus { outline: none; border-color: #FFD700; }
+
+    /* 文本输入：透明底 + 细金色边框 */
+    .text-input {
+        flex: 1;
+        min-width: 80px;
+        padding: 6px 10px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 6px;
+        background: transparent;
+        color: #FFD700;
+        font-size: 12px;
+    }
+
+    .text-input:focus { outline: none; border-color: #FFD700; }
+
+    .unit-label {
+        font-size: 11px;
+        color: rgba(255, 215, 0, 0.65);
+        white-space: nowrap;
+    }
+
+    /* 保存按钮：金色描边透明底圆角按钮 */
+    .save-btn {
+        padding: 6px 14px;
+        background: transparent;
+        color: #FFD700;
+        border: 1px solid rgba(212, 175, 55, 0.5);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+    .save-btn:hover, .save-btn:active {
+        background: rgba(212, 175, 55, 0.15);
+        border-color: #FFD700;
+    }
+
+    /* toggle 开关：启用态淡金色半透明，禁用态灰色 */
+    .switch-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(120, 120, 120, 0.4);
+        transition: .3s;
+        border-radius: 24px;
+        border: 1px solid rgba(212, 175, 55, 0.25);
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 2px;
+        bottom: 2px;
+        background-color: #e8e8e8;
+        transition: .3s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background: linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,165,0,0.18));
+        border-color: #FFD700;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+        background-color: #FFD700;
+    }
+
+    .switch-label {
+        font-size: 12px;
+        color: rgba(255, 215, 0, 0.75);
+        min-width: 30px;
+    }
+
+    /* 时间输入 */
+    .time-input {
+        width: 70px;
+        padding: 6px 10px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 6px;
+        background: transparent;
+        color: #FFD700;
+        font-size: 12px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .time-input:focus { outline: none; border-color: #FFD700; }
+
+    /* toast：深棕金色半透明背景，圆角更紧凑 */
+    .toast {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(61, 42, 15, 0.9);
+        color: #FFD700;
+        padding: 14px 22px;
+        border-radius: 10px;
+        font-size: 13px;
+        z-index: 2000;
+        display: none;
+        text-align: center;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+    }
+
+    .toast.show { display: block; animation: fadeIn 0.3s; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* 返回按钮 */
+    .back-home {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1a0a2e;
+        padding: 10px 24px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(255,165,0,0.35);
+        z-index: 100;
+    }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 参数管理</h1>
+        <div class="header-actions">
+            <button class="header-btn reset" onclick="resetToDefault()">恢复默认</button>
+            <button class="header-btn" onclick="saveAll()">💾 保存</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="category-card">
+            <div class="category-header">💰 香参数（祈福页/追思页共用）</div>
+            <div class="category-content">
+                <div class="item-row">
+                    <div class="item-preview">🌿</div>
+                    <div class="item-info">
+                        <div class="item-label">三支香</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_incense_3_price" value="2" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_incense_3_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_incense_3_buddha" value="1" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_incense_3')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🌸</div>
+                    <div class="item-info">
+                        <div class="item-label">六支香</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_incense_6_price" value="5" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_incense_6_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_incense_6_buddha" value="2" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_incense_6')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🏵</div>
+                    <div class="item-info">
+                        <div class="item-label">九支香</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_incense_9_price" value="8" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_incense_9_days" value="2" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_incense_9_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_incense_9')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🔥</div>
+                    <div class="item-info">
+                        <div class="item-label">头香（最尊贵）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_incense_head_price" value="50" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_incense_head_days" value="3" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_incense_head_buddha" value="10" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_incense_head')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-card">
+            <div class="category-header">🪔 灯参数（祈福页/追思页共用）</div>
+            <div class="category-content">
+                <div class="item-row">
+                    <div class="item-preview">🟡</div>
+                    <div class="item-info">
+                        <div class="item-label">财福灯（金色火苗）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_lamp_wealth_price" value="8" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_lamp_wealth_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_lamp_wealth_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_lamp_wealth')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🟣</div>
+                    <div class="item-info">
+                        <div class="item-label">事业灯（紫色火苗）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_lamp_career_price" value="8" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_lamp_career_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_lamp_career_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_lamp_career')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🩷</div>
+                    <div class="item-info">
+                        <div class="item-label">姻缘灯（粉色火苗）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_lamp_love_price" value="8" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_lamp_love_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_lamp_love_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_lamp_love')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🟠</div>
+                    <div class="item-info">
+                        <div class="item-label">安康灯（黄色火苗）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_lamp_health_price" value="10" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_lamp_health_days" value="2" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_lamp_health_buddha" value="4" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_lamp_health')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🔵</div>
+                    <div class="item-info">
+                        <div class="item-label">学业灯（蓝色火苗）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_lamp_study_price" value="10" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_lamp_study_days" value="2" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_lamp_study_buddha" value="4" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_lamp_study')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🌟</div>
+                    <div class="item-info">
+                        <div class="item-label">长明灯（白金色火苗）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_lamp_eternal_price" value="100" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_lamp_eternal_days" value="7" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_lamp_eternal_buddha" value="15" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_lamp_eternal')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-card">
+            <div class="category-header">🌸 贡品参数（祈福页/追思页共用）</div>
+            <div class="category-content">
+                <div class="item-row">
+                    <div class="item-preview">💐</div>
+                    <div class="item-info">
+                        <div class="item-label">花供</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_offering_flower_price" value="5" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_offering_flower_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_offering_flower_buddha" value="2" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_offering_flower')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🍎</div>
+                    <div class="item-info">
+                        <div class="item-label">果供</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_offering_fruit_price" value="3" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_offering_fruit_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_offering_fruit_buddha" value="1" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_offering_fruit')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🥮</div>
+                    <div class="item-info">
+                        <div class="item-label">点心贡</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_offering_snack_price" value="6" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_offering_snack_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_offering_snack_buddha" value="2" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_offering_snack')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">💧</div>
+                    <div class="item-info">
+                        <div class="item-label">水贡（清水）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_offering_water_price" value="2" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_offering_water_days" value="1" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_offering_water_buddha" value="1" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_offering_water')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🌺</div>
+                    <div class="item-info">
+                        <div class="item-label">涂身供（香汤）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="pray_offering_anoint_price" value="15" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="pray_offering_anoint_days" value="2" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="pray_offering_anoint_buddha" value="5" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('pray_offering_anoint')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-card">
+            <div class="category-header">🐖 追思页 - 特殊贡品</div>
+            <div class="category-content">
+                <div class="item-row">
+                    <div class="item-preview">🍗</div>
+                    <div class="item-info">
+                        <div class="item-label">烧鸡（整鸡供佛）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="rem_special_chicken_price" value="30" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="rem_special_chicken_days" value="3" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="rem_special_chicken_buddha" value="8" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('rem_special_chicken')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🐖</div>
+                    <div class="item-info">
+                        <div class="item-label">烧猪（整猪供佛）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="rem_special_pig_price" value="100" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="rem_special_pig_days" value="7" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="rem_special_pig_buddha" value="20" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('rem_special_pig')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🐑</div>
+                    <div class="item-info">
+                        <div class="item-label">烤羊（整羊供佛 - 最尊贵）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="rem_special_goat_price" value="200" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="rem_special_goat_days" value="10" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="rem_special_goat_buddha" value="50" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('rem_special_goat')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-card">
+            <div class="category-header">🐟 放生页 - 扩展参数</div>
+            <div class="category-content">
+                <div class="item-row">
+                    <div class="item-preview">🐟</div>
+                    <div class="item-info">
+                        <div class="item-label">锦鲤</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="release_koi_price" value="10" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="release_koi_life" value="30" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="release_koi_feed" value="2" min="0">
+                            <span class="unit-label">喂养奖励</span>
+                            <input type="number" class="num-input" id="release_koi_times" value="5" min="0">
+                            <span class="unit-label">次/天</span>
+                            <input type="number" class="num-input" id="release_koi_buddha" value="5" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('release_koi')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🐠</div>
+                    <div class="item-info">
+                        <div class="item-label">金鱼</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="release_goldfish_price" value="8" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="release_goldfish_life" value="30" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="release_goldfish_feed" value="2" min="0">
+                            <span class="unit-label">喂养奖励</span>
+                            <input type="number" class="num-input" id="release_goldfish_times" value="5" min="0">
+                            <span class="unit-label">次/天</span>
+                            <input type="number" class="num-input" id="release_goldfish_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('release_goldfish')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🐢</div>
+                    <div class="item-info">
+                        <div class="item-label">乌龟</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="release_turtle_price" value="15" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="release_turtle_life" value="90" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="release_turtle_feed" value="3" min="0">
+                            <span class="unit-label">喂养奖励</span>
+                            <input type="number" class="num-input" id="release_turtle_times" value="3" min="0">
+                            <span class="unit-label">次/天</span>
+                            <input type="number" class="num-input" id="release_turtle_buddha" value="8" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('release_turtle')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🦀</div>
+                    <div class="item-info">
+                        <div class="item-label">螃蟹</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="release_crab_price" value="6" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="release_crab_life" value="15" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="release_crab_feed" value="1" min="0">
+                            <span class="unit-label">喂养奖励</span>
+                            <input type="number" class="num-input" id="release_crab_times" value="3" min="0">
+                            <span class="unit-label">次/天</span>
+                            <input type="number" class="num-input" id="release_crab_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('release_crab')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🐚</div>
+                    <div class="item-info">
+                        <div class="item-label">海螺</div>
+                        <div class="item-inputs">
+                            <input type="number" class="num-input" id="release_shell_price" value="5" min="0">
+                            <span class="unit-label">欢喜</span>
+                            <input type="number" class="num-input" id="release_shell_life" value="30" min="0">
+                            <span class="unit-label">天</span>
+                            <input type="number" class="num-input" id="release_shell_feed" value="2" min="0">
+                            <span class="unit-label">喂养奖励</span>
+                            <input type="number" class="num-input" id="release_shell_times" value="5" min="0">
+                            <span class="unit-label">次/天</span>
+                            <input type="number" class="num-input" id="release_shell_buddha" value="3" min="0">
+                            <span class="unit-label">佛光</span>
+                            <button class="save-btn" onclick="saveRow('release_shell')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-card">
+            <div class="category-header">✨ 通用开关参数</div>
+            <div class="category-content">
+                <div class="item-row">
+                    <div class="item-preview">🎮</div>
+                    <div class="item-info">
+                        <div class="item-label">西个游游戏管理</div>
+                        <div class="item-inputs">
+                            <button class="save-btn" onclick="goToXiyouAdmin()">进入管理</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🔔</div>
+                    <div class="item-info">
+                        <div class="item-label">是否启用消息通知</div>
+                        <div class="item-inputs">
+                            <div class="switch-wrap">
+                                <label class="switch">
+                                    <input type="checkbox" id="common_notify" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="switch-label" id="label-common_notify">是</span>
+                            </div>
+                            <button class="save-btn" onclick="saveRow('common_notify')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">✨</div>
+                    <div class="item-info">
+                        <div class="item-label">是否启用动画特效</div>
+                        <div class="item-inputs">
+                            <div class="switch-wrap">
+                                <label class="switch">
+                                    <input type="checkbox" id="common_animation" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="switch-label" id="label-common_animation">是</span>
+                            </div>
+                            <button class="save-btn" onclick="saveRow('common_animation')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🎵</div>
+                    <div class="item-info">
+                        <div class="item-label">是否启用背景音乐</div>
+                        <div class="item-inputs">
+                            <div class="switch-wrap">
+                                <label class="switch">
+                                    <input type="checkbox" id="common_music">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="switch-label" id="label-common_music">否</span>
+                            </div>
+                            <button class="save-btn" onclick="saveRow('common_music')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">⏰</div>
+                    <div class="item-info">
+                        <div class="item-label">是否启用每日重置</div>
+                        <div class="item-inputs">
+                            <div class="switch-wrap">
+                                <label class="switch">
+                                    <input type="checkbox" id="common_daily_reset" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="switch-label" id="label-common_daily_reset">是</span>
+                            </div>
+                            <button class="save-btn" onclick="saveRow('common_daily_reset')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item-preview">🕐</div>
+                    <div class="item-info">
+                        <div class="item-label">每日重置时间（时:分）</div>
+                        <div class="item-inputs">
+                            <input type="number" class="time-input" id="common_reset_hour" value="0" min="0" max="23">
+                            <span class="unit-label">时</span>
+                            <input type="number" class="time-input" id="common_reset_min" value="0" min="0" max="59">
+                            <span class="unit-label">分</span>
+                            <button class="save-btn" onclick="saveRow('common_reset_hour')">保存本行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="#" onclick="try{window.parent.goPage(7);}catch(e){window.history.back();}return false;" class="back-home">← 返回个人中心</a>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    const STORAGE_KEY = 'pray_params_v2';
+
+    const GROUP_FIELDS = {
+        pray_incense_3: ['price', 'days', 'buddha'],
+        pray_incense_6: ['price', 'days', 'buddha'],
+        pray_incense_9: ['price', 'days', 'buddha'],
+        pray_incense_head: ['price', 'days', 'buddha'],
+        pray_lamp_wealth: ['price', 'days', 'buddha'],
+        pray_lamp_career: ['price', 'days', 'buddha'],
+        pray_lamp_love: ['price', 'days', 'buddha'],
+        pray_lamp_health: ['price', 'days', 'buddha'],
+        pray_lamp_study: ['price', 'days', 'buddha'],
+        pray_lamp_eternal: ['price', 'days', 'buddha'],
+        pray_offering_flower: ['price', 'days', 'buddha'],
+        pray_offering_fruit: ['price', 'days', 'buddha'],
+        pray_offering_snack: ['price', 'days', 'buddha'],
+        pray_offering_water: ['price', 'days', 'buddha'],
+        pray_offering_anoint: ['price', 'days', 'buddha'],
+        rem_special_chicken: ['price', 'days', 'buddha'],
+        rem_special_pig: ['price', 'days', 'buddha'],
+        rem_special_goat: ['price', 'days', 'buddha'],
+        release_koi: ['price', 'life', 'feed', 'times', 'buddha'],
+        release_goldfish: ['price', 'life', 'feed', 'times', 'buddha'],
+        release_turtle: ['price', 'life', 'feed', 'times', 'buddha'],
+        release_crab: ['price', 'life', 'feed', 'times', 'buddha'],
+        release_shell: ['price', 'life', 'feed', 'times', 'buddha']
+    };
+
+    function buildDefaultParams() {
+        const params = {};
+        Object.keys(GROUP_FIELDS).forEach(group => {
+            GROUP_FIELDS[group].forEach(suffix => {
+                const key = group + '_' + suffix;
+                const el = document.getElementById(key);
+                if (el) {
+                    params[key] = Number(el.value);
+                }
+            });
+        });
+        params.common_notify = true;
+        params.common_animation = true;
+        params.common_music = false;
+        params.common_daily_reset = true;
+        params.common_reset_hour = 0;
+        params.common_reset_min = 0;
+        return params;
+    }
+
+    const DEFAULT_PARAMS = buildDefaultParams();
+
+    const YES_NO_MAP = {
+        common_notify: { true: '是', false: '否' },
+        common_animation: { true: '是', false: '否' },
+        common_music: { true: '是', false: '否' },
+        common_daily_reset: { true: '是', false: '否' }
+    };
+
+    function getValue(key) {
+        const el = document.getElementById(key);
+        if (!el) return null;
+        if (el.type === 'checkbox') return el.checked;
+        if (el.type === 'number') return Number(el.value);
+        return el.value;
+    }
+
+    function setValue(key, val) {
+        const el = document.getElementById(key);
+        if (!el) return;
+        if (el.type === 'checkbox') {
+            el.checked = !!val;
+        } else {
+            el.value = val;
+        }
+        if (YES_NO_MAP[key]) {
+            const labelEl = document.getElementById('label-' + key);
+            if (labelEl) labelEl.textContent = YES_NO_MAP[key][!!val];
+        }
+    }
+
+    function loadData() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(key => {
+                    setValue(key, data[key]);
+                });
+            }
+        } catch (e) {
+            console.log('加载数据失败', e);
+        }
+    }
+
+    function collectAll() {
+        const result = {};
+        Object.keys(DEFAULT_PARAMS).forEach(key => {
+            result[key] = getValue(key);
+        });
+        return result;
+    }
+
+    function persist(data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function saveRow(key) {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            const data = saved ? JSON.parse(saved) : { ...DEFAULT_PARAMS };
+            if (key === 'common_reset_hour') {
+                data.common_reset_hour = getValue('common_reset_hour');
+                data.common_reset_min = getValue('common_reset_min');
+            } else if (GROUP_FIELDS[key]) {
+                GROUP_FIELDS[key].forEach(suffix => {
+                    const fullKey = key + '_' + suffix;
+                    data[fullKey] = getValue(fullKey);
+                });
+            } else {
+                data[key] = getValue(key);
+            }
+            persist(data);
+            showToast('已保存！');
+        } catch (e) {
+            showToast('保存失败');
+        }
+    }
+
+    function saveAll() {
+        try {
+            persist(collectAll());
+            showToast('全部保存成功！');
+        } catch (e) {
+            showToast('保存失败');
+        }
+    }
+
+    function resetToDefault() {
+        if (confirm('确定恢复所有默认参数吗？')) {
+            localStorage.removeItem(STORAGE_KEY);
+            Object.keys(DEFAULT_PARAMS).forEach(key => {
+                setValue(key, DEFAULT_PARAMS[key]);
+            });
+            showToast('已恢复默认设置');
+        }
+    }
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const key = this.id;
+            if (YES_NO_MAP[key]) {
+                const labelEl = document.getElementById('label-' + key);
+                if (labelEl) labelEl.textContent = YES_NO_MAP[key][this.checked];
+            }
+        });
+    });
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function goToXiyouAdmin() {
+        try {
+            window.parent.goPage(33);
+        } catch(e) {
+            window.location.href = 'xiyou_admin.html';
+        }
+    }
+
+    loadData();
+    </script>
+</body>
+</html>
