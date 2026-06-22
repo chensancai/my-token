@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 - H5页面展示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #D4AF37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #999;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            color: #D4AF37;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 3px solid #D4AF37;
+        }
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .page-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .page-card:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: #D4AF37;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        }
+        .page-card h3 {
+            font-size: 16px;
+            color: #D4AF37;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .page-card p {
+            font-size: 12px;
+            color: #888;
+            line-height: 1.5;
+        }
+        .page-card .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            font-size: 10px;
+            color: #D4AF37;
+            margin-top: 10px;
+        }
+        .admin-card {
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.3), rgba(26, 0, 0, 0.3));
+            border-color: rgba(139, 0, 0, 0.5);
+        }
+        .admin-card:hover {
+            background: rgba(139, 0, 0, 0.3);
+            border-color: #B22222;
+            box-shadow: 0 10px 30px rgba(139, 0, 0, 0.3);
+        }
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            font-size: 12px;
+        }
+        .start-hint {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(139, 69, 19, 0.1));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .start-hint h3 {
+            color: #D4AF37;
+            margin-bottom: 10px;
+        }
+        .start-hint code {
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+        }
+        .feature-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .feature-item {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #D4AF37;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🙏 祈个福 H5 页面展示</h1>
+        <p>手机端祈福拜佛、超度追思、灵宠放生后台管理系统</p>
+    </div>
+
+    <div class="start-hint">
+        <h3>📌 启动本地服务器</h3>
+        <p>在项目目录下运行以下命令启动服务：</p>
+        <p><strong>Windows:</strong> <code>powershell -ExecutionPolicy Bypass -File server.ps1</code></p>
+        <p><strong>Linux/Mac:</strong> <code>bash server.sh</code> 或 <code>python3 server.py</code></p>
+        <div class="feature-list">
+            <span class="feature-item">🎵 音效系统</span>
+            <span class="feature-item">✨ 特效动画</span>
+            <span class="feature-item">🗿 3D佛像</span>
+            <span class="feature-item">📱 移动适配</span>
+            <span class="feature-item">🛡️ 后台管理</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🏛️ 核心功能页面</div>
+        <div class="page-grid">
+            <a href="index.html" class="page-card">
+                <h3>🙏 祈福拜佛页</h3>
+                <p>佛像场景、上香、点灯、供奉、跪拜、求签、问佛等完整交互</p>
+                <span class="tag">首页</span>
+            </a>
+            <a href="remembrance.html" class="page-card">
+                <h3>🕯️ 超度追思页</h3>
+                <p>万佛、鲜花、音容宛在三种场景，AI对话追思功能</p>
+                <span class="tag">追思</span>
+            </a>
+            <a href="animal-release.html" class="page-card">
+                <h3>🐟 灵宠放生页</h3>
+                <p>龙宫场景、灵宠购买与喂养、愿力计算系统</p>
+                <span class="tag">放生</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🎮 互动功能页面</div>
+        <div class="page-grid">
+            <a href="flip-card.html" class="page-card">
+                <h3>🃏 福运翻转卡牌</h3>
+                <p>随机抽取福运卡牌，获取欢喜、佛光、功德奖励</p>
+                <span class="tag">抽奖</span>
+            </a>
+            <a href="slot-machine.html" class="page-card">
+                <h3>🎰 老虎机抽奖</h3>
+                <p>消耗欢喜进行老虎机抽奖，多种奖励概率</p>
+                <span class="tag">抽奖</span>
+            </a>
+            <a href="share-card.html" class="page-card">
+                <h3>📤 分享卡片</h3>
+                <p>生成精美分享海报，邀请好友一起祈福</p>
+                <span class="tag">社交</span>
+            </a>
+            <a href="shake-sticks.html" class="page-card">
+                <h3>🎋 电子求签筒</h3>
+                <p>3D签筒、摇一摇出签、古风卷轴解签、每日3次</p>
+                <span class="tag">求签</span>
+            </a>
+            <a href="showcase1.html" class="page-card">
+                <h3>🎲 流光溢彩老虎机</h3>
+                <p>暗夜霓虹风、充值奖励、炫彩爆炸特效</p>
+                <span class="tag">老虎机</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🛡️ 管理员后台</div>
+        <div class="page-grid">
+            <a href="admin.html" class="page-card admin-card">
+                <h3>⚙️ 后台管理系统</h3>
+                <p>超级管理员专用：参数管理、场景开关、佛像道具、菜单管理、权限授权</p>
+                <span class="tag">后台</span>
+            </a>
+            <a href="settings.html" class="page-card">
+                <h3>⚙️ 设置页面</h3>
+                <p>个人中心、用户信息、设置选项，长按底部文字进入后台</p>
+                <span class="tag">设置</span>
+            </a>
+            <a href="profile.html" class="page-card">
+                <h3>👤 个人中心</h3>
+                <p>用户头像、等级、佛光、欢喜、功德等数据展示</p>
+                <span class="tag">用户</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📋 其他页面</div>
+        <div class="page-grid">
+            <a href="showcase.html" class="page-card">
+                <h3>📺 页面展示台</h3>
+                <p>所有页面导航集合，iframe嵌入式展示</p>
+                <span class="tag">导航</span>
+            </a>
+            <a href="task-list.html" class="page-card">
+                <h3>📝 任务列表</h3>
+                <p>开发任务跟踪与进度管理</p>
+                <span class="tag">工具</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>祈个福 H5 UI设计图 © 2024</p>
+        <p style="margin-top: 5px;">手机端适配 | 触控交互 | 音效特效</p>
+    </div>
+</body>
+</html>

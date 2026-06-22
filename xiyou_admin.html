@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>西个游 · 管理后台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #D4AF37;
+            --primary-dark: #8B5A2B;
+            --gold: #FFD700;
+            --gold-light: #FFF8DC;
+            --bg-dark: #1a0a0a;
+            --bg-warm: #2d1810;
+            --accent-red: #C41E3A;
+            --accent-green: #4CAF50;
+            --accent-blue: #2196F3;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #1a0a0a 0%, #2d1810 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            width: 36px;
+            height: 36px;
+            background: rgba(139,90,43,0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            border: 1.5px solid rgba(212,175,55,0.3);
+            color: var(--gold);
+        }
+        
+        /* 顶部导航 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(26,10,10,0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            border-bottom: 2px solid var(--primary);
+        }
+        .top-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: var(--primary);
+            font-size: 18px;
+            letter-spacing: 3px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            padding: 60px 12px 20px;
+        }
+        
+        /* 标签切换 */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-btn {
+            flex-shrink: 0;
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            border-color: var(--primary);
+        }
+        
+        /* 面板 */
+        .panel {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 卡片 */
+        .card {
+            background: linear-gradient(135deg, rgba(139,90,43,0.4), rgba(45,24,16,0.6));
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .icon {
+            font-size: 18px;
+        }
+        
+        /* 表单 */
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(212,175,55,0.1);
+        }
+        .form-row:last-child {
+            border-bottom: none;
+        }
+        .form-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+        .form-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-input {
+            width: 80px;
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 6px;
+            color: var(--gold);
+            font-size: 13px;
+            text-align: center;
+        }
+        
+        /* 开关 */
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(212,175,55,0.3);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .toggle-switch.on {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        .toggle-switch.on::after {
+            left: 22px;
+            background: #fff;
+        }
+        
+        /* 滑块 */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 3px;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--gold);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider-value {
+            font-size: 12px;
+            color: var(--gold);
+            min-width: 50px;
+            text-align: right;
+        }
+        
+        /* 网格 */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        
+        /* 素材卡片 */
+        .material-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .material-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+        .material-preview {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: rgba(212,175,55,0.1);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+        .material-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .material-name {
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .material-action {
+            font-size: 9px;
+            color: var(--accent-blue);
+            margin-top: 4px;
+        }
+        
+        /* 图标卡片 */
+        .icon-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .icon-card:hover {
+            border-color: var(--gold);
+            transform: scale(1.05);
+        }
+        .icon-emoji {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+        .icon-name {
+            font-size: 9px;
+            color: rgba(255,255,255,0.6);
+        }
+        .icon-sound {
+            font-size: 8px;
+            color: var(--accent-blue);
+            margin-top: 2px;
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--primary-dark));
+            color: var(--bg-dark);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+        }
+        .btn-danger {
+            background: var(--accent-red);
+            color: #fff;
+        }
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(212,175,55,0.3);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+        
+        /* 统计卡片 */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(139,90,43,0.3), rgba(45,24,16,0.5));
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--gold);
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+        
+        /* 警告框 */
+        .alert-box {
+            background: rgba(196,30,58,0.2);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .alert-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--accent-red);
+            margin-bottom: 8px;
+        }
+        .alert-content {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.5;
+        }
+        
+        /* 时间选择器 */
+        .time-slot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .time-input {
+            width: 60px;
+            padding: 4px 8px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 4px;
+            color: var(--gold);
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, var(--bg-warm), var(--bg-dark));
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 320px;
+            width: 90%;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .modal-btn-group .btn {
+            flex: 1;
+        }
+        
+        /* 保存提示 */
+        .save-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent-green);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 13px;
+            z-index: 300;
+            transition: all 0.3s;
+        }
+        .save-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* 标题分隔 */
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--primary);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(212,175,55,0.2);
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 返回按钮 -->
+    <div class="back-btn" onclick="goBack()">⬅</div>
+    
+    <!-- 顶部导航 -->
+    <div class="top-nav">
+        <div class="top-title">⚙️ 西个游 · 管理后台</div>
+    </div>
+    
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 标签切换 -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('level')">关卡配置</button>
+            <button class="tab-btn" onclick="switchTab('prize')">奖金管理</button>
+            <button class="tab-btn" onclick="switchTab('bg')">背景素材</button>
+            <button class="tab-btn" onclick="switchTab('card')">消除素材</button>
+            <button class="tab-btn" onclick="switchTab('sound')">音效管理</button>
+            <button class="tab-btn" onclick="switchTab('level6')">第六关</button>
+        </div>
+        
+        <!-- 关卡配置面板 -->
+        <div class="panel active" id="panel-level">
+            <div class="section-title">📊 关卡通过率配置</div>
+            <div class="card">
+                <div class="form-row">
+                    <span class="form-label">第一关 · 孙悟空</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="50" max="100" value="100" id="level1Rate">
+                        <span class="slider-value" id="level1RateVal">100%</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第二关 · 花果山</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="50" max="100" value="100" id="level2Rate">
+                        <span class="slider-value" id="level2RateVal">100%</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第三关 · 凌霄天宫</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="50" max="100" value="100" id="level3Rate">
+                        <span class="slider-value" id="level3RateVal">100%</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第四关 · 大闹天宫</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="30" max="95" value="80" id="level4Rate">
+                        <span class="slider-value" id="level4RateVal">80%</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第五关 · 西天取经</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="20" max="70" value="50" id="level5Rate">
+                        <span class="slider-value" id="level5RateVal">50%</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第六关 · 观音菩萨</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="0" max="5" value="0" id="level6Rate">
+                        <span class="slider-value" id="level6RateVal">0.1‰</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第七关 · 如来佛祖</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="20" max="70" value="50" id="level7Rate">
+                        <span class="slider-value" id="level7RateVal">50%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" onclick="saveLevelConfig()">💾 保存配置</button>
+        </div>
+        
+        <!-- 奖金管理面板 -->
+        <div class="panel" id="panel-prize">
+            <div class="section-title">💰 奖金配置</div>
+            <div class="card">
+                <div class="form-row">
+                    <span class="form-label">第一关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="5" id="level1Reward"> 元
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第二关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="5" id="level2Reward"> 元
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第三关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="10" id="level3Reward"> 元
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第四关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="20" id="level4Reward"> 元
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第五关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="40" id="level5Reward"> 元
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第六关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="80" id="level6Reward"> 元
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">第七关奖励</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="38" id="level7Reward"> 元
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="form-row">
+                    <span class="form-label">总奖金池上限</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="198" id="totalPool"> 元
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-3" style="margin-bottom:12px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="todayPlayers">1,234</div>
+                    <div class="stat-label">今日参与</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="todayWinners">89</div>
+                    <div class="stat-label">今日通关</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="todayReward">¥8,920</div>
+                    <div class="stat-label">今日发放</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" onclick="savePrizeConfig()">💾 保存奖金配置</button>
+        </div>
+        
+        <!-- 背景素材面板 -->
+        <div class="panel" id="panel-bg">
+            <div class="section-title">🖼️ 背景素材管理</div>
+            <div class="grid-2">
+                <div class="material-card" onclick="editMaterial('login')">
+                    <div class="material-preview">🪷</div>
+                    <div class="material-name">注册登录页</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level1')">
+                    <div class="material-preview">🐒</div>
+                    <div class="material-name">第一关 · 孙悟空</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level2')">
+                    <div class="material-preview">🏔️</div>
+                    <div class="material-name">第二关 · 花果山</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level3')">
+                    <div class="material-preview">☁️</div>
+                    <div class="material-name">第三关 · 凌霄天宫</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level4')">
+                    <div class="material-preview">🔥</div>
+                    <div class="material-name">第四关 · 大闹天宫</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level5')">
+                    <div class="material-preview">🗻</div>
+                    <div class="material-name">第五关 · 西天取经</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level6')">
+                    <div class="material-preview">🪷</div>
+                    <div class="material-name">第六关 · 观音菩萨</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+                <div class="material-card" onclick="editMaterial('level7')">
+                    <div class="material-preview">🙏</div>
+                    <div class="material-name">第七关 · 如来佛祖</div>
+                    <div class="material-action">点击更换</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 消除素材面板 -->
+        <div class="panel" id="panel-card">
+            <div class="section-title">🎴 消除素材图标（18个）</div>
+            <div class="grid-4">
+                <div class="icon-card" onclick="editIcon(0)">
+                    <div class="icon-emoji">👨</div>
+                    <div class="icon-name">唐僧</div>
+                    <div class="icon-sound">唐僧配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(1)">
+                    <div class="icon-emoji">🐵</div>
+                    <div class="icon-name">孙悟空</div>
+                    <div class="icon-sound">猴哥配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(2)">
+                    <div class="icon-emoji">🐷</div>
+                    <div class="icon-name">猪八戒</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(3)">
+                    <div class="icon-emoji">🧔</div>
+                    <div class="icon-name">沙僧</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(4)">
+                    <div class="icon-emoji">🐴</div>
+                    <div class="icon-name">白龙马</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(5)">
+                    <div class="icon-emoji">👫</div>
+                    <div class="icon-name">师徒行</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(6)">
+                    <div class="icon-emoji">🪷</div>
+                    <div class="icon-name">观音</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(7)">
+                    <div class="icon-emoji">🙏</div>
+                    <div class="icon-name">如来</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(8)">
+                    <div class="icon-emoji">🐉</div>
+                    <div class="icon-name">龙王</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(9)">
+                    <div class="icon-emoji">🦸</div>
+                    <div class="icon-name">悟空2</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(10)">
+                    <div class="icon-emoji">😊</div>
+                    <div class="icon-name">弥勒佛</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(11)">
+                    <div class="icon-emoji">🏺</div>
+                    <div class="icon-name">聚宝盆</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(12)">
+                    <div class="icon-emoji">💰</div>
+                    <div class="icon-name">财神</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(13)">
+                    <div class="icon-emoji">👸</div>
+                    <div class="icon-name">女儿国</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(14)">
+                    <div class="icon-emoji">👑</div>
+                    <div class="icon-name">玉帝</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(15)">
+                    <div class="icon-emoji">🪭</div>
+                    <div class="icon-name">玉如意</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(16)">
+                    <div class="icon-emoji">👤</div>
+                    <div class="icon-name">头像</div>
+                    <div class="icon-sound">喜欢你哟</div>
+                </div>
+                <div class="icon-card" onclick="editIcon(17)">
+                    <div class="icon-emoji">🎀</div>
+                    <div class="icon-name">金箍</div>
+                    <div class="icon-sound">配音</div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" style="width:100%; margin-top:16px;" onclick="addNewIcon()">➕ 添加新素材</button>
+        </div>
+        
+        <!-- 音效管理面板 -->
+        <div class="panel" id="panel-sound">
+            <div class="section-title">🔊 音效素材管理</div>
+            <div class="card">
+                <div class="form-row">
+                    <span class="form-label">🎵 通关音效</span>
+                    <button class="btn btn-sm btn-secondary" onclick="playSound('win')">▶ 试听</button>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">💰 获奖音效</span>
+                    <button class="btn btn-sm btn-secondary" onclick="playSound('coin')">▶ 试听</button>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">👏 通关鼓掌</span>
+                    <button class="btn btn-sm btn-secondary" onclick="playSound('applause')">▶ 试听</button>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">🙏 颂经音效</span>
+                    <button class="btn btn-sm btn-secondary" onclick="playSound('chant')">▶ 试听</button>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">🎰 消除音效</span>
+                    <button class="btn btn-sm btn-secondary" onclick="playSound('match')">▶ 试听</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%; margin-top:12px;" onclick="uploadSound()">📤 上传新音效</button>
+        </div>
+        
+        <!-- 第六关控制面板 -->
+        <div class="panel" id="panel-level6">
+            <div class="alert-box">
+                <div class="alert-title">⚠️ 千分之一严格拦截模式</div>
+                <div class="alert-content">
+                    第六关为游戏核心难度关卡，严格控制通关率 ≤ 1‰。<br>
+                    以下参数可动态调整实时生效。
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="form-row">
+                    <span class="form-label">开启千分之一拦截</span>
+                    <div class="toggle-switch on" id="level6Switch" onclick="toggleLevel6()"></div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">每日放行人数上限</span>
+                    <div class="form-value">
+                        <input type="number" class="form-input" value="1" id="level6Limit"> 人
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">实时放行人数</span>
+                    <span class="slider-value" id="level6Current">0</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title"><span class="icon">⏰</span> 开放时间窗口</div>
+                <div class="time-slot">
+                    <span style="font-size:11px;">窗口1：</span>
+                    <input type="time" class="time-input" value="10:00">
+                    <span>~</span>
+                    <input type="time" class="time-input" value="11:00">
+                </div>
+                <div class="time-slot">
+                    <span style="font-size:11px;">窗口2：</span>
+                    <input type="time" class="time-input" value="15:00">
+                    <span>~</span>
+                    <input type="time" class="time-input" value="16:00">
+                </div>
+                <div class="time-slot">
+                    <span style="font-size:11px;">窗口3：</span>
+                    <input type="time" class="time-input" value="20:00">
+                    <span>~</span>
+                    <input type="time" class="time-input" value="21:00">
+                </div>
+                <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="addTimeWindow()">➕ 添加时间窗口</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-title"><span class="icon">🎮</span> 模拟测试</div>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-sm btn-primary" style="flex:1;" onclick="testLevel6Pass()">测试过关</button>
+                    <button class="btn btn-sm btn-danger" style="flex:1;" onclick="testLevel6Fail()">测试失败</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" onclick="saveLevel6Config()">💾 保存第六关配置</button>
+        </div>
+    </div>
+    
+    <!-- 素材编辑弹窗 -->
+    <div class="modal-overlay" id="materialModal">
+        <div class="modal-content">
+            <div class="modal-title" id="materialModalTitle">更换素材</div>
+            <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:16px; margin-bottom:12px;">
+                <div style="aspect-ratio:16/9; background:rgba(212,175,55,0.1); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:48px; margin-bottom:12px;" id="materialPreview">
+                    🪷
+                </div>
+                <div style="font-size:12px; color:rgba(255,255,255,0.6); text-align:center;" id="materialName">注册登录页</div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">上传图片</span>
+                <button class="btn btn-sm btn-secondary">📷 选择文件</button>
+            </div>
+            <div class="form-row">
+                <span class="form-label">上传视频</span>
+                <button class="btn btn-sm btn-secondary">🎬 选择视频</button>
+            </div>
+            <div class="form-row">
+                <span class="form-label">背景音乐</span>
+                <button class="btn btn-sm btn-secondary">🎵 选择音频</button>
+            </div>
+            <div class="modal-btn-group">
+                <button class="btn btn-secondary" onclick="closeMaterialModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveMaterial()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 图标编辑弹窗 -->
+    <div class="modal-overlay" id="iconModal">
+        <div class="modal-content">
+            <div class="modal-title">编辑素材图标</div>
+            <div style="text-align:center; padding:16px;">
+                <div style="font-size:64px; margin-bottom:12px;" id="iconPreview">🐵</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.7);" id="iconName">孙悟空</div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">更换图标</span>
+                <button class="btn btn-sm btn-secondary">🔄 选择emoji</button>
+            </div>
+            <div class="form-row">
+                <span class="form-label">消除配音</span>
+                <button class="btn btn-sm btn-secondary">🎤 上传音频</button>
+            </div>
+            <div class="modal-btn-group">
+                <button class="btn btn-danger" onclick="deleteIcon()">🗑️ 删除</button>
+                <button class="btn btn-secondary" onclick="closeIconModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveIcon()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 保存提示 -->
+    <div class="save-toast" id="saveToast">✅ 保存成功</div>
+
+    <script>
+        // 当前编辑的素材/图标
+        let currentMaterial = null;
+        let currentIconIndex = null;
+        
+        // 返回
+        function goBack() {
+            window.location.href = 'xiyou.html';
+        }
+        
+        // 切换标签
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+            
+            document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`panel-${tab}`).classList.add('active');
+        }
+        
+        // 滑块值联动
+        ['level1Rate', 'level2Rate', 'level3Rate', 'level4Rate', 'level5Rate', 'level6Rate', 'level7Rate'].forEach(id => {
+            const slider = document.getElementById(id);
+            const val = document.getElementById(id + 'Val');
+            slider.addEventListener('input', () => {
+                if (id === 'level6Rate') {
+                    val.textContent = (slider.value / 100).toFixed(1) + '‰';
+                } else {
+                    val.textContent = slider.value + '%';
+                }
+            });
+        });
+        
+        // 保存关卡配置
+        function saveLevelConfig() {
+            showSaveToast();
+        }
+        
+        // 保存奖金配置
+        function savePrizeConfig() {
+            showSaveToast();
+        }
+        
+        // 切换第六关
+        function toggleLevel6() {
+            const sw = document.getElementById('level6Switch');
+            sw.classList.toggle('on');
+        }
+        
+        // 添加时间窗口
+        function addTimeWindow() {
+            showSaveToast();
+        }
+        
+        // 保存第六关配置
+        function saveLevel6Config() {
+            showSaveToast();
+        }
+        
+        // 测试过关
+        function testLevel6Pass() {
+            alert('测试：模拟玩家通关第六关');
+        }
+        
+        // 测试失败
+        function testLevel6Fail() {
+            alert('测试：模拟玩家挑战失败');
+        }
+        
+        // 播放音效
+        function playSound(type) {
+            // 模拟播放
+            console.log('Playing sound:', type);
+        }
+        
+        // 上传音效
+        function uploadSound() {
+            showSaveToast();
+        }
+        
+        // 编辑素材
+        function editMaterial(key) {
+            currentMaterial = key;
+            const names = {
+                login: '注册登录页',
+                level1: '第一关 · 孙悟空',
+                level2: '第二关 · 花果山',
+                level3: '第三关 · 凌霄天宫',
+                level4: '第四关 · 大闹天宫',
+                level5: '第五关 · 西天取经',
+                level6: '第六关 · 观音菩萨',
+                level7: '第七关 · 如来佛祖'
+            };
+            document.getElementById('materialModalTitle').textContent = '更换素材 - ' + names[key];
+            document.getElementById('materialName').textContent = names[key];
+            document.getElementById('materialModal').classList.add('show');
+        }
+        
+        // 关闭素材弹窗
+        function closeMaterialModal() {
+            document.getElementById('materialModal').classList.remove('show');
+        }
+        
+        // 保存素材
+        function saveMaterial() {
+            closeMaterialModal();
+            showSaveToast();
+        }
+        
+        // 编辑图标
+        function editIcon(index) {
+            currentIconIndex = index;
+            const icons = ['👨', '🐵', '🐷', '🧔', '🐴', '👫', '🪷', '🙏', '🐉', '🦸', '😊', '🏺', '💰', '👸', '👑', '🪭', '👤', '🎀'];
+            const names = ['唐僧', '孙悟空', '猪八戒', '沙僧', '白龙马', '师徒行', '观音', '如来', '龙王', '悟空2', '弥勒佛', '聚宝盆', '财神', '女儿国', '玉帝', '玉如意', '头像', '金箍'];
+            document.getElementById('iconPreview').textContent = icons[index];
+            document.getElementById('iconName').textContent = names[index];
+            document.getElementById('iconModal').classList.add('show');
+        }
+        
+        // 关闭图标弹窗
+        function closeIconModal() {
+            document.getElementById('iconModal').classList.remove('show');
+        }
+        
+        // 保存图标
+        function saveIcon() {
+            closeIconModal();
+            showSaveToast();
+        }
+        
+        // 删除图标
+        function deleteIcon() {
+            if (confirm('确定删除该素材吗？')) {
+                closeIconModal();
+                showSaveToast();
+            }
+        }
+        
+        // 添加新图标
+        function addNewIcon() {
+            showSaveToast();
+        }
+        
+        // 显示保存提示
+        function showSaveToast() {
+            const toast = document.getElementById('saveToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>

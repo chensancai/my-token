@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>祈个福 · 状态管理测试</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #8B7355 0%, #D4AF37 60%, #FFD700 100%);
+            min-height: 100vh;
+            color: #8B4513;
+            padding: 20px;
+        }
+        .card {
+            background: linear-gradient(180deg, #FFF8DC 0%, #FFE4B5 100%);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 14px rgba(139, 69, 19, 0.2);
+        }
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #8B4513;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #D4AF37;
+            padding-bottom: 8px;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .stat-line {
+            font-size: 13px;
+            color: #A0522D;
+            line-height: 1.8;
+            word-break: break-all;
+        }
+        button {
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 2px solid #D4AF37;
+            background: linear-gradient(135deg, #FFF8DC, #FFE4B5);
+            color: #8B4513;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        button:active { transform: scale(0.96); }
+        button.primary {
+            background: linear-gradient(135deg, #FF6347, #FF4500);
+            border-color: #FFD700;
+            color: #FFF;
+        }
+        button.gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-color: #FF6347;
+            color: #8B4513;
+        }
+        .title {
+            text-align: center;
+            color: #FFF;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            margin-bottom: 18px;
+        }
+        .title h1 { font-size: 22px; letter-spacing: 3px; }
+        .title .sub { font-size: 12px; opacity: 0.9; margin-top: 6px; }
+        input {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 2px solid #D4AF37;
+            background: #FFF8DC;
+            color: #8B4513;
+            font-size: 13px;
+            outline: none;
+            width: 120px;
+        }
+        .echo {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(139, 69, 19, 0.08);
+            border-radius: 10px;
+            font-size: 12px;
+            color: #8B4513;
+            font-family: Consolas, monospace;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="title">
+        <h1>🙏 祈个福 · 状态管理测试</h1>
+        <div class="sub">点击下方按钮，验证 PrayApp 全局状态、飘字、充值、音效等是否正常</div>
+    </div>
+
+    <!-- 当前状态显示 -->
+    <div class="card">
+        <h2>📋 当前状态（每次操作后刷新）</h2>
+        <div class="stat-line" id="stateDisplay">加载中...</div>
+        <div class="row" style="margin-top:12px;">
+            <button onclick="refreshDisplay()">🔄 刷新显示</button>
+            <button class="primary" onclick="resetAll()">♻️ 重置全部状态</button>
+        </div>
+    </div>
+
+    <!-- 佛光 / 欢喜 测试 -->
+    <div class="card">
+        <h2>🔥 佛光 · 💰 欢喜 · 🌿 功德</h2>
+        <div class="row">
+            <button class="gold" onclick="onAddFoguang(1)">+1 佛光</button>
+            <button class="gold" onclick="onAddFoguang(5)">+5 佛光</button>
+            <button class="gold" onclick="onAddFoguang(10)">+10 佛光</button>
+        </div>
+        <div class="row">
+            <button onclick="onAddHuaxi(10)">+10 欢喜</button>
+            <button onclick="onAddHuaxi(50)">+50 欢喜</button>
+            <button class="primary" onclick="onSpendHuaxi(30)">-30 欢喜（不足会失败）</button>
+        </div>
+        <div class="row">
+            <button onclick="onAddMerit(20)">+20 功德进度</button>
+            <button onclick="onAddMerit(100)">+100 功德进度（升一级）</button>
+        </div>
+    </div>
+
+    <!-- 飘字 / 音效 / 充值 / 每日欢迎 / 翻牌 -->
+    <div class="card">
+        <h2>✨ UI 组件测试</h2>
+        <div class="row">
+            <button onclick="PrayApp.showFloatingText('南无阿弥陀佛 🙏', '#FFD700')">飘字（金色）</button>
+            <button onclick="PrayApp.showFloatingText('功德无量 🌿', '#32CD32')">飘字（绿色）</button>
+            <button onclick="PrayApp.showFloatingText('欢喜自在 🌸', '#FF6347')">飘字（红色）</button>
+        </div>
+        <div class="row">
+            <button onclick="PrayApp.playSound('bell')">🔔 钟声</button>
+            <button onclick="PrayApp.playSound('chant')">🧘 咒音</button>
+            <button onclick="PrayApp.playSound('click')">👆 点击音</button>
+            <button onclick="PrayApp.toggleSound(); refreshDisplay();">🎵 切换音效开关</button>
+        </div>
+        <div class="row">
+            <button class="primary" onclick="PrayApp.showRechargeModal()">💰 打开充值面板</button>
+            <button class="primary" onclick="PrayApp.showRechargeModal(88)">💰 充值（需 88 欢喜提示）</button>
+        </div>
+        <div class="row">
+            <button class="gold" onclick="forceDailyWelcome()">☀️ 强制每日欢迎</button>
+        </div>
+        <div class="row">
+            <button onclick="PrayApp.grantFlipReward(50, 'huaxi')">翻牌 +50 欢喜</button>
+            <button onclick="PrayApp.grantFlipReward(30, 'foguang')">翻牌 +30 佛光</button>
+            <button onclick="PrayApp.grantFlipReward(60, 'merit')">翻牌 +60 功德进度</button>
+        </div>
+    </div>
+
+    <!-- 每日计数 -->
+    <div class="card">
+        <h2>📊 每日计数（跨日自动重置）</h2>
+        <div class="row">
+            <button onclick="PrayApp.incWorship(); refreshDisplay();">🙏 记一次拜佛</button>
+            <button onclick="PrayApp.incAsk(); refreshDisplay();">🎋 记一次求签</button>
+            <button onclick="PrayApp.incDialog(); refreshDisplay();">💬 记一次对话</button>
+            <button onclick="PrayApp.checkDailyReset(); refreshDisplay();">♻️ 检查跨日</button>
+        </div>
+    </div>
+
+    <!-- 页面导航 -->
+    <div class="card">
+        <h2>🧭 页面导航（真实跳转）</h2>
+        <div class="row">
+            <button onclick="PrayApp.goPray()">🏠 祈福主页</button>
+            <button onclick="PrayApp.goRemembrance()">🕯️ 追思</button>
+            <button onclick="PrayApp.goAnimal()">🐟 放生</button>
+            <button onclick="PrayApp.goAngel()">👼 守护灵</button>
+            <button onclick="PrayApp.goProfile()">👤 个人</button>
+            <button onclick="PrayApp.goSettings()">⚙️ 设置</button>
+            <button onclick="PrayApp.goAdmin()">🛠️ 管理</button>
+        </div>
+    </div>
+
+    <!-- 用户信息 -->
+    <div class="card">
+        <h2>🧑 基本用户</h2>
+        <div class="row">
+            <input id="userName" placeholder="昵称">
+            <button onclick="onUpdateName()">保存昵称</button>
+            <button onclick="PrayApp.updateUser({level: PrayApp.getUser().level + 1}); refreshDisplay();">升级 +1</button>
+        </div>
+    </div>
+
+    <!-- 控制台输出 -->
+    <div class="card">
+        <h2>📝 最近操作日志</h2>
+        <div class="echo" id="logBox">（暂无）</div>
+    </div>
+
+    <!-- 引入全局状态管理 -->
+    <script src="app-state.js"></script>
+
+    <script>
+        // ---------- 工具 ----------
+        var logBox = document.getElementById('logBox');
+        var logLines = [];
+        function log(msg) {
+            var t = new Date().toLocaleTimeString();
+            logLines.unshift('[' + t + '] ' + msg);
+            if (logLines.length > 20) logLines.pop();
+            logBox.textContent = logLines.join('\n');
+        }
+
+        function refreshDisplay() {
+            var s = PrayApp.getState();
+            var lines = [
+                '用户：' + (s.user.name || '游客') + ' (ID: ' + s.user.id + ')，等级 Lv.' + s.user.level,
+                '资产：欢喜 ' + s.assets.huaxi + ' · 佛光 ' + s.assets.foguang + ' · 功德 Lv.' + s.assets.merit + '（进度 ' + s.assets.meritProgress + '/100）',
+                '设置：音效 ' + (s.settings.soundEnabled ? '开' : '关') + ' · 推送 ' + (s.settings.notifEnabled ? '开' : '关'),
+                '每日：' + s.daily.lastDate + ' · 拜佛 ' + s.daily.worshipCount + ' · 求签 ' + s.daily.askCount + ' · 对话 ' + s.daily.dialogCount,
+                '管理：isAdmin=' + s.admin.isAdmin + ' · isSuperAdmin=' + s.admin.isSuperAdmin
+            ];
+            document.getElementById('stateDisplay').textContent = lines.join('\n');
+        }
+
+        // ---------- 事件处理 ----------
+        function onAddFoguang(n) {
+            var v = PrayApp.addFoguang(n);
+            log('佛光 +' + n + '，当前 ' + v);
+            PrayApp.playSound('bell');
+            PrayApp.showFloatingText('🔥 +' + n + ' 佛光', '#FFD700');
+            refreshDisplay();
+        }
+        function onAddHuaxi(n) {
+            var v = PrayApp.addHuaxi(n);
+            log('欢喜 +' + n + '，当前 ' + v);
+            PrayApp.showFloatingText('🌸 +' + n + ' 欢喜', '#FF6347');
+            refreshDisplay();
+        }
+        function onSpendHuaxi(n) {
+            var ok = PrayApp.spendHuaxi(n);
+            if (ok) {
+                log('欢喜 -' + n + '，剩余 ' + PrayApp.getHuaxi());
+                PrayApp.showFloatingText('💰 -' + n + ' 欢喜', '#32CD32');
+            } else {
+                log('欢喜不足，扣除失败。当前 ' + PrayApp.getHuaxi());
+                PrayApp.showFloatingText('欢喜不足 ❌', '#FF4500');
+                PrayApp.showRechargeModal(n);
+            }
+            refreshDisplay();
+        }
+        function onAddMerit(n) {
+            var r = PrayApp.addMeritProgress(n);
+            log('功德 +' + n + '，当前 Lv.' + r.merit + '，进度 ' + r.meritProgress + '/100');
+            PrayApp.playSound('chant');
+            PrayApp.showFloatingText('🌿 功德 Lv.' + r.merit + ' (+' + n + ')', '#32CD32');
+            refreshDisplay();
+        }
+        function onUpdateName() {
+            var name = document.getElementById('userName').value.trim();
+            if (!name) { log('昵称为空，未保存'); return; }
+            PrayApp.updateUser({ name: name });
+            log('昵称已更新为「' + name + '」');
+            refreshDisplay();
+        }
+        function resetAll() {
+            try { localStorage.removeItem(PrayApp.STORAGE_KEY); } catch (e) {}
+            PrayApp.loadState();
+            log('全局状态已重置，恢复默认');
+            PrayApp.showFloatingText('已重置 ♻️', '#FFD700');
+            refreshDisplay();
+        }
+        function forceDailyWelcome() {
+            // 将 lastDate 设为昨天，强制触发每日欢迎
+            var s = PrayApp.getState();
+            var d = new Date();
+            d.setDate(d.getDate() - 1);
+            var y = d.getFullYear();
+            var m = (d.getMonth() + 1).toString().padStart(2, '0');
+            var day = d.getDate().toString().padStart(2, '0');
+            s.daily.lastDate = y + '-' + m + '-' + day;
+            PrayApp.saveState();
+            log('已将每日日期设为昨天，触发欢迎...');
+            PrayApp.checkDailyWelcome();
+            refreshDisplay();
+        }
+
+        // ---------- 首次渲染 ----------
+        refreshDisplay();
+        log('测试页加载完成，PrayApp 可用。点击上方按钮开始测试。');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>西个游 - 西游记三消闯关</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        :root {
+            --primary: #D4AF37;
+            --primary-dark: #8B5A2B;
+            --gold: #FFD700;
+            --gold-light: #FFF8DC;
+            --card-bg: #2d1810;
+            --bg-dark: #1a0a0a;
+            --bg-warm: #3d2517;
+            --accent-red: #C41E3A;
+            --accent-purple: #6B3FA0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* 顶部导航 */
+        .top-nav {
+            position: fixed;
+            top: 44px;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: rgba(26,10,10,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            border-bottom: 1px solid rgba(212,175,55,0.2);
+            padding-left: 50px;
+        }
+        .top-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: var(--primary);
+            font-size: 16px;
+            letter-spacing: 3px;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            position: fixed;
+            top: 48px;
+            left: 6px;
+            width: 36px;
+            height: 36px;
+            background: rgba(139,90,43,0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            border: 1.5px solid rgba(212,175,55,0.3);
+            color: var(--gold);
+        }
+        
+        /* 跑马灯 */
+        .marquee-container {
+            position: fixed;
+            top: 88px;
+            left: 0;
+            right: 0;
+            height: 32px;
+            background: transparent;
+            overflow: hidden;
+            z-index: 40;
+        }
+        .marquee-content {
+            display: flex;
+            animation: marquee 20s linear infinite;
+            white-space: nowrap;
+        }
+        .marquee-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 40px;
+            font-size: 12px;
+            color: var(--gold);
+        }
+        .marquee-item .avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 6px;
+            font-size: 10px;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* 游戏界面 */
+        .game-screen {
+            min-height: 100vh;
+            padding-top: 130px;
+            padding-bottom: 200px;
+        }
+        
+        /* 当前关卡信息 */
+        .level-info {
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 10px;
+        }
+        .level-name {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 22px;
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(212,175,55,0.4);
+            margin-bottom: 8px;
+        }
+        .prize-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .prize-display {
+            font-size: 14px;
+            color: var(--gold);
+            font-weight: bold;
+        }
+        .total-prize {
+            font-size: 14px;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(196,30,58,0.9), rgba(139,0,0,0.9));
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--gold);
+            white-space: nowrap;
+        }
+        .total-prize .label {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        .total-prize .amount {
+            font-weight: bold;
+            color: var(--gold);
+            margin: 0 2px;
+        }
+        .total-prize .prize-hint {
+            font-size: 10px;
+            color: #FFD700;
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+        .level-progress {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+        
+        /* 牌堆区域 */
+        .card-stack-area {
+            padding: 10px 0;
+            height: 360px;
+            position: relative;
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 375px;
+        }
+        .stacked-card {
+            position: absolute;
+            width: 42px;
+            height: 58px;
+            background: linear-gradient(135deg, var(--gold-light), #E8D5A8);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.35);
+            user-select: none;
+        }
+        .stacked-card:hover {
+            transform: scale(1.12) translateY(-3px);
+            box-shadow: 0 6px 20px rgba(212,175,55,0.5);
+            z-index: 999 !important;
+        }
+        .stacked-card.covered {
+            cursor: not-allowed;
+            filter: grayscale(60%);
+        }
+        .stacked-card.covered:hover {
+            transform: none;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.35);
+            z-index: 1;
+        }
+        .stacked-card.removing {
+            animation: cardRemove 0.3s ease forwards;
+        }
+        @keyframes cardRemove {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        /* 底部区域 */
+        .bottom-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.98), rgba(0,0,0,0.85));
+            padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            z-index: 50;
+            border-top: 2px solid rgba(212,175,55,0.3);
+        }
+        
+        /* 道具栏 - 放在卡槽上方 */
+        .props-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 8px 0;
+        }
+        .prop-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 50px;
+        }
+        .prop-item:hover {
+            transform: scale(1.08);
+        }
+        .prop-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .prop-item.disabled:hover {
+            transform: none;
+        }
+        .prop-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 2px solid var(--gold);
+        }
+        .prop-name {
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+        }
+        .prop-count {
+            font-size: 9px;
+            color: var(--gold);
+        }
+        
+        /* 底部卡槽 */
+        .bottom-slots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .slot-cell {
+            width: 44px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(139,90,43,0.5), rgba(61,37,23,0.5));
+            border: 2px solid rgba(212,175,55,0.4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .slot-cell.highlight {
+            border-color: var(--gold);
+            background: rgba(212,175,55,0.2);
+            transform: scale(1.08);
+        }
+        .slot-cell.full {
+            border-color: var(--accent-red);
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+        
+        /* 引导提示 */
+        .guide-tip {
+            position: fixed;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--gold);
+            z-index: 45;
+            border: 1px solid var(--gold);
+            white-space: nowrap;
+            animation: tipBounce 2s infinite;
+        }
+        @keyframes tipBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+        
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, var(--bg-warm), var(--bg-dark));
+            border: 3px solid var(--gold);
+            border-radius: 20px;
+            padding: 28px;
+            max-width: 310px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.8);
+            transition: all 0.3s;
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        .modal-icon {
+            font-size: 56px;
+            margin-bottom: 14px;
+        }
+        .modal-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 26px;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+        .modal-text {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+        .modal-reward {
+            font-size: 34px;
+            font-weight: bold;
+            color: var(--gold);
+            font-family: 'Ma Shan Zheng', cursive;
+            margin-bottom: 18px;
+        }
+        .modal-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--gold), var(--primary-dark));
+            border: none;
+            border-radius: 22px;
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--bg-dark);
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        .modal-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(212,175,55,0.4);
+        }
+        .modal-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+        
+        /* 锦鲤弹窗 */
+        .koi-modal .koi-animation {
+            font-size: 72px;
+            animation: koiJump 1s ease infinite;
+        }
+        @keyframes koiJump {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-18px) rotate(5deg); }
+        }
+        
+        /* 通关特效 */
+        .coin-rain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 300;
+        }
+        .coin {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: coinFall 2s ease-out forwards;
+        }
+        @keyframes coinFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.88);
+            padding: 10px 18px;
+            border-radius: 20px;
+            color: var(--gold);
+            font-size: 13px;
+            z-index: 300;
+            border: 1px solid var(--gold);
+        }
+    </style>
+</head>
+<body>
+    <!-- 返回按钮 -->
+    <div class="back-btn" onclick="goBack()">⬅</div>
+    
+    <!-- 顶部导航 -->
+    <div class="top-nav">
+        <div class="top-title">🎮 西个游 · 三消闯关</div>
+    </div>
+    
+    <!-- 跑马灯 -->
+    <div class="marquee-container">
+        <div class="marquee-content">
+            <div class="marquee-item"><span class="avatar">🙏</span> 小明 通关第3关，获得奖金20元！</div>
+            <div class="marquee-item"><span class="avatar">😊</span> 张三 通关第5关，获得奖金80元！</div>
+            <div class="marquee-item"><span class="avatar">😎</span> 李四 通关第1关，获得奖金5元！</div>
+            <div class="marquee-item"><span class="avatar">🤗</span> 王五 通关第2关，获得奖金10元！</div>
+            <div class="marquee-item"><span class="avatar">😄</span> 赵六 通关第4关，获得奖金40元！</div>
+            <div class="marquee-item"><span class="avatar">🙂</span> 孙七 通关第1关，获得奖金5元！</div>
+            <div class="marquee-item"><span class="avatar">😁</span> 周八 通关第3关，获得奖金20元！</div>
+        </div>
+    </div>
+    
+    <!-- 游戏界面 -->
+    <div class="game-screen">
+        <!-- 当前关卡信息 -->
+        <div class="level-info">
+            <div class="level-name" id="currentLevelName">第一关 · 齐天大圣</div>
+            <div class="prize-row">
+                <div class="prize-display" id="prizeDisplay">本关奖金 5元</div>
+                <div class="total-prize">
+                    <span class="label">累计奖金</span>
+                    <span class="amount" id="prizePoolAmount">0.00</span>
+                    <span class="label">元</span>
+                    <span class="prize-hint" id="prizeHint"></span>
+                </div>
+            </div>
+            <div class="level-progress" id="levelProgress">进度: 0/36</div>
+        </div>
+        
+        <!-- 牌堆区域 -->
+        <div class="card-stack-area" id="cardStackArea">
+            <!-- 卡牌将由JS动态生成 -->
+        </div>
+        
+        <!-- 引导提示 -->
+        <div class="guide-tip" id="guideTip">
+            👆 点击未被遮挡的卡牌放入卡槽
+        </div>
+    </div>
+    
+    <!-- 底部区域 -->
+    <div class="bottom-area">
+        <!-- 道具栏 -->
+        <div class="props-bar">
+            <div class="prop-item" onclick="useProp('undo')">
+                <div class="prop-icon">↩️</div>
+                <div class="prop-name">撤回</div>
+                <div class="prop-count">剩余1次</div>
+            </div>
+            <div class="prop-item" onclick="useProp('shuffle')">
+                <div class="prop-icon">🔀</div>
+                <div class="prop-name">洗牌</div>
+                <div class="prop-count">剩余1次</div>
+            </div>
+            <div class="prop-item" onclick="useProp('remove')">
+                <div class="prop-icon">💨</div>
+                <div class="prop-name">移出</div>
+                <div class="prop-count">剩余1次</div>
+            </div>
+        </div>
+        
+        <!-- 底部卡槽 -->
+        <div class="bottom-slots">
+            <div class="slot-cell" id="slot0"></div>
+            <div class="slot-cell" id="slot1"></div>
+            <div class="slot-cell" id="slot2"></div>
+            <div class="slot-cell" id="slot3"></div>
+            <div class="slot-cell" id="slot4"></div>
+            <div class="slot-cell" id="slot5"></div>
+            <div class="slot-cell" id="slot6"></div>
+        </div>
+    </div>
+    
+    <!-- 弹窗：过关 -->
+    <div class="modal-overlay" id="winModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <div class="modal-title">恭喜过关！</div>
+            <div class="modal-text" id="winLevelName">成功通关第一关</div>
+            <div class="modal-reward" id="winReward">+5元</div>
+            <button class="modal-btn" onclick="shareAndNext()">点击分享继续挑战</button>
+        </div>
+    </div>
+    
+    <!-- 弹窗：失败 -->
+    <div class="modal-overlay" id="failModal">
+        <div class="modal-content">
+            <div class="modal-icon">😢</div>
+            <div class="modal-title">挑战失败</div>
+            <div class="modal-text">很遗憾，本关未能通过。<br>奖金已归零，请重新开始！</div>
+            <button class="modal-btn" onclick="restartGame()">重新挑战</button>
+        </div>
+    </div>
+    
+    <!-- 弹窗：锦鲤 -->
+    <div class="modal-overlay koi-modal" id="koiModal">
+        <div class="modal-content">
+            <div class="koi-animation">🐟</div>
+            <div class="modal-title">锦鲤降临！</div>
+            <div class="modal-text">恭喜您获得【750元锦鲤一条】<br>马上领取放生！</div>
+            <button class="modal-btn" onclick="collectKoi()">领取放生</button>
+        </div>
+    </div>
+    
+    <!-- 弹窗：终极通关 -->
+    <div class="modal-overlay" id="finalWinModal">
+        <div class="modal-content">
+            <div class="modal-icon">🏆</div>
+            <div class="modal-title">终极通关！</div>
+            <div class="modal-text">恭喜您通关全部7关！<br>198元奖金已放入您的账户！</div>
+            <div class="modal-reward">¥ 198.00</div>
+            <button class="modal-btn" onclick="withdrawReward()">立即提现</button>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            currentLevel: 1,
+            prizePool: 0,
+            slots: [null, null, null, null, null, null, null],
+            props: { undo: 1, shuffle: 1, remove: 1 },
+            cards: [],
+            levelConfigs: [
+                { name: '第一关', theme: '齐天大圣', icon: '🐒', difficulty: '超简单', passRate: 100, reward: 5, totalReward: 5, requireProps: [], propCounts: {}, iconCount: 4 },
+                { name: '第二关', theme: '花果山', icon: '🏔️', difficulty: '超简单', passRate: 100, reward: 5, totalReward: 10, requireProps: [], propCounts: {}, iconCount: 5 },
+                { name: '第三关', theme: '凌霄天宫', icon: '☁️', difficulty: '超简单', passRate: 100, reward: 10, totalReward: 20, requireProps: [], propCounts: {}, iconCount: 6 },
+                { name: '第四关', theme: '大闹天宫', icon: '🔥', difficulty: '简单', passRate: 100, reward: 20, totalReward: 40, requireProps: ['undo', 'shuffle', 'remove'], propCounts: { undo: 1, shuffle: 1, remove: 1 }, iconCount: 8 },
+                { name: '第五关', theme: '西天取经', icon: '🗻', difficulty: '中等', passRate: 80, reward: 40, totalReward: 80, requireProps: ['undo', 'shuffle', 'remove'], propCounts: { undo: 1, shuffle: 1, remove: 1 }, iconCount: 9 },
+                { name: '第六关', theme: '九九八十一难', icon: '🪷', difficulty: '超难', passRate: 0.1, reward: 80, totalReward: 160, requireProps: ['undo', 'shuffle', 'remove'], propCounts: { undo: 3, shuffle: 3, remove: 3 }, iconCount: 18 },
+                { name: '第七关', theme: '取得真经', icon: '🙏', difficulty: '中等', passRate: 50, reward: 38, totalReward: 198, requireProps: ['undo', 'shuffle', 'remove'], propCounts: { undo: 1, shuffle: 1, remove: 1 }, iconCount: 12 }
+            ],
+            cardIcons: ['🐵', '🦍', '🐷', '👨‍🦳', '🐲', '🚶', '🙏', '👑', '🐉', '🌟', '😄', '💰', '🎎', '👸', '⚡', '✨', '😊', '💍'],
+            propUsedCounts: { undo: 0, shuffle: 0, remove: 0 }
+        };
+
+        function goBack() {
+            try {
+                window.parent.goPage(0);
+            } catch(e) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function showToast(text) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = text;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function startLevel(level) {
+            gameData.currentLevel = level;
+            const config = gameData.levelConfigs[level - 1];
+            
+            let displayName = `${config.name} · ${config.theme}`;
+            if (level === 2) {
+                displayName = '第二关 · 重游花果山';
+            }
+            document.getElementById('currentLevelName').textContent = displayName;
+            document.getElementById('prizeDisplay').textContent = `本关奖金${config.reward}元`;
+            
+            const hintEl = document.getElementById('prizeHint');
+            if (level === 6) {
+                hintEl.textContent = '差一关就可以提现了';
+            } else {
+                hintEl.textContent = '';
+            }
+            
+            const maxUses = level === 6 ? 2 : 1;
+            gameData.props = { 
+                undo: maxUses, 
+                shuffle: maxUses, 
+                remove: maxUses 
+            };
+            
+            initGame();
+        }
+
+        function initGame() {
+            gameData.slots = [null, null, null, null, null, null, null];
+            gameData.cards = [];
+            gameData.propUsedCounts = { undo: 0, shuffle: 0, remove: 0 };
+            
+            const level = gameData.currentLevel;
+            const config = gameData.levelConfigs[level - 1];
+            
+            const cardW = 42;
+            const cardH = 58;
+            const gap = 4;
+            const areaW = 375;
+            
+            let layers;
+            
+            if (level === 1) {
+                layers = [
+                    { cols: 4, count: 12, offsetX: 0, offsetY: 0, clickable: true }
+                ];
+            } else if (level === 2) {
+                layers = [
+                    { cols: 4, count: 12, offsetX: 0, offsetY: 0, clickable: true },
+                    { cols: 3, count: 3, offsetX: (cardW+gap)/2, offsetY: cardH/2, clickable: true }
+                ];
+            } else if (level === 3) {
+                layers = [
+                    { cols: 4, count: 12, offsetX: 0, offsetY: 0, clickable: true },
+                    { cols: 4, count: 12, offsetX: (cardW+gap)/2, offsetY: cardH/2, clickable: true }
+                ];
+            } else if (level === 4) {
+                layers = [
+                    { cols: 4, count: 12, offsetX: 0, offsetY: 0, clickable: false },
+                    { cols: 4, count: 12, offsetX: (cardW+gap)/2, offsetY: cardH/2, clickable: true }
+                ];
+            } else if (level === 5) {
+                layers = [
+                    { cols: 5, count: 15, offsetX: 0, offsetY: 0, clickable: false },
+                    { cols: 4, count: 12, offsetX: (cardW+gap)/2, offsetY: cardH/2, clickable: true }
+                ];
+            } else if (level === 6) {
+                layers = [
+                    { cols: 6, count: 18, offsetX: 0, offsetY: 0, clickable: false },
+                    { cols: 6, count: 18, offsetX: (cardW+gap)/2, offsetY: cardH/2, clickable: false },
+                    { cols: 6, count: 18, offsetX: cardW+gap, offsetY: cardH+gap, clickable: true }
+                ];
+            } else {
+                layers = [
+                    { cols: 5, count: 15, offsetX: 0, offsetY: 0, clickable: false },
+                    { cols: 5, count: 15, offsetX: (cardW+gap)/2, offsetY: cardH/2, clickable: false },
+                    { cols: 2, count: 6, offsetX: cardW+gap+20, offsetY: cardH+gap, clickable: true }
+                ];
+            }
+            
+            const totalCards = layers.reduce((sum, l) => sum + l.count, 0);
+            const maxIconCount = Math.min(Math.floor(totalCards / 3), gameData.cardIcons.length);
+            const iconCount = Math.min(config.iconCount, maxIconCount);
+            const icons = gameData.cardIcons.slice(0, iconCount);
+            
+            const cardsPerIcon = Math.floor(totalCards / iconCount);
+            const remainder = totalCards % iconCount;
+            
+            let cardPool = [];
+            icons.forEach((icon, idx) => {
+                const count = cardsPerIcon + (idx < remainder ? 1 : 0);
+                const actualCount = Math.floor(count / 3) * 3;
+                for (let i = 0; i < actualCount; i++) {
+                    cardPool.push({ icon: icon });
+                }
+            });
+            
+            const remaining = totalCards - cardPool.length;
+            const addCount = Math.ceil(remaining / 3) * 3;
+            for (let i = 0; i < addCount; i++) {
+                const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+                cardPool.push({ icon: randomIcon });
+            }
+            
+            cardPool = cardPool.slice(0, totalCards);
+            cardPool.sort(() => Math.random() - 0.5);
+            
+            if (level === 6) {
+                const unSolvable = Math.random() < 0.999;
+                if (unSolvable) {
+                    const uniqueIcons = [...new Set(cardPool.map(c => c.icon))];
+                    if (uniqueIcons.length > 1) {
+                        let randomIcon = uniqueIcons[Math.floor(Math.random() * uniqueIcons.length)];
+                        while (randomIcon === cardPool[cardPool.length - 1].icon) {
+                            randomIcon = uniqueIcons[Math.floor(Math.random() * uniqueIcons.length)];
+                        }
+                        cardPool[cardPool.length - 1].icon = randomIcon;
+                    }
+                }
+            }
+            
+            gameData.cards = [];
+            let poolIndex = 0;
+            
+            layers.forEach((layer, layerIdx) => {
+                const layerWidth = layer.cols * (cardW + gap) - gap;
+                const startX = (areaW - layerWidth) / 2 + layer.offsetX;
+                
+                for (let i = 0; i < layer.count && poolIndex < cardPool.length; i++) {
+                    const row = Math.floor(i / layer.cols);
+                    const col = i % layer.cols;
+                    const x = startX + col * (cardW + gap);
+                    const y = layer.offsetY + row * (cardH + gap);
+                    
+                    gameData.cards.push({
+                        icon: cardPool[poolIndex].icon,
+                        removed: false,
+                        x: x,
+                        y: y,
+                        layer: layerIdx,
+                        clickable: layer.clickable
+                    });
+                    poolIndex++;
+                }
+            });
+            
+            renderCards();
+            renderSlots();
+        }
+
+        function renderCards() {
+            const area = document.getElementById('cardStackArea');
+            area.innerHTML = '';
+            
+            gameData.cards.forEach((card, idx) => {
+                if (card.removed) return;
+                
+                const cardEl = document.createElement('div');
+                cardEl.className = 'stacked-card';
+                if (!card.clickable) {
+                    cardEl.classList.add('covered');
+                }
+                cardEl.textContent = card.icon;
+                cardEl.style.left = card.x + 'px';
+                cardEl.style.top = card.y + 'px';
+                cardEl.style.zIndex = card.layer * 10 + card.y;
+                
+                cardEl.onclick = () => clickCard(idx);
+                area.appendChild(cardEl);
+            });
+            
+            updateProgress();
+        }
+
+        function renderSlots() {
+            for (let i = 0; i < 7; i++) {
+                const slot = document.getElementById(`slot${i}`);
+                const icon = gameData.slots[i];
+                slot.textContent = icon || '';
+                
+                const filledCount = gameData.slots.filter(s => s !== null).length;
+                slot.classList.toggle('full', filledCount === 7);
+            }
+        }
+
+        function clickCard(index) {
+            const card = gameData.cards[index];
+            if (card.removed) return;
+            if (!card.clickable) {
+                showToast('被遮挡的卡牌无法点击');
+                return;
+            }
+            
+            const emptySlot = gameData.slots.findIndex(s => s === null);
+            if (emptySlot === -1) {
+                checkGameOver();
+                return;
+            }
+            
+            gameData.slots[emptySlot] = card.icon;
+            card.removed = true;
+            
+            updateClickability();
+            renderCards();
+            renderSlots();
+            
+            setTimeout(() => checkMatch(), 100);
+        }
+
+        function updateClickability() {
+            const cardW = 42;
+            const cardH = 58;
+            const overlapX = cardW * 0.6;
+            const overlapY = cardH * 0.6;
+            
+            const remaining = gameData.cards.map((c, i) => ({ ...c, idx: i })).filter(c => !c.removed);
+            
+            remaining.forEach(card => {
+                let blocked = false;
+                remaining.forEach(other => {
+                    if (other.idx === card.idx || other.removed) return;
+                    if (other.layer <= card.layer) return;
+                    
+                    const overlap = 
+                        Math.abs(other.x - card.x) < overlapX &&
+                        Math.abs(other.y - card.y) < overlapY;
+                    if (overlap) blocked = true;
+                });
+                
+                if (!blocked) {
+                    gameData.cards[card.idx].clickable = true;
+                }
+            });
+        }
+
+        function checkMatch() {
+            const counts = {};
+            gameData.slots.forEach(icon => {
+                if (icon) counts[icon] = (counts[icon] || 0) + 1;
+            });
+            
+            let matched = false;
+            for (let icon in counts) {
+                if (counts[icon] >= 3) {
+                    let removed = 0;
+                    for (let i = 0; i < 7 && removed < 3; i++) {
+                        if (gameData.slots[i] === icon) {
+                            gameData.slots[i] = null;
+                            removed++;
+                            matched = true;
+                        }
+                    }
+                }
+            }
+            
+            if (matched) {
+                renderSlots();
+                playMatchEffect();
+            }
+            
+            const remainingCards = gameData.cards.filter(c => !c.removed).length;
+            const remainingSlots = gameData.slots.filter(s => s !== null).length;
+            
+            if (remainingCards === 0 && remainingSlots === 0) {
+                setTimeout(() => winLevel(), 500);
+                return;
+            }
+            
+            if (remainingCards === 0 && remainingSlots > 0) {
+                if (!hasPotentialMatch()) {
+                    setTimeout(() => failLevel(), 500);
+                    return;
+                }
+            }
+            
+            if (checkGameOver()) {
+                return;
+            }
+        }
+        
+        function hasPotentialMatch() {
+            const counts = {};
+            gameData.slots.forEach(icon => {
+                if (icon) counts[icon] = (counts[icon] || 0) + 1;
+            });
+            
+            for (let icon in counts) {
+                if (counts[icon] >= 3) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkGameOver() {
+            const filledCount = gameData.slots.filter(s => s !== null).length;
+            if (filledCount < 7) return false;
+            
+            const counts = {};
+            gameData.slots.forEach(icon => {
+                if (icon) counts[icon] = (counts[icon] || 0) + 1;
+            });
+            
+            for (let icon in counts) {
+                if (counts[icon] >= 3) return false;
+            }
+            
+            setTimeout(() => failLevel(), 300);
+            return true;
+        }
+
+        function playMatchEffect() {
+            document.querySelectorAll('.slot-cell').forEach(slot => {
+                slot.classList.add('highlight');
+                setTimeout(() => slot.classList.remove('highlight'), 200);
+            });
+        }
+
+        function updateProgress() {
+            const remainingCards = gameData.cards.filter(c => !c.removed).length;
+            const totalCards = gameData.cards.length;
+            const progress = totalCards - remainingCards;
+            document.getElementById('levelProgress').textContent = `进度: ${progress}/${totalCards}`;
+        }
+
+        function winLevel() {
+            const level = gameData.currentLevel;
+            const config = gameData.levelConfigs[level - 1];
+            
+            const passRate = config.passRate / 100;
+            if (passRate < 1 && Math.random() > passRate) {
+                setTimeout(() => failLevel(), 300);
+                return;
+            }
+            
+            gameData.prizePool = config.totalReward;
+            document.getElementById('prizePoolAmount').textContent = config.totalReward.toFixed(2);
+            
+            document.getElementById('winLevelName').textContent = `成功通关${config.name}`;
+            document.getElementById('winReward').textContent = `+${config.reward}元`;
+            
+            if (level === 6) {
+                document.getElementById('winReward').textContent = '+80元（差一关就可以提现了）';
+            }
+            
+            document.getElementById('winModal').classList.add('show');
+            
+            playCoinRain();
+            
+            if (level === 4) {
+                setTimeout(() => {
+                    document.getElementById('koiModal').classList.add('show');
+                }, 1500);
+            }
+        }
+
+        function checkRequiredProps(level) {
+            const config = gameData.levelConfigs[level - 1];
+            
+            for (const prop of config.requireProps) {
+                const required = config.propCounts[prop] || 1;
+                if (gameData.propUsedCounts[prop] < required) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function shareAndNext() {
+            document.getElementById('winModal').classList.remove('show');
+            showToast('分享成功！正在进入下一关...');
+            
+            setTimeout(() => {
+                if (gameData.currentLevel < 7) {
+                    gameData.currentLevel++;
+                    startLevel(gameData.currentLevel);
+                } else {
+                    document.getElementById('finalWinModal').classList.add('show');
+                }
+            }, 1500);
+        }
+
+        function nextLevel() {
+            document.getElementById('winModal').classList.remove('show');
+            if (gameData.currentLevel < 7) {
+                gameData.currentLevel++;
+                startLevel(gameData.currentLevel);
+            } else {
+                document.getElementById('finalWinModal').classList.add('show');
+            }
+        }
+
+        function failLevel() {
+            gameData.prizePool = 0;
+            document.getElementById('prizePoolAmount').textContent = '0.00';
+            document.getElementById('failModal').classList.add('show');
+        }
+
+        function restartGame() {
+            document.getElementById('failModal').classList.remove('show');
+            gameData.currentLevel = 1;
+            startLevel(1);
+        }
+
+        function useProp(type) {
+            if (gameData.props[type] <= 0) {
+                showToast('该道具次数已用完');
+                return;
+            }
+            gameData.props[type]--;
+            gameData.propUsedCounts[type]++;
+            
+            switch(type) {
+                case 'undo':
+                    showToast('撤回上一步...');
+                    break;
+                case 'shuffle':
+                    showToast('正在洗牌...');
+                    shuffleCards();
+                    break;
+                case 'remove':
+                    showToast('移出前3张卡牌...');
+                    break;
+            }
+            updatePropUI();
+        }
+
+        function shuffleCards() {
+            const remaining = gameData.cards.filter(c => !c.removed);
+            const icons = remaining.map(c => c.icon);
+            icons.sort(() => Math.random() - 0.5);
+            
+            let idx = 0;
+            gameData.cards.forEach(c => {
+                if (!c.removed) {
+                    c.icon = icons[idx];
+                    idx++;
+                }
+            });
+            
+            renderCards();
+        }
+
+        function updatePropUI() {
+            const items = document.querySelectorAll('.prop-item');
+            const types = ['undo', 'shuffle', 'remove'];
+            items.forEach((item, idx) => {
+                const count = item.querySelector('.prop-count');
+                count.textContent = `剩余${gameData.props[types[idx]]}次`;
+                item.classList.toggle('disabled', gameData.props[types[idx]] <= 0);
+            });
+        }
+
+        function collectKoi() {
+            document.getElementById('koiModal').classList.remove('show');
+            showToast('恭喜获得【锦鲤达人】称号！');
+        }
+
+        function withdrawReward() {
+            document.getElementById('finalWinModal').classList.remove('show');
+            showToast('申请提现成功！');
+        }
+
+        function playCoinRain() {
+            const container = document.createElement('div');
+            container.className = 'coin-rain';
+            document.body.appendChild(container);
+            
+            for (let i = 0; i < 30; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                coin.style.left = Math.random() * 100 + 'vw';
+                coin.style.animationDelay = Math.random() * 0.5 + 's';
+                coin.style.animationDuration = (1.5 + Math.random()) + 's';
+                container.appendChild(coin);
+            }
+            
+            setTimeout(() => container.remove(), 3000);
+        }
+
+        window.onload = function() {
+            startLevel(1);
+        };
+    </script>
+</body>
+</html>
